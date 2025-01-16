@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Character
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Character
+  - Water
+  - UI
+  - WorldUI
+  - Viewmodel
+  - VisuallyHidden
+  - IgnoreCollision
+  - AvatarEditor
+  - VoxelWorld
+  - ProjectileReceiver
+  - 
+  - 
+  - 
+  - 
+  - GameLayer0
+  - GameLayer1
+  - GameLayer2
+  - GameLayer3
+  - GameLayer4
+  - GameLayer5
+  - GameLayer6
+  - GameLayer7
+  - GameLayer8
+  - GameLayer9
+  - GameLayer10
+  - GameLayer11
+  - GameLayer12
+  - GameLayer13
+  - GameLayer14
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0

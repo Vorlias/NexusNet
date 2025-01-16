@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"outDir": "Typescript~/out",
+		"paths": {
+			"@*": ["AirshipPackages/@*"]
+		},
+		"allowSyntheticDefaultImports": true,
+		"downlevelIteration": true,
+		"module": "commonjs",
+		"moduleResolution": "Node",
+		"noLib": true,
+		"resolveJsonModule": true,
+		"experimentalDecorators": true,
+		"forceConsistentCasingInFileNames": true,
+		"moduleDetection": "force",
+		"strict": true,
+		"target": "ESNext",
+		"typeRoots": ["AirshipPackages/@Easy/Core/Shared/Types"],
+		"skipLibCheck": true,
+		"strictPropertyInitialization": false
+	},
+	"airship": {
+		"type": "game",
+		"package": "Typescript~",
+		"runtimePath": "AirshipPackages/@Easy/Core/Shared/Runtime"
+	},
+	"include": ["**/*.ts", "**/*.tsx"],
+	"exclude": ["Typescript~/node_modules"]
+}
