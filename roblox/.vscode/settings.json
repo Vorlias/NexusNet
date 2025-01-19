@@ -1,0 +1,10 @@
+{
+    "files.readonlyInclude": {
+        "out/**.d.ts": true,
+        "out/**.lua": true
+    },
+    "explorer.fileNesting.patterns": {
+        "*.d.ts": "${capture}.lua",
+        "index.d.ts": "init.lua"
+    }
+}

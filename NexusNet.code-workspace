@@ -7,7 +7,15 @@
 		{
 			"path": "airship/AirshipNexusNet/Assets",
 			"name": "Airship"
+		},
+		{
+			"path": "transformer",
+			"name": "Transformer"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"workbench.editor.customLabels.patterns": {
+			"**/index.ts": "${dirname} (index.ts)"
+		}
+	}
 }
