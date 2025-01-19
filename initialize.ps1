@@ -11,4 +11,4 @@ function Create-Link($target, $link) {
 
 Create-Link "$PSScriptRoot\core" "airship\src\Core"
 Create-Link "$PSScriptRoot\core" "roblox\src\Core"
-Create-Link "$PSScriptRoot\airship\src" "airship\AirshipNexusNet\Assets\AirshipPackages\@Vorlias\Net"
+Create-Link "$PSScriptRoot\airship\src" "airship\AirshipNexusNet\Assets\AirshipPackages\@Vorlias\NexusNet"
