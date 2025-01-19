@@ -1,6 +1,8 @@
-# Nexus Networking
-
-A cross-platform networking solution for immersive games.
+<div align="center">
+  <img src="./icon.png">
+  <h1>Nexus Networking</h1>
+  <p>Cross-platform Networking for Multiplayer Platforms, powered by the Network Object Model</p>
+</div>
 
 ## Features
 
