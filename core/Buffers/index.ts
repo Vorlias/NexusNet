@@ -1,16 +1,16 @@
 import { NetworkBuffer } from "../Types/NetworkTypes";
 
-type int8 = number & { readonly __nominal_i8?: never };
-type uint8 = number & { readonly __nominal_u8?: never };
+export type int8 = number & { readonly __nominal_i8?: never };
+export type uint8 = number & { readonly __nominal_u8?: never };
 
-type int16 = number & { readonly __nominal_i16?: never };
-type uint16 = number & { readonly __nominal_u16?: never };
+export type int16 = number & { readonly __nominal_i16?: never };
+export type uint16 = number & { readonly __nominal_u16?: never };
 
-type int32 = number & { readonly __nominal_i32?: never };
-type uint32 = number & { readonly __nominal_u32?: never };
+export type int32 = number & { readonly __nominal_i32?: never };
+export type uint32 = number & { readonly __nominal_u32?: never };
 
-type float32 = number & { readonly __nominal_f32?: never };
-type float64 = number & { readonly __nominal_f64?: never };
+export type float32 = number & { readonly __nominal_f32?: never };
+export type float64 = number & { readonly __nominal_f64?: never };
 
 /**
  * The buffer encoders available to Nexus Networking

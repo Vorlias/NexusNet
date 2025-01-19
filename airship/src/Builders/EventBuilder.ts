@@ -2,13 +2,15 @@ import {
 	ClientEventDeclaration,
 	NetworkEventBuilder,
 	NetworkModelConfiguration,
+	RemoteRunContext,
 	ServerEventDeclaration,
 } from "../Core/Types/NetworkObjectModel";
 import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 
-export class EventBuilder<TArgs extends ReadonlyArray<unknown>> implements NetworkEventBuilder<TArgs> {
+export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implements NetworkEventBuilder<TArgs> {
 	unreliable = false;
 	useBuffer = false;
+
 	private arguments: StaticNetworkType[] | undefined;
 
 	SetUseBuffer(useBuffer: boolean): this {
@@ -21,7 +23,9 @@ export class EventBuilder<TArgs extends ReadonlyArray<unknown>> implements Netwo
 		return this;
 	}
 
-	public WithArguments<T extends ReadonlyArray<unknown> = TArgs>(...values: ToNetworkArguments<T>): EventBuilder<T> {
+	public WithArguments<T extends ReadonlyArray<unknown> = TArgs>(
+		...values: ToNetworkArguments<T>
+	): AirshipEventBuilder<T> {
 		this.arguments = values as StaticNetworkType<TArgs>[];
 		return this;
 	}
@@ -29,16 +33,26 @@ export class EventBuilder<TArgs extends ReadonlyArray<unknown>> implements Netwo
 	OnServer(configuration: NetworkModelConfiguration): ServerEventDeclaration<TArgs> {
 		return {
 			Type: "Event",
+			RunContext: RemoteRunContext.Server,
 			UseBufferSerialization: configuration.UseBuffers,
 			Debugging: configuration.Logging,
+			Arguments: this.arguments,
+			CallbackMiddleware: [...(configuration.ServerCallbackMiddleware ?? [])],
+			InvokeMiddleware: [],
+			Unreliable: this.unreliable,
 		};
 	}
 
 	OnClient(configuration: NetworkModelConfiguration): ClientEventDeclaration<TArgs> {
 		return {
 			Type: "Event",
+			RunContext: RemoteRunContext.Client,
 			UseBufferSerialization: configuration.UseBuffers,
 			Debugging: configuration.Logging,
+			Arguments: this.arguments,
+			CallbackMiddleware: [...(configuration.ClientCallbackMiddleware ?? [])],
+			InvokeMiddleware: [],
+			Unreliable: this.unreliable,
 		};
 	}
 }

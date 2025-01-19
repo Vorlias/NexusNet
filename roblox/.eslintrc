@@ -5,7 +5,7 @@
 		"useJSXTextNode": true,
 		"ecmaVersion": 2018,
 		"sourceType": "module",
-		"project": "./roblox/tsconfig.json"
+		"project": "./tsconfig.json"
 	},
 	"ignorePatterns": [
 		"/out"

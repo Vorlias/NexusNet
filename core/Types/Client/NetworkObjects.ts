@@ -1,9 +1,11 @@
+import { Connection } from "../Dist";
+
 export interface ClientListenerEvent<CallArguments extends ReadonlyArray<unknown>> {
 	/**
 	 * Connects a callback function to this event, in which if any events are recieved by the server will be called.
 	 * @param callback The callback function
 	 */
-	Connect(callback: (...args: CallArguments) => void): () => void;
+	Connect(callback: (...args: CallArguments) => void): Connection;
 }
 
 /**
@@ -16,6 +18,8 @@ export interface ClientSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 	 */
 	SendToServer(...args: CallArguments): void;
 }
+
+export type ClientEventLike = ClientListenerEvent<never> | ClientSenderEvent<never>;
 
 /**
  * Interface for client sender events

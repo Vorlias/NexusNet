@@ -1,5 +1,5 @@
 {
-  "name": "@rbxts/roblox",
+  "name": "@rbxts/nexus-net",
   "version": "1.0.0",
   "main": "out/init.lua",
   "scripts": {

@@ -1,11 +1,11 @@
-import { NetworkPlayer } from "../Dist";
+import { Connection, NetworkPlayer } from "../Dist";
 
 export interface ServerListenerEvent<CallArguments extends ReadonlyArray<unknown>> {
 	/**
 	 * Connects a callback function to this event, in which if any events are recieved by the client will be called.
 	 * @param callback The callback function
 	 */
-	Connect(callback: (player: NetworkPlayer, ...args: CallArguments) => void): () => void;
+	Connect(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
 }
 
 /**
@@ -40,6 +40,8 @@ export interface ServerSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 	 */
 	SendToPlayers(targets: Array<NetworkPlayer>, ...args: CallArguments): void;
 }
+
+export type ServerEventLike = ServerListenerEvent<never> | ServerSenderEvent<never>;
 
 /**
  * Interface for client listening events

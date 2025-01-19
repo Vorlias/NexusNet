@@ -1,2 +1,3 @@
 airship/src/Core
 roblox/src/Core
+core/**/*.meta
