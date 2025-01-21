@@ -1,12 +1,12 @@
-import { ClientListenerEvent, ClientSenderEvent } from "@Vorlias/Net/Core/Types/Client/NetworkObjects";
-import { Connection } from "@Vorlias/Net/Core/Types/Dist";
+import { ClientListenerEvent, ClientSenderEvent } from "@Vorlias/NexusNet/Core/Types/Client/NetworkObjects";
+import { Connection } from "@Vorlias/NexusNet/Core/Types/Dist";
 import { NetworkedEvent } from "../Internal/NetworkEvent";
-import { ClientEventDeclaration } from "@Vorlias/Net/Core/Types/NetworkObjectModel";
+import { ClientEventDeclaration } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { AirshipScriptConnection } from "../NetConnection";
-import { StaticNetworkType } from "@Vorlias/Net/Core/Types/NetworkTypes";
-import { ClientCallbackMiddleware } from "@Vorlias/Net/Core/Middleware/Types";
-import { ParseClientInvokeArgs } from "@Vorlias/Net/Core/Serialization/InvokeHandlers";
-import { CreateClientEventCallback } from "@Vorlias/Net/Core/Serialization/CallbackHandlers";
+import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { ClientCallbackMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
+import { ParseClientInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
+import { CreateClientEventCallback } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 
 export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<T>, ClientListenerEvent<T> {
 	private instance: NetworkedEvent;

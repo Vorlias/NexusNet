@@ -7,7 +7,7 @@ import { NetDeserializeArguments, NetSerializeArguments } from "./Serializer";
 interface ServerEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly UseBuffers: boolean;
 	readonly NetworkTypes: StaticNetworkType<any>[];
-	readonly Callback: (player: Player, ...args: TArgs) => void;
+	readonly Callback: (player: NetworkPlayer, ...args: TArgs) => void;
 	readonly CallbackMiddleware: ServerCallbackMiddleware[];
 }
 type AnyServerCallback<T extends readonly unknown[] = readonly unknown[]> = (player: NetworkPlayer, ...args: T) => void;
@@ -18,10 +18,10 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 	const networkTypes = options.NetworkTypes;
 	let callback = options.Callback;
 
-	for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyServerCallback);
+	// for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyServerCallback);
 
 	if (useBuffers && networkTypes.size() > 0) {
-		return ((player: Player, buffer: buffer) => {
+		return ((player: NetworkPlayer, buffer: buffer) => {
 			const data = TransformBufferToArgs(networkTypes, buffer);
 			const transformedArgs = NetDeserializeArguments(networkTypes, data);
 
@@ -41,7 +41,7 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 			callback(player, ...(transformedArgs as unknown as TArgs));
 		}) as AnyServerCallback;
 	} else if (networkTypes.size() > 0) {
-		return (player: Player, ...args: unknown[]) => {
+		return (player: NetworkPlayer, ...args: unknown[]) => {
 			const transformedArgs = NetDeserializeArguments(networkTypes, args);
 
 			// Receiving from client needs validation
@@ -78,7 +78,7 @@ export function CreateClientEventCallback<TArgs extends ReadonlyArray<unknown> =
 	const networkTypes = options.NetworkTypes;
 	let callback = options.Callback;
 
-	for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyClientCallback);
+	// for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyClientCallback);
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((buffer: buffer) => {

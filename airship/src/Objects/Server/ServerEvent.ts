@@ -1,12 +1,12 @@
-import { Connection, NetworkPlayer } from "@Vorlias/Net/Core/Types/Dist";
-import { ServerListenerEvent, ServerSenderEvent } from "@Vorlias/Net/Core/Types/Server/NetworkObjects";
+import { Connection, NetworkPlayer } from "@Vorlias/NexusNet/Core/Types/Dist";
+import { ServerListenerEvent, ServerSenderEvent } from "@Vorlias/NexusNet/Core/Types/Server/NetworkObjects";
 import { NetworkedEvent } from "../Internal/NetworkEvent";
-import { ServerEventDeclaration } from "@Vorlias/Net/Core/Types/NetworkObjectModel";
-import { CreateServerEventCallback } from "@Vorlias/Net/Core/Serialization/CallbackHandlers";
+import { ServerEventDeclaration } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
+import { CreateServerEventCallback } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 import { AirshipScriptConnection } from "../NetConnection";
-import { StaticNetworkType } from "@Vorlias/Net/Core/Types/NetworkTypes";
-import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "@Vorlias/Net/Core/Middleware/Types";
-import { ParseServerInvokeArgs } from "@Vorlias/Net/Core/Serialization/InvokeHandlers";
+import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
+import { ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import { Airship } from "@Easy/Core/Shared/Airship";
 

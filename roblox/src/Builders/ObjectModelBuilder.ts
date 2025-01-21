@@ -14,7 +14,7 @@ import {
 	RemoteDeclarations,
 	ServerBuilder,
 } from "../Core/Types/NetworkObjectModel";
-import { Identity, Named } from "../Core/Types/Utility";
+import { Identity, MergeIdentity, Named } from "../Core/Types/Utility";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { RobloxNetworkModelConfiguration } from "../Types/NetworkObjectModel";
@@ -32,7 +32,7 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 	AddServer<TName extends string, TNomRemote extends AnyNetworkDeclaration>(
 		id: TName,
 		declaration: ServerBuilder<TNomRemote>,
-	): RobloxNetworkObjectModelBuilder<Identity<Named<TName, TNomRemote>>> {
+	): RobloxNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
 		const definition = declaration.OnServer(this.configuration);
 		this.declarations = {
 			...this.declarations,
@@ -45,7 +45,7 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 	AddClient<TName extends string, TNomRemote extends AnyNetworkDeclaration>(
 		id: TName,
 		declaration: ClientBuilder<TNomRemote>,
-	): RobloxNetworkObjectModelBuilder<Identity<Named<TName, TNomRemote>>> {
+	): RobloxNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
 		const definition = declaration.OnClient(this.configuration);
 		this.declarations = {
 			...this.declarations,

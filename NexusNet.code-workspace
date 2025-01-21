@@ -11,6 +11,10 @@
 		{
 			"path": "transformer",
 			"name": "Transformer"
+		},
+		{
+			"path": "tests",
+			"name": "Tests"
 		}
 	],
 	"settings": {

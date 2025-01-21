@@ -2,6 +2,7 @@ import { ToNetworkArguments } from "./Core/Types/NetworkTypes";
 import { EventBuilder } from "./Builders/EventBuilder";
 import { RobloxNetworkObjectModelBuilder } from "./Builders/ObjectModelBuilder";
 export { NexusTypes } from "./RobloxTypes";
+export { NexusX } from "./Core/NexusX";
 
 declare module "./Core/Types/Dist" {
 	export interface ModuleTypes {

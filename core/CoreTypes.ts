@@ -1,27 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { float32, float64, int16, int32, int8, NCoreNetworkEncoders, uint16, uint32, uint8 } from "./Buffers";
 import { NetIsSerializer } from "./Serialization/Serializer";
 import { NetworkBuffer, NetworkSerializableType, NetworkType } from "./Types/NetworkTypes";
+import { hashstring } from "./Utils/hash";
 
 // Gets an output type
-export type Out<TType> = TType extends NetworkSerializableType<infer _, infer OType>
-	? OType
-	: TType extends NetworkType<infer OType>
-	? OType
-	: never;
+export type Out<TType> =
+	TType extends NetworkSerializableType<infer _, infer OType>
+		? OType
+		: TType extends NetworkType<infer OType>
+			? OType
+			: never;
 
 // Gets an input type
-export type In<TType> = TType extends NetworkSerializableType<infer IType, infer _>
-	? IType
-	: TType extends NetworkType<infer IType>
-	? IType
-	: never;
+export type In<TType> =
+	TType extends NetworkSerializableType<infer IType, infer _>
+		? IType
+		: TType extends NetworkType<infer IType>
+			? IType
+			: never;
 
 /**
  * A network string type
  */
 const String: NetworkType<string> = {
 	Name: "string",
-	Validate(value) {
+	Validate(value): value is string {
 		return typeIs(value, "string");
 	},
 	Message: (value) => "Expected string, got " + typeOf(value),
@@ -136,7 +140,7 @@ const Float: (bits?: FloatBits) => NetworkType<number> = (bits = 32) => {
 
 const Boolean: NetworkType<boolean> = {
 	Name: "boolean",
-	Validate(value) {
+	Validate(value): value is boolean {
 		return typeIs(value, "boolean");
 	},
 	Message: (value) => "Expected boolean, got " + typeOf(value),
@@ -264,7 +268,7 @@ function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T
 		arr.push([key, value.NetworkBuffer]);
 	}
 
-	return arr.sort((a, b) => string.hash(tostring(a[0])) < string.hash(tostring(b[0])));
+	return arr.sort((a, b) => hashstring(tostring(a[0])) < hashstring(tostring(b[0])));
 }
 
 export type Serialized<T> = T extends string | boolean | number ? T : { [P in keyof T]: unknown };

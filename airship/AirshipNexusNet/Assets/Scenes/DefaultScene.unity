@@ -119,6 +119,67 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &483481650
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 483481652}
+  - component: {fileID: 483481651}
+  m_Layer: 0
+  m_Name: Test
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &483481651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 483481650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa4feffba88dce746a2607f0ec6233b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  scriptFile: {fileID: -6406587015769157862, guid: 5746c1a78c3521d48b4c4e127788e545, type: 3}
+  m_fileFullPath: Assets/Code/TestHashes.lua
+  m_error: 0
+  m_yielded: 0
+  m_canResume: 0
+  m_asyncYield: 0
+  m_onUpdateHandle: -1
+  m_onLateUpdateHandle: -1
+  m_shortFileName: 
+  m_metadata:
+    name: 
+    singleton: 0
+    decorators: []
+    properties: []
+    displayIcon: {fileID: 0}
+    displayName: 
+  contextOverwritten: 0
+--- !u!4 &483481652
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 483481650}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 26.415121, y: 2.867403, z: 17.710474}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &764383742
 GameObject:
   m_ObjectHideFlags: 0
@@ -426,6 +487,187 @@ MonoBehaviour:
       decorators: []
       nullable: 0
       serializedValue: 
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: useDefaultMovement
+      type: boolean
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators:
+      - name: Spacing
+        parameters:
+        - type: number
+          serializedValue: 5
+      nullable: 0
+      serializedValue: 1
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: characterCameraMode
+      type: IntEnum
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: AirshipPackages/@Easy/Core/Shared/Character/LocalCharacter/CharacterCameraMode@CharacterCameraMode
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 0
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: fixedXOffset
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators:
+      - name: Header
+        parameters:
+        - type: string
+          serializedValue: '"Character Camera Configuration"'
+      - name: Header
+        parameters:
+        - type: string
+          serializedValue: '"Fixed Camera"'
+      nullable: 0
+      serializedValue: 0.45
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: fixedYOffset
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 1.7
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: fixedZOffset
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 3.5
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: fixedMinRotX
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 1
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: fixedMaxRotX
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 179
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: orbitRadius
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators:
+      - name: Header
+        parameters:
+        - type: string
+          serializedValue: '"Orbit Camera"'
+      nullable: 0
+      serializedValue: 4
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: orbitYOffset
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 1.85
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: orbitMinRotX
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 1
+      serializedObject: {fileID: 0}
+      modified: 0
+    - name: orbitMaxRotX
+      type: number
+      objectType: 
+      items:
+        type: 
+        objectType: 
+        serializedItems: []
+        objectRefs: []
+      refPath: 
+      fileRef: 
+      decorators: []
+      nullable: 0
+      serializedValue: 179
       serializedObject: {fileID: 0}
       modified: 0
     displayIcon: {fileID: 0}
@@ -797,3 +1039,4 @@ SceneRoots:
   - {fileID: 2019946519}
   - {fileID: 1857464632}
   - {fileID: 1309094771}
+  - {fileID: 483481652}

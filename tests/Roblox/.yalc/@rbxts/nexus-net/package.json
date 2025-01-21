@@ -1,0 +1,23 @@
+{
+  "name": "@rbxts/nexus-net",
+  "version": "1.0.0",
+  "main": "out/init.lua",
+  "scripts": {
+    "build": "rbxtsc",
+    "watch": "rbxtsc -w",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "types": "out/index.d.ts",
+  "files": [
+    "out",
+    "!**/*.tsbuildinfo"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "yalcSig": "c3443a857c6ce9f4a02bab64d0d7f0d4"
+}

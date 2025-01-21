@@ -17,7 +17,7 @@ declare module "../Core/Types/Dist" {
 }
 
 /**
- * NexusNet for Airship
+ * NexusNet runtime for Airship
  * @version Airship-1.0
  */
 namespace Nexus {
