@@ -7,7 +7,9 @@ export interface ServerListenerEvent<CallArguments extends ReadonlyArray<unknown
 	 */
 	Connect(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
 
-	Once(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
+	// Once(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
+
+	// Predict(player: NetworkPlayer, ...args: CallArguments): void;
 }
 
 /**
@@ -41,6 +43,12 @@ export interface ServerSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 	 * @deprecated
 	 */
 	SendToPlayers(targets: Array<NetworkPlayer>, ...args: CallArguments): void;
+
+	// Send(target: NetworkPlayer, ...args: CallArguments): void;
+	// Send(targets: ReadonlyArray<NetworkPlayer>, ...args: CallArguments): void;
+	// Send(targets: ReadonlySet<NetworkPlayer>, ...args: CallArguments): void;
+
+	// Broadcast(...args: CallArguments): void;
 }
 
 export type ServerEventLike = ServerListenerEvent<never> | ServerSenderEvent<never>;

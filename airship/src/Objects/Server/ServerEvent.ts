@@ -3,7 +3,6 @@ import { ServerListenerEvent, ServerSenderEvent } from "@Vorlias/NexusNet/Core/T
 import { NetworkedEvent } from "../Internal/NetworkEvent";
 import { NetworkingFlags, ServerEventDeclaration } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import {
-	CreateClientEventCallback,
 	CreateServerEventCallback,
 	ParseServerCallbackArgs,
 } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
@@ -132,18 +131,37 @@ export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 	}
 
 	public SendToPlayers(players: Array<NetworkPlayer>, ...args: TArgs): void {
-		const handledArgs = ParseServerInvokeArgs(
-			this.name,
-			this.useBuffers,
-			this.argumentHandlers ?? [],
-			[],
-			args,
-			this.argCountCheck,
-		);
-		if (!handledArgs) return;
-
 		for (const player of players) {
 			this.SendToPlayer(player, ...args);
 		}
 	}
+
+	// Send(
+	// 	targetOrTargets: ReadonlySet<NetworkPlayer> | NetworkPlayer | ReadonlyArray<NetworkPlayer>,
+	// 	...args: TArgs
+	// ): void {
+	// 	const handledArgs = ParseServerInvokeArgs(
+	// 		this.name,
+	// 		this.useBuffers,
+	// 		this.argumentHandlers ?? [],
+	// 		[],
+	// 		args,
+	// 		this.argCountCheck,
+	// 	);
+	// 	if (!handledArgs) return;
+
+	// 	if (this.isPlayer(targetOrTargets)) {
+	// 		this.instance.FireClient(targetOrTargets as Player, ...handledArgs);
+	// 	} else {
+	// 		if (isArrayLike(targetOrTargets)) {
+	// 			for (const target of targetOrTargets) this.instance.FireClient(target, ...handledArgs);
+	// 		} else {
+	// 			for (const target of targetOrTargets) this.instance.FireClient(target, ...handledArgs);
+	// 		}
+	// 	}
+	// }
+
+	// Broadcast(...args: TArgs): void {
+	// 	this.SendToAllPlayers(...args);
+	// }
 }
