@@ -4,8 +4,24 @@ import { StaticNetworkType } from "../Types/NetworkTypes";
 import { TransformArgsToBuffer, TransformBufferToArgs } from "./BufferEncoding";
 import { NetDeserializeArguments, NetSerializeArguments } from "./Serializer";
 
+export function ParseServerCallbackArgs<TArgs extends unknown[]>(
+	useBuffers: boolean,
+	transformers: StaticNetworkType<any>[],
+	args: TArgs,
+) {
+	if (useBuffers && transformers.size() > 0) {
+		const [buffer] = args;
+		const data = TransformBufferToArgs(transformers, buffer as buffer);
+		const transformedArgs = NetDeserializeArguments(transformers, data);
+		return transformedArgs;
+	} else {
+		return NetDeserializeArguments(transformers, args); //  wtf ???
+	}
+}
+
 interface ServerEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly UseBuffers: boolean;
+	readonly EnforceArguments: boolean;
 	readonly NetworkTypes: StaticNetworkType<any>[];
 	readonly Callback: (player: NetworkPlayer, ...args: TArgs) => void;
 	readonly CallbackMiddleware: ServerCallbackMiddleware[];
@@ -15,15 +31,21 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 	options: ServerEventCallback<TArgs>,
 ): AnyServerCallback {
 	const useBuffers = options.UseBuffers;
+	const enforceArgs = options.EnforceArguments;
 	const networkTypes = options.NetworkTypes;
 	let callback = options.Callback;
 
-	// for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyServerCallback);
+	for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyServerCallback, undefined!);
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((player: NetworkPlayer, buffer: buffer) => {
 			const data = TransformBufferToArgs(networkTypes, buffer);
 			const transformedArgs = NetDeserializeArguments(networkTypes, data);
+
+			if (enforceArgs && data.size() !== networkTypes.size()) {
+				warn("[NexusNet] Argument count mismatch, expected " + networkTypes.size() + " got " + data.size());
+				return;
+			}
 
 			// Receiving from client needs validation
 			for (let i = 0; i < networkTypes.size(); i++) {
@@ -43,6 +65,10 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 	} else if (networkTypes.size() > 0) {
 		return (player: NetworkPlayer, ...args: unknown[]) => {
 			const transformedArgs = NetDeserializeArguments(networkTypes, args);
+			if (enforceArgs && args.size() !== networkTypes.size()) {
+				warn("[NexusNet] Argument count mismatch, expected " + networkTypes.size() + " got " + args.size());
+				return;
+			}
 
 			// Receiving from client needs validation
 			for (let i = 0; i < networkTypes.size(); i++) {
@@ -66,6 +92,7 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 
 interface ClientEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly UseBuffers: boolean;
+	readonly EnforceArguments: boolean;
 	readonly NetworkTypes: StaticNetworkType<any>[];
 	readonly Callback: (...args: TArgs) => void;
 	readonly CallbackMiddleware: ClientCallbackMiddleware[];
@@ -78,7 +105,7 @@ export function CreateClientEventCallback<TArgs extends ReadonlyArray<unknown> =
 	const networkTypes = options.NetworkTypes;
 	let callback = options.Callback;
 
-	// for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyClientCallback);
+	for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyClientCallback, undefined!);
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((buffer: buffer) => {

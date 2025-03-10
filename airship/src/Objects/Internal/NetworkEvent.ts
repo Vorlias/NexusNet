@@ -1,10 +1,14 @@
 import NetworkAPI, { NetworkChannel } from "@Easy/Core/Shared/Network/NetworkAPI";
-import { Player } from "@Easy/Core/Shared/Player/Player";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { GetAsNetEventId } from "./InternalId";
+import { Signal } from "@Easy/Core/Shared/Util/Signal";
+import { Player } from "@Easy/Core/Shared/Player/Player";
+import { Game } from "@Easy/Core/Shared/Game";
 
 export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	public Name = "ASRemoteEvnet";
+	public readonly onClientEvent = new Signal<[player: Player, ...unknown[]]>();
+	public readonly onServerEvent = new Signal<unknown[]>();
 
 	private readonly id: number;
 	public constructor(
@@ -13,6 +17,20 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 		public readonly debug = false,
 	) {
 		this.id = GetAsNetEventId(name);
+		table.freeze(this);
+
+		if (Game.IsClient()) {
+			NetworkAPI.connect(false, this.id, (...args: TArgs[]) => {
+				this.onServerEvent.Fire(...(args as TArgs));
+			});
+		}
+
+		if (Game.IsServer()) {
+			// OnClientEvent
+			NetworkAPI.connect(true, this.id, (player: Player, ...args: TArgs[]) => {
+				this.onClientEvent.Fire(player, ...args);
+			});
+		}
 	}
 
 	/**
@@ -69,12 +87,15 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 		NetworkAPI.fireServer(this.id, args, this.channel);
 	}
 
+	public PredictServer(player: Player, ...args: unknown[]) {}
+	public PredictClient(...args: unknown[]) {}
+
 	/**
 	 * @internal
 	 */
 	public OnServerEvent<T extends TArgs>(callback: (...args: T) => void) {
 		assert(RunCore.IsClient());
-		return NetworkAPI.connect(false, this.id, (...args) => {
+		return this.onServerEvent.Connect((...args) => {
 			callback(...(args as T));
 		});
 	}
@@ -84,7 +105,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 */
 	public OnClientEvent<T extends TArgs>(callback: (player: Player, ...args: T) => void) {
 		assert(RunCore.IsServer());
-		return NetworkAPI.connect(true, this.id, (player: Player, ...args: T) => {
+		return this.onClientEvent.Connect((player, ...args) => {
 			callback(player, ...(args as T));
 		});
 	}

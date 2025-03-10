@@ -3,7 +3,7 @@ import { ServerCallbackMiddleware } from "../../Core/Middleware/Types";
 import { CreateServerEventCallback } from "../../Core/Serialization/CallbackHandlers";
 import { ParseServerInvokeArgs } from "../../Core/Serialization/InvokeHandlers";
 import { Connection, NetworkPlayer } from "../../Core/Types/Dist";
-import { ServerEventDeclaration } from "../../Core/Types/NetworkObjectModel";
+import { NetworkingFlags, ServerEventDeclaration } from "../../Core/Types/NetworkObjectModel";
 import { StaticNetworkType } from "../../Core/Types/NetworkTypes";
 import { ServerListenerEvent, ServerSenderEvent } from "../../Core/Types/Server/NetworkObjects";
 import { RemotesFolder } from "../../Internal";
@@ -29,9 +29,9 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 		this.instance = instance;
 
 		this.argumentHandlers = declaration.Arguments;
-		this.useBuffers = declaration.UseBufferSerialization;
+		this.useBuffers = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
 		this.callbackMiddleware = declaration.CallbackMiddleware as ServerCallbackMiddleware[];
-		this.debugging = declaration.Debugging;
+		this.debugging = (declaration.Flags & NetworkingFlags.Debugging) !== 0;
 	}
 
 	Connect(callback: (player: NetworkPlayer, ...args: T) => void): Connection {

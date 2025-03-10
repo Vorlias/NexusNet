@@ -1,3 +1,4 @@
+import { NexusConfiguration } from "../Core/Configuration";
 import {
 	ClientEventDeclaration,
 	NetworkEventBuilder,
@@ -28,27 +29,43 @@ export class EventBuilder<TArgs extends ReadonlyArray<unknown>> implements Netwo
 	}
 
 	OnServer(configuration: NetworkModelConfiguration): ServerEventDeclaration<TArgs> {
-		return {
+		const flags = NexusConfiguration.EncodeConfigFlags({
+			UseBufferSerialization: configuration.UseBuffers && this.useBuffer,
+			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
+			Debugging: configuration.Debugging,
+			Logging: configuration.Logging,
+		});
+
+		const declaration: ServerEventDeclaration<TArgs> = {
 			Type: "Event",
+			Flags: flags,
 			RunContext: RemoteRunContext.Server,
-			UseBufferSerialization: configuration.UseBuffers,
-			Debugging: configuration.Logging,
 			Arguments: this.arguments,
 			CallbackMiddleware: [],
 			InvokeMiddleware: [],
 			Unreliable: this.unreliable,
 		};
+
+		return table.freeze(declaration);
 	}
 
 	OnClient(configuration: NetworkModelConfiguration): ClientEventDeclaration<TArgs> {
-		return {
+		const flags = NexusConfiguration.EncodeConfigFlags({
+			UseBufferSerialization: configuration.UseBuffers && this.useBuffer,
+			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
+			Debugging: configuration.Debugging,
+			Logging: configuration.Logging,
+		});
+
+		const declaration: ClientEventDeclaration<TArgs> = {
 			Type: "Event",
+			Flags: flags,
 			RunContext: RemoteRunContext.Client,
-			UseBufferSerialization: configuration.UseBuffers,
-			Debugging: configuration.Logging,
 			CallbackMiddleware: [],
 			InvokeMiddleware: [],
 			Unreliable: this.unreliable,
 		};
+
+		return table.freeze(declaration);
 	}
 }

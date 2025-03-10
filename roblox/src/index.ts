@@ -96,18 +96,3 @@ namespace Nexus {
 }
 
 export default Nexus;
-
-const test = Nexus.BuildObjectModel()
-	.AddServer("Test", Nexus.Event(NexusTypes.ArrayOf(NexusTypes.String))) //
-	.SetConfiguration({
-		EnforceArgumentCount: false,
-	})
-	.Build();
-
-const test2 = Nexus.Net3.CreateDefinitions({
-	X: Nexus.Net3.Definitions.ServerToClientEvent<[]>(),
-});
-
-const test3 = Nexus.Net4.BuildDefinition()
-	.AddClientOwned("Test", Nexus.Net4.Remote(Nexus.Net4.Types.str)) //
-	.Build();

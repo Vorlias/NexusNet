@@ -4,6 +4,7 @@ import { NEXUS_VERSION } from "./Core/CoreInfo";
 import { ServerCallbackMiddleware } from "./Core/Middleware/Types";
 import {
 	ClientEventDeclaration,
+	NetworkingFlags,
 	RemoteDeclarations,
 	RemoteRunContext,
 	ServerEventDeclaration,
@@ -43,6 +44,7 @@ namespace Net3Compat {
 			ClientGetShouldYield: configuration.ClientGetShouldYield ?? true,
 			MicroprofileCallbacks: configuration.MicroprofileCallbacks,
 			UseBuffers: false,
+			EnforceArgumentCount: false,
 		});
 
 		for (const [key, value] of pairs(declarations) as IterableFunction<
@@ -82,7 +84,7 @@ namespace Net3Compat {
 			RunContext: RemoteRunContext.Server,
 			CallbackMiddleware: middleware ?? [],
 			InvokeMiddleware: [],
-			UseBufferSerialization: false,
+			Flags: NetworkingFlags.None,
 			Unreliable: false,
 			Debugging: false,
 		} as ServerEventDeclaration<ServerArgs>;
@@ -104,6 +106,7 @@ namespace Net3Compat {
 			Type: "Event",
 			RunContext: RemoteRunContext.Client,
 			CallbackMiddleware: [],
+			Flags: NetworkingFlags.None,
 			InvokeMiddleware: [],
 			UseBufferSerialization: false,
 			Unreliable: false,

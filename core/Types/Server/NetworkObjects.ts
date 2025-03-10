@@ -6,6 +6,8 @@ export interface ServerListenerEvent<CallArguments extends ReadonlyArray<unknown
 	 * @param callback The callback function
 	 */
 	Connect(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
+
+	Once(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
 }
 
 /**

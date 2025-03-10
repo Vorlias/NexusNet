@@ -4,7 +4,7 @@ import { CreateClientEventCallback } from "../../Core/Serialization/CallbackHand
 import { ParseClientInvokeArgs } from "../../Core/Serialization/InvokeHandlers";
 import { ClientListenerEvent, ClientSenderEvent } from "../../Core/Types/Client/NetworkObjects";
 import { Connection } from "../../Core/Types/Dist";
-import { ClientEventDeclaration } from "../../Core/Types/NetworkObjectModel";
+import { ClientEventDeclaration, NetworkingFlags } from "../../Core/Types/NetworkObjectModel";
 import { StaticNetworkType } from "../../Core/Types/NetworkTypes";
 import { RemotesFolder } from "../../Internal";
 import { GetRbxNetEventId } from "../Internal/InternalId";
@@ -26,7 +26,7 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 		this.instance = object;
 
 		this.argumentHandlers = declaration.Arguments;
-		this.useBuffers = declaration.UseBufferSerialization;
+		this.useBuffers = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
 		this.callbackMiddleware = declaration.CallbackMiddleware as ClientCallbackMiddleware[];
 	}
 

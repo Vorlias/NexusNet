@@ -3,11 +3,17 @@ import { NetworkSerializableType, NetworkType, StaticNetworkType } from "../Type
 import { NetIsSerializer } from "./Serializer";
 
 namespace NexusSerialization {
-	export type Input<T> =
-		T extends NetworkSerializableType<infer A, infer _> ? A : T extends NetworkType<infer A> ? A : never;
+	export type Input<T> = T extends NetworkSerializableType<infer A, infer _>
+		? A
+		: T extends NetworkType<infer A>
+		? A
+		: never;
 
-	export type Output<T> =
-		T extends NetworkSerializableType<infer _, infer A> ? A : T extends NetworkType<infer A> ? A : never;
+	export type Output<T> = T extends NetworkSerializableType<infer _, infer A>
+		? A
+		: T extends NetworkType<infer A>
+		? A
+		: never;
 
 	export type InputInterface<T> = { [P in keyof T]: Input<T[P]> };
 	export type OutputInterface<T> = { [P in keyof T]: Output<T[P]> };

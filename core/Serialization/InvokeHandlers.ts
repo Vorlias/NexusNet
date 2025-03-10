@@ -2,13 +2,21 @@ import { ClientInvokeMiddleware, ServerInvokeMiddleware } from "../Middleware/Ty
 import { TransformArgsToBuffer } from "./BufferEncoding";
 import { StaticNetworkType } from "../Types/NetworkTypes";
 import { NetSerializeArguments } from "./Serializer";
+import inspect from "@Easy/Core/Shared/Util/Inspect";
 
 export function ParseClientInvokeArgs<TArgs extends unknown[]>(
+	name: string,
 	useBuffers: boolean,
 	transformers: StaticNetworkType<any>[],
 	invokeMiddleware: ClientInvokeMiddleware[],
 	args: TArgs,
+	enforceArgCount: boolean,
 ) {
+	if (enforceArgCount && transformers.size() !== args.size()) {
+		print("Transformers are", inspect(transformers), inspect(args));
+		throw `[NexusNet] Call to ${name} expected ${transformers.size()} arguments, got ${args.size()}`;
+	}
+
 	if (transformers.size() > 0) {
 		const serializedArgs = NetSerializeArguments(transformers, args);
 
@@ -24,11 +32,17 @@ export function ParseClientInvokeArgs<TArgs extends unknown[]>(
 }
 
 export function ParseServerInvokeArgs<TArgs extends unknown[]>(
+	name: string,
 	useBuffers: boolean,
 	transformers: StaticNetworkType<any>[],
 	invokeMiddleware: ServerInvokeMiddleware[],
 	args: TArgs,
+	enforceArgCount: boolean,
 ) {
+	if (enforceArgCount && transformers.size() !== args.size()) {
+		throw `[NexusNet] Call to ${name} expected ${transformers.size()} arguments, got ${args.size()}`;
+	}
+
 	if (transformers.size() > 0) {
 		const serializedArgs = NetSerializeArguments(transformers, args);
 

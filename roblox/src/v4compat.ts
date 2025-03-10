@@ -101,6 +101,7 @@ namespace Net4DefinitionsCompat {
 				ClientGetShouldYield: configuration?.ClientGetShouldYield ?? true,
 				MicroprofileCallbacks: configuration?.MicroprofileCallbacks,
 				UseBuffers: false,
+				EnforceArgumentCount: false,
 			});
 
 			for (const [key, value] of pairs(declarations) as IterableFunction<

@@ -88,7 +88,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		id: TName,
 		declaration: ServerBuilder<TNomRemote>,
 	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
-		const definition = table.freeze(declaration.OnServer(this.configuration));
+		const definition = declaration.OnServer(this.configuration);
 		this.declarations = {
 			...this.declarations,
 			[id]: definition,
@@ -101,7 +101,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		id: TName,
 		declaration: ClientBuilder<TNomRemote>,
 	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
-		const definition = table.freeze(declaration.OnClient(this.configuration));
+		const definition = declaration.OnClient(this.configuration);
 		this.declarations = {
 			...this.declarations,
 			[id]: definition,

@@ -55,18 +55,31 @@ export interface ScopeObjectModelDeclaration<TDeclarations extends RemoteDeclara
 
 interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>> {
 	readonly Type: "Event";
-	readonly UseBufferSerialization: boolean;
-	readonly Debugging: boolean;
+	// readonly UseBufferSerialization: boolean;
+	// readonly Debugging: boolean;
 	readonly RunContext: TRunContext;
 
 	readonly Unreliable: boolean;
-	readonly Arguments?: StaticNetworkType<any>[];
+	readonly Arguments: StaticNetworkType<any>[] | undefined;
+
+	readonly Flags: NetworkingFlags;
 }
 
 interface FunctionDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>, _TRet> {
 	readonly Type: "Function";
 	readonly UseBufferSerialization: boolean;
 	readonly Debugging: boolean;
+}
+
+export const enum NetworkingFlags {
+	None = 0,
+
+	UseBufferSerialization = 1 << 0,
+	EnforceArgumentCount = 1 << 1,
+	Logging = 1 << 2,
+	Debugging = 1 << 3,
+
+	Default = EnforceArgumentCount,
 }
 
 export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>>

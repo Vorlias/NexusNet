@@ -1,11 +1,13 @@
 import {
 	ClientEventDeclaration,
 	NetworkEventBuilder,
+	NetworkingFlags,
 	NetworkModelConfiguration,
 	RemoteRunContext,
 	ServerEventDeclaration,
 } from "../Core/Types/NetworkObjectModel";
 import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import { NexusConfiguration } from "../Core/Configuration";
 
 export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implements NetworkEventBuilder<TArgs> {
 	unreliable = false;
@@ -31,28 +33,44 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implement
 	}
 
 	OnServer(configuration: NetworkModelConfiguration): ServerEventDeclaration<TArgs> {
-		return {
+		const flags = NexusConfiguration.EncodeConfigFlags({
+			UseBufferSerialization: configuration.UseBuffers && this.useBuffer,
+			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
+			Debugging: configuration.Debugging,
+			Logging: configuration.Logging,
+		});
+
+		const declaration: ServerEventDeclaration<TArgs> = {
 			Type: "Event",
+			Flags: flags,
 			RunContext: RemoteRunContext.Server,
-			UseBufferSerialization: configuration.UseBuffers,
-			Debugging: configuration.Logging,
 			Arguments: this.arguments,
-			CallbackMiddleware: [...(configuration.ServerCallbackMiddleware ?? [])],
+			CallbackMiddleware: [],
 			InvokeMiddleware: [],
 			Unreliable: this.unreliable,
 		};
+
+		return table.freeze(declaration);
 	}
 
 	OnClient(configuration: NetworkModelConfiguration): ClientEventDeclaration<TArgs> {
-		return {
+		const flags = NexusConfiguration.EncodeConfigFlags({
+			UseBufferSerialization: configuration.UseBuffers && this.useBuffer,
+			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
+			Debugging: configuration.Debugging,
+			Logging: configuration.Logging,
+		});
+
+		const declaration: ClientEventDeclaration<TArgs> = {
 			Type: "Event",
+			Flags: flags,
 			RunContext: RemoteRunContext.Client,
-			UseBufferSerialization: configuration.UseBuffers,
-			Debugging: configuration.Logging,
-			Arguments: this.arguments,
-			CallbackMiddleware: [...(configuration.ClientCallbackMiddleware ?? [])],
+			CallbackMiddleware: [],
 			InvokeMiddleware: [],
+			Arguments: this.arguments,
 			Unreliable: this.unreliable,
 		};
+
+		return table.freeze(declaration);
 	}
 }
