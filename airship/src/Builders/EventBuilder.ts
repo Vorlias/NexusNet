@@ -34,7 +34,7 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implement
 
 	OnServer(configuration: NetworkModelConfiguration): ServerEventDeclaration<TArgs> {
 		const flags = NexusConfiguration.EncodeConfigFlags({
-			UseBufferSerialization: configuration.UseBuffers && this.useBuffer,
+			UseBufferSerialization: configuration.UseBuffers || this.useBuffer,
 			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
 			Debugging: configuration.Debugging,
 			Logging: configuration.Logging,
