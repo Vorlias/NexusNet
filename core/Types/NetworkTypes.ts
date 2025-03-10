@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { int32, NetworkBuffers } from "../Buffers";
 import { BufferReader } from "../Buffers/BufferReader";
 import { BufferWriter } from "../Buffers/BufferWriter";
 
@@ -24,9 +25,22 @@ export interface NetworkType<TValue, TEncode = TValue> {
 }
 
 export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TInput, TOutput> {
-	Serialize(value: TInput): TOutput;
-	Deserialize(value: TOutput): TInput;
+	Serialize(this: void, value: TInput): TOutput;
+	Deserialize(this: void, value: TOutput): TInput;
 }
 
-export type StaticNetworkType<T = any> = NetworkType<T> | NetworkSerializableType<T, any>;
+export function __NexusCreateSerializableType<TInput, TOutput>(
+	name: string,
+	ser: Pick<NetworkSerializableType<TInput, TOutput>, "Validate" | "Serialize" | "Deserialize">,
+	networkBuffer: NetworkBuffer<TOutput>,
+): NetworkSerializableType<TInput, TOutput> {
+	return {
+		...ser,
+		Name: name,
+		Message: `Expected ${name}`,
+		NetworkBuffer: networkBuffer,
+	};
+}
+
+export type StaticNetworkType<T = any, U = any> = NetworkType<T> | NetworkSerializableType<T, U>;
 export type ToNetworkArguments<T> = { [K in keyof T]: StaticNetworkType<T[K]> };

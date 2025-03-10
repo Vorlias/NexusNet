@@ -2,9 +2,14 @@ import type { Player } from "@Easy/Core/Shared/Player/Player";
 import type { AirshipScriptConnection } from "../Objects/NetConnection";
 import type { ServerEvent } from "../Objects/Server/ServerEvent";
 import type { ClientEvent } from "../Objects/Client/ClientEvent";
-import type { ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import type { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { AirshipNetworkObjectModelBuilder } from "../Builders/ObjectModelBuilder";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
+import { InferClientRemote, InferNOMDeclarations, InferServerRemote } from "../Core/Types/Inference";
+import type { ContextNetworkModel, NetworkObjectModelBuilder } from "../Core/Types/NetworkObjectModel";
+import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
+import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
+import { NEXUS_VERSION } from "../Core/CoreInfo";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -22,6 +27,30 @@ declare module "../Core/Types/Dist" {
  */
 namespace Nexus {
 	/**
+	 * Infers the Network Model declarations from {@link T | `T`}, where `T` is a {@link ContextNetworkModel | `ContextNetworkModel`} or {@link NetworkObjectModelBuilder | `NetworkObjectModelBuilder`}
+	 *
+	 * This can be useful if you want a type for the network declaration, e.g.
+	 * ```ts
+	 * export type Network = ContextNetworkModel<Nexus.InferModel<typeof Network>>;
+	 * ```
+	 * where `Network` is your {@link ContextNetworkModel | `ContextNetworkModel`}
+	 */
+	export type InferModel<T extends object> = InferNOMDeclarations<T>;
+	/**
+	 * Infers the server object type from the given declaration
+	 */
+	export type ToServerObject<T extends AnyNetworkDeclaration> = InferServerRemote<T>;
+	/**
+	 * Infers the client object type from the given declaration
+	 */
+	export type ToClientObject<T extends AnyNetworkDeclaration> = InferClientRemote<T>;
+
+	/**
+	 * The version of Nexus
+	 */
+	export const VERSION = `Nexus ${NEXUS_VERSION}`;
+
+	/**
 	 * Build an object model
 	 */
 	export function BuildObjectModel(): AirshipNetworkObjectModelBuilder {
@@ -29,7 +58,7 @@ namespace Nexus {
 	}
 
 	/**
-	 * Define a remote object
+	 * Define a remote event
 	 * @returns The builder for a remote
 	 */
 	export function Event(): AirshipEventBuilder<[]>;
@@ -40,6 +69,16 @@ namespace Nexus {
 		}
 
 		return new AirshipEventBuilder();
+	}
+
+	/**
+	 * Define a remote function
+	 */
+	export function Function<T extends ReadonlyArray<unknown>, TRet>(
+		args: ToNetworkArguments<T>,
+		returns: StaticNetworkType<TRet>,
+	): AirshipFunctionBuilder<T, TRet> {
+		return new AirshipFunctionBuilder(returns).WithArguments(...args);
 	}
 }
 

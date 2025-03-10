@@ -18,23 +18,32 @@ MonoBehaviour:
   - {fileID: 102900000, guid: e9baa4b514ca7466592cd454e7e23b0a, type: 3}
   packages:
   - id: '@Easy/Core'
-    assetVersion: 130
-    codeVersion: 326
-    publishVersionNumber: 130
+    assetVersion: 189
+    codeVersion: 461
+    publishVersionNumber: 252
     game: 0
     localSource: 0
     disabled: 0
     defaultPackage: 1
     forceLatestVersion: 1
   - id: '@Easy/CoreMaterials'
-    assetVersion: 13
-    codeVersion: 14
-    publishVersionNumber: 1
+    assetVersion: 18
+    codeVersion: 20
+    publishVersionNumber: 5
     game: 0
     localSource: 0
     disabled: 0
     defaultPackage: 1
     forceLatestVersion: 1
+  - id: '@Vorlias/NexusNet'
+    assetVersion: 0
+    codeVersion: 0
+    publishVersionNumber: 0
+    game: 0
+    localSource: 1
+    disabled: 0
+    defaultPackage: 0
+    forceLatestVersion: 0
   tags: []
   gameLayers:
   - Default

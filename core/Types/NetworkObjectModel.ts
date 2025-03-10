@@ -26,6 +26,8 @@ export interface NetworkModelConfiguration {
 
 	readonly ServerCallbackMiddleware?: ServerCallbackMiddleware[];
 	readonly ClientCallbackMiddleware?: ClientCallbackMiddleware[];
+
+	readonly EnforceArgumentCount?: boolean;
 }
 
 export enum RemoteRunContext {
@@ -39,6 +41,16 @@ export interface ServerBuilder<TServer> {
 
 export interface ClientBuilder<TClient> {
 	OnClient(configuration: NetworkModelConfiguration): TClient;
+}
+
+export interface ScopeBuilder<TDeclarations extends RemoteDeclarations> {
+	AsScope(configuration?: Partial<NetworkModelConfiguration>): ScopeObjectModelDeclaration<TDeclarations>;
+}
+
+export interface ScopeObjectModelDeclaration<TDeclarations extends RemoteDeclarations> {
+	readonly Type: "Scope";
+	readonly Declarations: TDeclarations;
+	readonly Configuration: NetworkModelConfiguration;
 }
 
 interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>> {

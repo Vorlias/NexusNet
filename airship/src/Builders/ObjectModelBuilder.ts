@@ -5,6 +5,8 @@ import {
 	NetworkModelConfiguration,
 	NetworkObjectModelBuilder,
 	RemoteDeclarations,
+	ScopeBuilder,
+	ScopeObjectModelDeclaration,
 	ServerBuilder,
 } from "../Core/Types/NetworkObjectModel";
 import { Identity, MergeIdentity, Named } from "../Core/Types/Utility";
@@ -20,8 +22,12 @@ import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { AirshipNetworkModelConfiguration } from "../Types/NetworkObjectModel";
 
+type Scoped<K extends string, T extends RemoteDeclarations> = { [P in keyof T as `${K}/${P & string}`]: T[P] };
+
+// const declarationMap = new Map<AirshipNetworkObjectModelBuilder, RemoteDeclarations>();
+
 export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclarations = defined>
-	implements NetworkObjectModelBuilder<TDeclarations>
+	implements NetworkObjectModelBuilder<TDeclarations>, ScopeBuilder<TDeclarations>
 {
 	public declarations = {} as TDeclarations;
 	public configuration: Writable<AirshipNetworkModelConfiguration> = {
@@ -30,11 +36,59 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		UseBuffers: false,
 	};
 
+	/**
+	 * Converts the object model into a scoped model declaration
+	 */
+	AsScope(configuration?: Partial<NetworkModelConfiguration>): ScopeObjectModelDeclaration<TDeclarations> {
+		const scoped = {
+			Type: "Scope",
+			Declarations: table.freeze({ ...this.declarations }),
+			Configuration: table.freeze({ ...this.configuration, ...configuration }),
+		} satisfies ScopeObjectModelDeclaration<TDeclarations>;
+
+		return table.freeze(scoped);
+	}
+
+	/**
+	 * Adds a scoped network object model
+	 * @param scope
+	 * @param scoped
+	 * @returns
+	 */
+	AddScope<KScope extends string, UDeclarations extends RemoteDeclarations>(
+		scope: KScope,
+		scoped: ScopeObjectModelDeclaration<UDeclarations>,
+	) {
+		// const scopedModel = scoped.OnScope(this.configuration);
+
+		if (scoped instanceof AirshipNetworkObjectModelBuilder) {
+			for (const [key, value] of pairs(scoped.declarations) as IterableFunction<
+				LuaTuple<[string, RemoteDeclarations[number]]>
+			>) {
+				(this.declarations as RemoteDeclarations)[`${scope}/${key}`] = table.freeze({ ...value });
+			}
+
+			return this as never as AirshipNetworkObjectModelBuilder<
+				MergeIdentity<Scoped<KScope, UDeclarations>, TDeclarations>
+			>;
+		} else {
+			for (const [key, value] of pairs(scoped.Declarations) as IterableFunction<
+				LuaTuple<[string, RemoteDeclarations[number]]>
+			>) {
+				(this.declarations as RemoteDeclarations)[`${scope}/${key}`] = table.freeze({ ...value });
+			}
+
+			return this as never as AirshipNetworkObjectModelBuilder<
+				MergeIdentity<Scoped<KScope, UDeclarations>, TDeclarations>
+			>;
+		}
+	}
+
 	AddServer<TName extends string, TNomRemote extends AnyNetworkDeclaration>(
 		id: TName,
 		declaration: ServerBuilder<TNomRemote>,
 	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
-		const definition = declaration.OnServer(this.configuration);
+		const definition = table.freeze(declaration.OnServer(this.configuration));
 		this.declarations = {
 			...this.declarations,
 			[id]: definition,
@@ -47,7 +101,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		id: TName,
 		declaration: ClientBuilder<TNomRemote>,
 	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
-		const definition = declaration.OnClient(this.configuration);
+		const definition = table.freeze(declaration.OnClient(this.configuration));
 		this.declarations = {
 			...this.declarations,
 			[id]: definition,

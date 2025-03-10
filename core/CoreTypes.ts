@@ -1,24 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { float32, float64, int16, int32, int8, NCoreNetworkEncoders, uint16, uint32, uint8 } from "./Buffers";
+import { float32, float64, int16, int32, int8, NetworkBuffers, uint16, uint32, uint8 } from "./Buffers";
+import NexusSerialization from "./Serialization";
 import { NetIsSerializer } from "./Serialization/Serializer";
-import { NetworkBuffer, NetworkSerializableType, NetworkType } from "./Types/NetworkTypes";
+import { NetworkBuffer, NetworkSerializableType, NetworkType, StaticNetworkType } from "./Types/NetworkTypes";
 import { hashstring } from "./Utils/hash";
 
-// Gets an output type
-export type Out<TType> =
-	TType extends NetworkSerializableType<infer _, infer OType>
-		? OType
-		: TType extends NetworkType<infer OType>
-			? OType
-			: never;
-
-// Gets an input type
-export type In<TType> =
-	TType extends NetworkSerializableType<infer IType, infer _>
-		? IType
-		: TType extends NetworkType<infer IType>
-			? IType
-			: never;
+type Out<TType> = NexusSerialization.Output<TType>;
+type In<TType> = NexusSerialization.Input<TType>;
 
 /**
  * A network string type
@@ -29,13 +17,21 @@ const String: NetworkType<string> = {
 		return typeIs(value, "string");
 	},
 	Message: (value) => "Expected string, got " + typeOf(value),
-	NetworkBuffer: NCoreNetworkEncoders.String,
+	NetworkBuffer: NetworkBuffers.String,
 };
 
-type Literal = string | number | boolean | {};
+type Literal = string | number | boolean;
 function Literal<T extends Array<Literal>>(...items: T): NetworkSerializableType<T[number], number> {
 	return {
-		Name: "Literal",
+		Name: items
+			.map((value) => {
+				if (typeIs(value, "string")) {
+					return `"${value}"`;
+				} else {
+					return tostring(value);
+				}
+			})
+			.join(" | "),
 		Message: () => "",
 		Validate(value): value is T[number] {
 			return items.includes(value as Literal);
@@ -46,7 +42,7 @@ function Literal<T extends Array<Literal>>(...items: T): NetworkSerializableType
 		Deserialize(value) {
 			return items[value];
 		},
-		NetworkBuffer: NCoreNetworkEncoders.Int32,
+		NetworkBuffer: NetworkBuffers.Int32,
 	};
 }
 
@@ -54,12 +50,12 @@ type IntegerBits = 8 | 16 | 32;
 type FloatBits = 32 | 64;
 
 const intEncoders = {
-	[8]: NCoreNetworkEncoders.Int8,
-	[16]: NCoreNetworkEncoders.Int16,
-	[32]: NCoreNetworkEncoders.Int32,
+	[8]: NetworkBuffers.Int8,
+	[16]: NetworkBuffers.Int16,
+	[32]: NetworkBuffers.Int32,
 };
 const Int: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
-	let encoder = intEncoders[bits];
+	const encoder = intEncoders[bits];
 
 	const UPPER_BOUND = 2 ** (bits - 1) - 1;
 	const LOWER_BOUND = -(2 ** (bits - 1));
@@ -90,12 +86,12 @@ const Int: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 };
 
 const unsignedEncoders = {
-	[8]: NCoreNetworkEncoders.UInt8,
-	[16]: NCoreNetworkEncoders.UInt16,
-	[32]: NCoreNetworkEncoders.UInt32,
+	[8]: NetworkBuffers.UInt8,
+	[16]: NetworkBuffers.UInt16,
+	[32]: NetworkBuffers.UInt32,
 };
 const UInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
-	let encoder = unsignedEncoders[bits];
+	const encoder = unsignedEncoders[bits];
 	const UPPER_BOUND = 2 ** bits - 1;
 
 	const name = `UInt${bits}`;
@@ -122,11 +118,11 @@ const UInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 };
 
 const floatEncoders = {
-	[32]: NCoreNetworkEncoders.Float32,
-	[64]: NCoreNetworkEncoders.Float64,
+	[32]: NetworkBuffers.Float32,
+	[64]: NetworkBuffers.Float64,
 };
 const Float: (bits?: FloatBits) => NetworkType<number> = (bits = 32) => {
-	let encoder = floatEncoders[bits];
+	const encoder = floatEncoders[bits];
 
 	return {
 		Name: `Float${bits}`,
@@ -144,8 +140,56 @@ const Boolean: NetworkType<boolean> = {
 		return typeIs(value, "boolean");
 	},
 	Message: (value) => "Expected boolean, got " + typeOf(value),
-	NetworkBuffer: NCoreNetworkEncoders.Boolean,
+	NetworkBuffer: NetworkBuffers.Boolean,
 };
+
+const Undefined: NetworkType<undefined> = {
+	Name: "None",
+	Validate(value): value is undefined {
+		return false;
+	},
+	Message: "",
+	NetworkBuffer: {
+		WriteData(data, writer) {},
+		ReadData(reader) {
+			return undefined;
+		},
+	},
+};
+
+// type ToUnion<T> = T extends ReadonlyArray<infer A> ? NetworkSerializableType<In<A>, Out<A>> : never;
+// export function Union<T extends ReadonlyArray<NetworkSerializableType<any, any> | NetworkType<any>>>(...types: T) {
+// 	return {
+// 		Name: types.map((v) => v.Name).join(" | "),
+// 		Message: "",
+// 		Validate(value): value is ToUnion<T> {
+// 			return false;
+// 		},
+// 		Serialize(value: In<ToUnion<T>>): Out<ToUnion<T>> {
+// 			const index = types.findIndex((f) => f.Validate(value));
+// 			const networkType = types[index];
+
+// 			return NexusSerialization.Serialize(networkType, value);
+// 		},
+// 		Deserialize(value: Out<ToUnion<T>>): In<ToUnion<T>> {
+// 			throw `TODO`;
+// 		},
+// 		NetworkBuffer: {
+// 			ReadData(reader) {
+// 				const index = reader.ReadInt32();
+// 				const networkType = types[index];
+// 				return networkType.NetworkBuffer.ReadData(reader);
+// 			},
+// 			WriteData(data, writer) {
+// 				const index = types.findIndex((f) => f.Validate(data));
+// 				const networkType = types[index];
+
+// 				writer.WriteInt32(index);
+// 				networkType?.NetworkBuffer.WriteData(data, writer);
+// 			},
+// 		},
+// 	} as ToUnion<T>;
+// }
 
 function isArrayLike(value: unknown): value is defined[] {
 	return typeIs(value, "table") && (next(value)[0] === undefined || typeIs(next(value)[0], "number"));
@@ -156,40 +200,32 @@ function isArrayLike(value: unknown): value is defined[] {
  * @param typeLike The inner network type
  * @returns An array network type of the given inner type
  */
-function ArrayOf<T extends NetworkSerializableType<any, any> | NetworkType<any, any>>(
+function ArrayOf<T extends StaticNetworkType<defined, defined>>(
 	typeLike: T,
 ): NetworkSerializableType<In<T>[], Out<T>[]> {
 	return {
 		Name: typeLike.Name + "[]",
-		Validate(value): value is In<T>[] {
-			return isArrayLike(value);
+		Validate(value: unknown): value is In<T>[] {
+			return isArrayLike(value) && value.every((v) => typeLike.Validate(v));
 		},
 		Message: "Expected " + typeLike.Name + "[]",
-		NetworkBuffer: NCoreNetworkEncoders.Array(typeLike.NetworkBuffer),
+		NetworkBuffer: NetworkBuffers.Array(typeLike.NetworkBuffer) as NetworkBuffer<Out<T>[]>, // 'cause of roblox-ts
 		Serialize(value) {
-			if (NetIsSerializer<T>(typeLike)) {
-				return value.map((item) => typeLike.Serialize(item) as Out<T>) as Out<T>[];
-			} else {
-				return value as Out<T>;
-			}
+			return value.map((item: In<T>) => NexusSerialization.Serialize(typeLike, item));
 		},
 		Deserialize(value) {
-			if (NetIsSerializer<T>(typeLike)) {
-				return (value as defined[]).map((item) => typeLike.Deserialize(item)) as In<T>[];
-			} else {
-				return value as In<T>[];
-			}
+			return (value as Out<T & unknown>[]).map((item) => NexusSerialization.Deserialize(typeLike, item));
 		},
 	};
 }
 
-type MapCheckArrayIn<T> = { [P in keyof T]: In<T[P]> };
-type MapCheckArrayOut<T> = { [P in keyof T]: Out<T[P]> };
+type MapCheckArrayIn<T> = NexusSerialization.InputInterface<T>;
+type MapCheckArrayOut<T> = NexusSerialization.OutputInterface<T>;
 function TupleOf<T extends ReadonlyArray<NetworkSerializableType<any, any> | NetworkType<any>>>(
 	...items: T
 ): NetworkSerializableType<MapCheckArrayIn<T>, MapCheckArrayOut<T>> {
 	const tupleSize = items.size();
-	const buffer = NCoreNetworkEncoders.FixedArray(...items.map((v) => v.NetworkBuffer)) as NetworkBuffer<
+	const buffer = NetworkBuffers.FixedArray(...items.map((v) => v.NetworkBuffer)) as NetworkBuffer<
 		MapCheckArrayOut<T>
 	>;
 
@@ -253,13 +289,13 @@ function Optional<T extends NetworkSerializableType<any, any> | NetworkType<any,
 			return (NetIsSerializer(typeLike) ? typeLike.Deserialize(value as Out<T>) : value) as In<T>;
 		},
 		Message: "Expected " + typeLike.Name + " or undefined",
-		NetworkBuffer: NCoreNetworkEncoders.Nullable(typeLike.NetworkBuffer),
+		NetworkBuffer: NetworkBuffers.Nullable(typeLike.NetworkBuffer),
 	};
 }
 
-type InterfaceTypeDefiniton<T> = { [P in keyof T]: NetworkSerializableType<T[P], any> | NetworkType<T[P]> };
-type InTypes<T> = { [P in keyof T]: In<T[P]> };
-type OutTypes<T> = { [P in keyof T]: Out<T[P]> };
+type Interface<T> = { [P in keyof T]: NetworkSerializableType<T[P], any> | NetworkType<T[P]> };
+type InTypes<T> = NexusSerialization.InputInterface<T>;
+type OutTypes<T> = NexusSerialization.OutputInterface<T>;
 
 function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T): Array<[string, NetworkBuffer<any>]> {
 	const arr = new Array<[string, NetworkBuffer<any>]>();
@@ -280,7 +316,7 @@ export type Serialized<T> = T extends string | boolean | number ? T : { [P in ke
  * @returns A custom serializer for this interface
  */
 function Interface<T>(
-	objectInterface: InterfaceTypeDefiniton<T>,
+	objectInterface: Interface<T>,
 	customLabel?: string,
 ): NetworkSerializableType<InTypes<typeof objectInterface>, OutTypes<typeof objectInterface>> {
 	// We need to create a guaranteed ordered map
@@ -288,7 +324,7 @@ function Interface<T>(
 
 	return {
 		Name: customLabel ?? `interface { ${ordinalMap.map((value) => value[0]).join("; ")} }`,
-		NetworkBuffer: NCoreNetworkEncoders.StringHashMap(ordinalMap),
+		NetworkBuffer: NetworkBuffers.StringHashMap(ordinalMap),
 		Message: "Expected a valid interface",
 		Serialize(value) {
 			const newObj = {} as Serialized<T>;
@@ -356,6 +392,8 @@ interface NexusCorePrimitives {
 	readonly Float64: NetworkType<float64>;
 
 	readonly Boolean: NetworkType<boolean>;
+
+	readonly Undefined: typeof Undefined;
 }
 
 interface NexusCoreTypeOps {
@@ -374,7 +412,7 @@ interface NexusCoreTypeOps {
 	): NetworkSerializableType<In<T> | undefined, Out<T> | undefined>;
 	Interface<T>(
 		this: void,
-		objectInterface: InterfaceTypeDefiniton<T>,
+		objectInterface: Interface<T>,
 		customLabel?: string,
 	): NetworkSerializableType<InTypes<typeof objectInterface>, OutTypes<typeof objectInterface>>;
 }
@@ -396,10 +434,26 @@ export const NexusCoreTypes: NexusCoreTypes = {
 	Float64: Float(64) as NetworkType<float64>,
 
 	Boolean,
+	Undefined,
 
+	/**
+	 * A collection of literals - over the network this is represented by an integer of what value it is
+	 */
 	Literal,
+	/**
+	 * An array of a type `T[]`
+	 */
 	ArrayOf,
+	/**
+	 * A fixed array of a type `[T, ...]`
+	 */
 	TupleOf,
+	/**
+	 * An optional type (`T | undefined`)
+	 */
 	Optional,
+	/**
+	 * A key-based interface
+	 */
 	Interface,
 };

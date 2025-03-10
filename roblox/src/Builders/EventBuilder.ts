@@ -10,7 +10,7 @@ import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkType
 export class EventBuilder<TArgs extends ReadonlyArray<unknown>> implements NetworkEventBuilder<TArgs> {
 	unreliable = false;
 	useBuffer = false;
-	private arguments: StaticNetworkType[] | undefined;
+	arguments: StaticNetworkType[] | undefined;
 
 	SetUseBuffer(useBuffer: boolean): this {
 		this.useBuffer = useBuffer;

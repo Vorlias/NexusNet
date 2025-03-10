@@ -6,7 +6,13 @@ import {
 	RemoteContext,
 	ServerRemoteContext,
 } from "../Core/Generators/RemoteContext";
-import { AnyNetworkDeclaration, DeclarationRemoteKeys } from "../Core/Types/Declarations";
+import {
+	AnyNetworkDeclaration,
+	DeclarationRemoteKeys,
+	FilterClientDeclarations,
+	FilterServerDeclarations,
+} from "../Core/Types/Declarations";
+import { InferClientRemote, InferServerRemote } from "../Core/Types/Inference";
 import {
 	ClientBuilder,
 	ContextNetworkModel,
@@ -18,6 +24,23 @@ import { Identity, MergeIdentity, Named } from "../Core/Types/Utility";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { RobloxNetworkModelConfiguration } from "../Types/NetworkObjectModel";
+
+export interface RobloxContextNetworkModel<T extends RemoteDeclarations> extends ContextNetworkModel<T> {
+	/**
+	 * The server namespace for this definitions file, which allows manipulating remotes from the server
+	 * @server
+	 */
+	readonly Server: ServerRemoteContext<T>;
+
+	/**
+	 * The client namespace for this definitions file, which allows manipulating remotes from the client
+	 * @client
+	 */
+	readonly Client: ClientRemoteContext<T>;
+
+	// GetClient<K extends DeclarationRemoteKeys<T>>(key: K): InferClientRemote<FilterClientDeclarations<T>[K]>;
+	// GetServer<K extends DeclarationRemoteKeys<T>>(key: K): InferServerRemote<FilterServerDeclarations<T>[K]>;
+}
 
 export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclarations = defined>
 	implements NetworkObjectModelBuilder<TDeclarations>
@@ -63,7 +86,7 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 		return this;
 	}
 
-	Build(): ContextNetworkModel<TDeclarations> {
+	Build(): RobloxContextNetworkModel<TDeclarations> {
 		const runService = game.GetService("RunService");
 
 		const objectCache = new Map<keyof TDeclarations, RemoteContext<TDeclarations, any>>();
@@ -88,6 +111,8 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 		);
 
 		return {
+			Server: serverContext,
+			Client: clientContext,
 			Get<K extends DeclarationRemoteKeys<TDeclarations>>(key: K) {
 				if (objectCache.has(key)) return objectCache.get(key) as RemoteContext<TDeclarations, K>;
 

@@ -12,10 +12,21 @@ export type uint32 = number & { readonly __nominal_u32?: never };
 export type float32 = number & { readonly __nominal_f32?: never };
 export type float64 = number & { readonly __nominal_f64?: never };
 
+export const NeverBuffer = {
+	$never: true,
+	WriteData() {
+		error("Cannot write to NetworkBuffer");
+	},
+	ReadData() {
+		error("Cannot read from NetworkBuffer");
+	},
+} as NetworkBuffer<never>;
+
 /**
  * The buffer encoders available to Nexus Networking
  */
-export const NCoreNetworkEncoders = {
+export const NetworkBuffers = {
+	Never: NeverBuffer,
 	String: {
 		WriteData(data, writer) {
 			writer.WriteString(data);
@@ -96,7 +107,7 @@ export const NCoreNetworkEncoders = {
 			return reader.ReadBoolean();
 		},
 	} as NetworkBuffer<boolean>,
-	Array: <T>(encoder: NetworkBuffer<T>) => {
+	Array: <T extends defined>(encoder: NetworkBuffer<T>) => {
 		return {
 			WriteData(data, writer) {
 				writer.WriteUInt32(data.size()); // write length
@@ -195,3 +206,6 @@ export const NCoreNetworkEncoders = {
 	},
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } satisfies { [Key in string]: NetworkBuffer<any> | ((...args: any[]) => NetworkBuffer<any>) };
+
+/** @deprecated */
+export const NCoreNetworkEncoders = NetworkBuffers;
