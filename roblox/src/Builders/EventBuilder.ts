@@ -60,6 +60,7 @@ export class EventBuilder<TArgs extends ReadonlyArray<unknown>> implements Netwo
 		const declaration: ClientEventDeclaration<TArgs> = {
 			Type: "Event",
 			Flags: flags,
+			Arguments: this.arguments,
 			RunContext: RemoteRunContext.Client,
 			CallbackMiddleware: [],
 			InvokeMiddleware: [],

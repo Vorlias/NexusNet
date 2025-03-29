@@ -15,6 +15,7 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 	private argumentHandlers?: StaticNetworkType<any>[];
 	private useBuffers = false;
 	private callbackMiddleware: ClientCallbackMiddleware[];
+	private argCountCheck: boolean;
 
 	constructor(
 		private readonly name: string,
@@ -27,6 +28,7 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 
 		this.argumentHandlers = declaration.Arguments;
 		this.useBuffers = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
+		this.argCountCheck = (declaration.Flags & NetworkingFlags.EnforceArgumentCount) !== 0;
 		this.callbackMiddleware = declaration.CallbackMiddleware as ClientCallbackMiddleware[];
 	}
 
@@ -35,6 +37,7 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 			CreateClientEventCallback({
 				Callback: callback,
 				UseBuffers: this.useBuffers,
+				EnforceArguments: this.argCountCheck,
 				NetworkTypes: this.argumentHandlers ?? [],
 				CallbackMiddleware: this.callbackMiddleware,
 			}),
@@ -42,7 +45,14 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 	}
 
 	SendToServer(...args: T): void {
-		const serializedArgs = ParseClientInvokeArgs(this.useBuffers, this.argumentHandlers ?? [], [], args);
+		const serializedArgs = ParseClientInvokeArgs(
+			this.name,
+			this.useBuffers,
+			this.argumentHandlers ?? [],
+			[],
+			args,
+			this.argCountCheck,
+		);
 		if (!serializedArgs) return;
 
 		this.instance.FireServer(...serializedArgs);

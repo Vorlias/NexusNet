@@ -37,8 +37,8 @@ export interface RemoteContext<
 	TDeclarations extends RemoteDeclarations,
 	K extends DeclarationRemoteKeys<TDeclarations>,
 > {
-	Client: InferClientRemote<FilterClientDeclarations<TDeclarations>[K]>;
-	Server: InferServerRemote<FilterServerDeclarations<TDeclarations>[K]>;
+	Client: InferClientRemote<TDeclarations[K]>;
+	Server: InferServerRemote<TDeclarations[K]>;
 }
 
 export class NexusServerContext<TDefinitions extends RemoteDeclarations> implements ServerRemoteContext<TDefinitions> {

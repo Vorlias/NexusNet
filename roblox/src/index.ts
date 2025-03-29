@@ -1,4 +1,4 @@
-import { StaticNetworkType, ToNetworkArguments } from "./Core/Types/NetworkTypes";
+import { NetworkType, StaticNetworkType, ToNetworkArguments } from "./Core/Types/NetworkTypes";
 import { EventBuilder } from "./Builders/EventBuilder";
 import { RobloxNetworkObjectModelBuilder } from "./Builders/ObjectModelBuilder";
 import { default as NetV3Compat } from "./v3compat";
@@ -7,9 +7,9 @@ import { FunctionBuilder } from "./Builders/FunctionBuilder";
 import { AnyNetworkDeclaration } from "./Core/Types/Declarations";
 import { InferNOMDeclarations, InferServerRemote, InferClientRemote } from "./Core/Types/Inference";
 import { NEXUS_VERSION } from "./Core/CoreInfo";
-import { NexusTypes } from "./RobloxTypes";
+import { ExperienceEventBuilder } from "./Builders/MessagingBuilder";
+import { ContextNetworkModel } from "./Core/Types/NetworkObjectModel";
 export { NexusTypes } from "./RobloxTypes";
-// export { NexusX } from "./Core/NexusX";
 
 declare module "./Core/Types/Dist" {
 	export interface ModuleTypes {
@@ -82,6 +82,14 @@ namespace Nexus {
 		}
 
 		return new EventBuilder();
+	}
+
+	/**
+	 * Defines an event that messages between servers in the experience
+	 * @returns
+	 */
+	export function ExperienceEvent(): ExperienceEventBuilder<[]> {
+		return new ExperienceEventBuilder();
 	}
 
 	/**

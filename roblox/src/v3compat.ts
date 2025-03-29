@@ -85,6 +85,7 @@ namespace Net3Compat {
 			CallbackMiddleware: middleware ?? [],
 			InvokeMiddleware: [],
 			Flags: NetworkingFlags.None,
+			Arguments: [],
 			Unreliable: false,
 			Debugging: false,
 		} as ServerEventDeclaration<ServerArgs>;
@@ -107,6 +108,7 @@ namespace Net3Compat {
 			RunContext: RemoteRunContext.Client,
 			CallbackMiddleware: [],
 			Flags: NetworkingFlags.None,
+			Arguments: [],
 			InvokeMiddleware: [],
 			UseBufferSerialization: false,
 			Unreliable: false,

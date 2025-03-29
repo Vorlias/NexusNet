@@ -15,6 +15,7 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 	private argumentHandlers?: StaticNetworkType<any>[];
 	private useBuffers = false;
 	private debugging = false;
+	private argCountCheck: boolean;
 
 	private callbackMiddleware: ServerCallbackMiddleware[];
 
@@ -32,12 +33,15 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 		this.useBuffers = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
 		this.callbackMiddleware = declaration.CallbackMiddleware as ServerCallbackMiddleware[];
 		this.debugging = (declaration.Flags & NetworkingFlags.Debugging) !== 0;
+		this.argCountCheck = (declaration.Flags & NetworkingFlags.EnforceArgumentCount) !== 0;
+		table.freeze(this);
 	}
 
 	Connect(callback: (player: NetworkPlayer, ...args: T) => void): Connection {
 		const overloadCallback = CreateServerEventCallback({
 			UseBuffers: this.useBuffers,
 			Callback: callback,
+			EnforceArguments: this.argCountCheck,
 			CallbackMiddleware: this.callbackMiddleware ?? [],
 			NetworkTypes: this.argumentHandlers ?? [],
 		});
@@ -46,14 +50,28 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 	}
 
 	SendToAllPlayers(...args: T): void {
-		const transformedArgs = ParseServerInvokeArgs(this.useBuffers, this.argumentHandlers ?? [], [], args);
+		const transformedArgs = ParseServerInvokeArgs(
+			this.name,
+			this.useBuffers,
+			this.argumentHandlers ?? [],
+			[],
+			args,
+			this.argCountCheck,
+		);
 		if (!transformedArgs) return;
 
 		return this.instance.FireAllClients(...transformedArgs);
 	}
 
 	SendToAllPlayersExcept(targetOrTargets: NetworkPlayer | Array<NetworkPlayer>, ...args: T): void {
-		const transformedArgs = ParseServerInvokeArgs(this.useBuffers, this.argumentHandlers ?? [], [], args);
+		const transformedArgs = ParseServerInvokeArgs(
+			this.name,
+			this.useBuffers,
+			this.argumentHandlers ?? [],
+			[],
+			args,
+			this.argCountCheck,
+		);
 		if (!transformedArgs) return;
 
 		const players = new Set<Player>(game.GetService("Players").GetPlayers());
@@ -70,14 +88,28 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 	}
 
 	SendToPlayer(target: NetworkPlayer, ...args: T): void {
-		const transformedArgs = ParseServerInvokeArgs(this.useBuffers, this.argumentHandlers ?? [], [], args);
+		const transformedArgs = ParseServerInvokeArgs(
+			this.name,
+			this.useBuffers,
+			this.argumentHandlers ?? [],
+			[],
+			args,
+			this.argCountCheck,
+		);
 		if (!transformedArgs) return;
 
 		return this.instance.FireClient(target, ...transformedArgs);
 	}
 
 	SendToPlayers(targets: Array<NetworkPlayer>, ...args: T): void {
-		const transformedArgs = ParseServerInvokeArgs(this.useBuffers, this.argumentHandlers ?? [], [], args);
+		const transformedArgs = ParseServerInvokeArgs(
+			this.name,
+			this.useBuffers,
+			this.argumentHandlers ?? [],
+			[],
+			args,
+			this.argCountCheck,
+		);
 		if (!transformedArgs) return;
 
 		for (const player of targets) {

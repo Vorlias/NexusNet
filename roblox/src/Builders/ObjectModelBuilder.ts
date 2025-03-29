@@ -16,6 +16,8 @@ import { InferClientRemote, InferServerRemote } from "../Core/Types/Inference";
 import {
 	ClientBuilder,
 	ContextNetworkModel,
+	CrossServerEventDeclaration,
+	NetworkObjectDeclaration,
 	NetworkObjectModelBuilder,
 	RemoteDeclarations,
 	ServerBuilder,
@@ -52,9 +54,9 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 		UseBuffers: false,
 	};
 
-	AddServer<TName extends string, TNomRemote extends AnyNetworkDeclaration>(
+	AddServer<TName extends string, TNomRemote extends NetworkObjectDeclaration>(
 		id: TName,
-		declaration: ServerBuilder<TNomRemote>,
+		declaration: ServerBuilder<TNomRemote> | ServerBuilder<CrossServerEventDeclaration<any>>,
 	): RobloxNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
 		const definition = declaration.OnServer(this.configuration);
 		this.declarations = {
@@ -65,7 +67,7 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 		return this as never;
 	}
 
-	AddClient<TName extends string, TNomRemote extends AnyNetworkDeclaration>(
+	AddClient<TName extends string, TNomRemote extends NetworkObjectDeclaration>(
 		id: TName,
 		declaration: ClientBuilder<TNomRemote>,
 	): RobloxNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {

@@ -1,6 +1,6 @@
 import { ClientCallbackMiddleware, ServerCallbackMiddleware } from "../Middleware/Types";
 import { NetworkPlayer } from "../Types/Dist";
-import { StaticNetworkType } from "../Types/NetworkTypes";
+import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
 import { TransformArgsToBuffer, TransformBufferToArgs } from "./BufferEncoding";
 import { NetDeserializeArguments, NetSerializeArguments } from "./Serializer";
 
@@ -50,12 +50,10 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 			// Receiving from client needs validation
 			for (let i = 0; i < networkTypes.size(); i++) {
 				const networkType = networkTypes[i];
-				if (!networkType.Validate(transformedArgs[i])) {
-					const msg = typeIs(networkType.Message, "function")
-						? networkType.Message(transformedArgs[i], networkType.Name)
-						: networkType.Message;
 
-					warn("[ServerEventCallback] Failed validation at index " + i + ": " + msg);
+				const [valid, err] = NetworkType.Check(networkType, transformedArgs[i]);
+				if (!valid) {
+					warn("[ServerEventCallback] Failed validation at index", `${i}:`, err);
 					return;
 				}
 			}
@@ -73,12 +71,10 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 			// Receiving from client needs validation
 			for (let i = 0; i < networkTypes.size(); i++) {
 				const networkType = networkTypes[i];
-				if (!networkType.Validate(transformedArgs[i])) {
-					const msg = typeIs(networkType.Message, "function")
-						? networkType.Message(transformedArgs[i], networkType.Name)
-						: networkType.Message;
 
-					warn("[ServerEventCallback] Failed validation at index " + i + ": " + msg);
+				const [valid, err] = NetworkType.Check(networkType, transformedArgs[i]);
+				if (!valid) {
+					warn("[ServerEventCallback] Failed validation at index", `${i}:`, err);
 					return;
 				}
 			}
@@ -153,12 +149,10 @@ export function CreateServerFunctionCallback<
 			// Receiving from client needs validation
 			for (let i = 0; i < networkTypes.size(); i++) {
 				const networkType = networkTypes[i];
-				if (!networkType.Validate(transformedArgs[i])) {
-					const msg = typeIs(networkType.Message, "function")
-						? networkType.Message(transformedArgs[i], networkType.Name)
-						: networkType.Message;
 
-					warn("[ServerEventCallback] Failed validation at index " + i + ": " + msg);
+				const [valid, err] = NetworkType.Check(networkType, transformedArgs[i]);
+				if (!valid) {
+					warn("[ServerEventCallback] Failed validation at index", `${i}:`, err);
 					return;
 				}
 			}
@@ -175,12 +169,10 @@ export function CreateServerFunctionCallback<
 			// Receiving from client needs validation
 			for (let i = 0; i < networkTypes.size(); i++) {
 				const networkType = networkTypes[i];
-				if (!networkType.Validate(transformedArgs[i])) {
-					const msg = typeIs(networkType.Message, "function")
-						? networkType.Message(transformedArgs[i], networkType.Name)
-						: networkType.Message;
 
-					warn("[ServerEventCallback] Failed validation at index " + i + ": " + msg);
+				const [valid, err] = NetworkType.Check(networkType, transformedArgs[i]);
+				if (!valid) {
+					warn("[ServerEventCallback] Failed validation at index", `${i}:`, err);
 					return;
 				}
 			}

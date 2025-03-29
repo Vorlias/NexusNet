@@ -3,6 +3,9 @@ import { ClientSenderEvent, ClientListenerEvent, ClientInvokeFunction } from "./
 import {
 	ClientEventDeclaration,
 	ClientFunctionDeclaration,
+	CrossServerEventDeclaration,
+	EventDeclaration,
+	FunctionDeclaration,
 	RemoteDeclarations,
 	ServerEventDeclaration,
 	ServerFunctionDeclaration,
@@ -15,7 +18,8 @@ export type AnyNetworkDeclaration =
 	| ServerEventDeclaration<any>
 	| ClientEventDeclaration<any>
 	| ServerFunctionDeclaration<any, any>
-	| ClientFunctionDeclaration<any, any>;
+	| ClientFunctionDeclaration<any, any>
+	| CrossServerEventDeclaration<any>;
 
 export type AnyServerNetworkObject =
 	| ServerSenderEvent<any>
@@ -24,12 +28,15 @@ export type AnyServerNetworkObject =
 
 export type AnyClientNetworkObject = ClientSenderEvent<any> | ClientListenerEvent<any> | ClientInvokeFunction<any, any>;
 
-export type FilterServerDeclarations<T extends RemoteDeclarations, U = AnyNetworkDeclaration> = {
-	[K in ExtractKeys<T, U>]: T[K];
+export type FilterServerDeclarations<T extends RemoteDeclarations> = {
+	[K in ExtractKeys<
+		T,
+		EventDeclaration<any, any> | FunctionDeclaration<any, any, any> | CrossServerEventDeclaration<any>
+	>]: T[K];
 };
 
-export type FilterClientDeclarations<T extends RemoteDeclarations, U = AnyNetworkDeclaration> = {
-	[K in ExtractKeys<T, U>]: T[K];
+export type FilterClientDeclarations<T extends RemoteDeclarations> = {
+	[K in ExtractKeys<T, EventDeclaration<any, any> | FunctionDeclaration<any, any, any>>]: T[K];
 };
 
 export type DeclarationRemoteKeys<T extends RemoteDeclarations> = keyof FilterServerDeclarations<T>;

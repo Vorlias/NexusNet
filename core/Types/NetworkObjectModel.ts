@@ -53,7 +53,7 @@ export interface ScopeObjectModelDeclaration<TDeclarations extends RemoteDeclara
 	readonly Configuration: NetworkModelConfiguration;
 }
 
-interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>> {
+export interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>> {
 	readonly Type: "Event";
 	// readonly UseBufferSerialization: boolean;
 	// readonly Debugging: boolean;
@@ -65,7 +65,11 @@ interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs extends 
 	readonly Flags: NetworkingFlags;
 }
 
-interface FunctionDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>, _TRet> {
+export interface FunctionDeclaration<
+	TRunContext extends RemoteRunContext,
+	_TArgs extends ReadonlyArray<unknown>,
+	_TRet,
+> {
 	readonly Type: "Function";
 	readonly UseBufferSerialization: boolean;
 	readonly Debugging: boolean;
@@ -80,6 +84,10 @@ export const enum NetworkingFlags {
 	Debugging = 1 << 3,
 
 	Default = EnforceArgumentCount,
+}
+
+export interface CrossServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> {
+	readonly Type: "Messaging";
 }
 
 export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>>
@@ -99,11 +107,12 @@ export interface ServerFunctionDeclaration<_TArgs extends ReadonlyArray<unknown>
 export interface ClientFunctionDeclaration<_TArgs extends ReadonlyArray<unknown>, _TRet>
 	extends FunctionDeclaration<RemoteRunContext.Client, _TArgs, _TRet> {}
 
-type NetworkObjectDeclaration =
+export type NetworkObjectDeclaration =
 	| ServerEventDeclaration<never>
 	| ClientEventDeclaration<never>
 	| ClientFunctionDeclaration<never, never>
-	| ServerFunctionDeclaration<never, never>;
+	| ServerFunctionDeclaration<never, never>
+	| CrossServerEventDeclaration<any>;
 
 export interface ContextNetworkObject<TServer extends AnyServerNetworkObject, TClient extends AnyClientNetworkObject> {
 	/**
@@ -119,10 +128,7 @@ export interface ContextNetworkObject<TServer extends AnyServerNetworkObject, TC
 export interface ContextNetworkModel<TDeclarations extends RemoteDeclarations> {
 	Get<K extends DeclarationRemoteKeys<TDeclarations>>(
 		k: K,
-	): ContextNetworkObject<
-		InferServerRemote<FilterServerDeclarations<TDeclarations>[K]>,
-		InferClientRemote<FilterClientDeclarations<TDeclarations>[K]>
-	>;
+	): ContextNetworkObject<InferServerRemote<TDeclarations[K]>, InferClientRemote<TDeclarations[K]>>;
 }
 
 interface NetworkObjectBuilder {

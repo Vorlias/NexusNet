@@ -63,3 +63,9 @@ export interface ServerListenerFunction<CallArguments extends ReadonlyArray<unkn
 	 */
 	SetCallback(callback: (target: NetworkPlayer, ...args: CallArguments) => TRet): () => void;
 }
+
+export interface ServerBroadcaster<TMessage extends ReadonlyArray<unknown>> {
+	Broadcast(...message: TMessage): void;
+	BroadcastToServer(serverId: string, ...message: TMessage): void;
+	Connect(callback: (serverId: string, ...message: TMessage) => void): Connection;
+}
