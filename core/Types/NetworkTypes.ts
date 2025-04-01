@@ -18,12 +18,7 @@ export interface NetworkBuffer<T> {
 	ReadData(reader: BufferReader): T;
 }
 
-type NetworkTypeErrorFn<T extends StaticNetworkType = StaticNetworkType> = (networkType: T, value: unknown) => string;
-export interface NetworkType<TValue, TEncode = TValue> {
-	/**
-	 * The name of the type
-	 */
-	Name: string;
+export interface NetworkValidator<TValue, TEncode = TValue> {
 	/**
 	 * A callback to get the message for an invalid type on {@link Check} being false
 	 */
@@ -32,13 +27,22 @@ export interface NetworkType<TValue, TEncode = TValue> {
 	 * A callback which is used to check the given value matches this network type
 	 */
 	Validate(this: void, value: unknown): value is TValue;
+}
+
+type NetworkTypeErrorFn<T extends StaticNetworkType = StaticNetworkType> = (networkType: T, value: unknown) => string;
+export interface NetworkType<TValue, TEncode = TValue> {
+	/**
+	 * The name of the type
+	 */
+	Name: string;
 	/**
 	 * A network buffer for this network type - used for buffer serialization
 	 */
-	NetworkBuffer: NetworkBuffer<TEncode>;
+	BufferEncoder: NetworkBuffer<TEncode>;
+	Validator: NetworkValidator<TValue, TEncode>;
 }
 
-export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TInput, TOutput> {
+export interface NetworkSerializer<TInput, TOutput> {
 	/**
 	 * Serializes the given value to the serialized value for this network type
 	 */
@@ -49,35 +53,82 @@ export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TI
 	Deserialize(this: void, value: TOutput): TInput;
 }
 
+export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TInput, TOutput> {
+	Serializer: NetworkSerializer<TInput, TOutput>;
+}
+
 export namespace NetworkType {
 	export function Check<T, TEncode>(
 		networkType: NetworkType<T, TEncode>,
 		value: unknown,
 	): LuaTuple<[true, undefined] | [false, string]> {
-		if (networkType.Validate(value)) {
-			return $tuple<[true, undefined]>(true, undefined);
-		} else {
-			const errMsg = typeIs(networkType.ValidateError, "function")
-				? networkType.ValidateError(networkType, value)
-				: (networkType.ValidateError ?? `Expected ${networkType.Name}`);
+		if (networkType.Validator) {
+			const validator = networkType.Validator;
 
-			return $tuple<[false, string]>(false, errMsg);
+			if (validator.Validate(value)) {
+				return $tuple<[true, undefined]>(true, undefined);
+			} else {
+				const errMsg = typeIs(validator.ValidateError, "function")
+					? validator.ValidateError(networkType, value)
+					: validator.ValidateError ?? `Expected ${networkType.Name}`;
+
+				return $tuple<[false, string]>(false, errMsg);
+			}
+		} else {
+			return $tuple<[true, undefined]>(true, undefined);
 		}
+	}
+
+	type InferSerializer<T> = T extends NetworkSerializableType<infer _TInput, infer _TOutput>
+		? T["Serializer"]
+		: undefined;
+	type InferSerializers<T extends ReadonlyArray<StaticNetworkType>> = {
+		[P in keyof T]: InferSerializer<T[P]>;
+	};
+
+	type InferBuffers<T extends ReadonlyArray<StaticNetworkType>> = {
+		[P in keyof T]: T[P]["BufferEncoder"];
+	};
+
+	type InferValidators<T extends ReadonlyArray<StaticNetworkType>> = {
+		[P in keyof T]: NetworkValidator<Input<T[P]>, Output<T[P]>>;
+	};
+
+	export function TypesToSerializers<T extends ReadonlyArray<StaticNetworkType>>(...values: T): InferSerializers<T> {
+		const serializers = new Array<NetworkSerializer<any, any>>(values.size());
+
+		for (let i = 0; i < values.size(); i++) {
+			const positionalNetworkType = values[i];
+			if (NexusSerialization.IsSerializableType(positionalNetworkType)) {
+				serializers[i] = positionalNetworkType.Serializer;
+			}
+		}
+
+		return serializers as InferSerializers<T>;
+	}
+
+	export function TypesToBuffers<T extends ReadonlyArray<StaticNetworkType>>(...values: T): InferBuffers<T> {
+		const buffers = new Array<NetworkBuffer<any>>(values.size());
+
+		for (let i = 0; i < values.size(); i++) {
+			const positionalNetworkType = values[i];
+			buffers[i] = positionalNetworkType.BufferEncoder;
+		}
+
+		return buffers as InferBuffers<T>;
+	}
+
+	export function GetValidators<T extends ReadonlyArray<StaticNetworkType>>(...values: T): InferValidators<T> {
+		const validators = new Array<NetworkValidator<any, any>>(values.size());
+
+		for (let i = 0; i < values.size(); i++) {
+			const positionalNetworkType = values[i];
+			validators[i] = positionalNetworkType.Validator;
+		}
+
+		return validators as InferValidators<T>;
 	}
 }
 
-export function __NexusCreateSerializableType<TInput, TOutput>(
-	name: string,
-	ser: Pick<NetworkSerializableType<TInput, TOutput>, "Validate" | "Serialize" | "Deserialize">,
-	networkBuffer: NetworkBuffer<TOutput>,
-): NetworkSerializableType<TInput, TOutput> {
-	return {
-		...ser,
-		Name: name,
-		ValidateError: `Expected ${name}`,
-		NetworkBuffer: networkBuffer,
-	};
-}
-
-export type StaticNetworkType<T = any, U = any> = NetworkType<T> | NetworkSerializableType<T, U>;
+export type StaticNetworkType<T = any, U = any> = NetworkType<T, U> | NetworkSerializableType<T, U>;
 export type ToNetworkArguments<T> = { [K in keyof T]: StaticNetworkType<T[K]> };

@@ -5,6 +5,7 @@ import NexusSerialization from "@Vorlias/NexusNet/Core/Serialization";
 import { NetworkingFlags, RemoteRunContext } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { NexusServerContext } from "@Vorlias/NexusNet/Core/Generators/RemoteContext";
 import { ServerEvent } from "@Vorlias/NexusNet/Objects/Server/ServerEvent";
+import inspect from "@Easy/Core/Shared/Util/Inspect";
 
 export default class TestNetworking extends AirshipBehaviour {
 	protected StartServer() {}
@@ -57,7 +58,7 @@ export default class TestNetworking extends AirshipBehaviour {
 				const literals = NexusTypes.Literal("A", "B", "C");
 
 				const serializedA = NexusSerialization.Serialize(literals, "A");
-				assert(serializedA === 0, "Serialized to wrong value for literal A");
+				assert(serializedA === 0, "Serialized to wrong value for literal A - got " + serializedA);
 
 				const serializedB = NexusSerialization.Serialize(literals, "B");
 				assert(serializedB === 1, "Serialized to wrong value for literal B");
@@ -73,6 +74,53 @@ export default class TestNetworking extends AirshipBehaviour {
 
 				const c = NexusSerialization.Deserialize(literals, serializedC);
 				assert(c === "C", "expected C");
+			}),
+
+			NexusTesting.Test("Server Invoke Middleware", (test) => {
+				const testing = test.ServerEventWithArgs(false);
+
+				let ranMiddleware = false;
+				testing.InjectInvokeMiddleware((whoInvoked, ...args) => {
+					print("Run middleware", inspect(whoInvoked));
+					ranMiddleware = true;
+				});
+
+				testing.SendAndWaitForRecieved(undefined!);
+				assert(ranMiddleware, "Did not run middleware!");
+			}),
+
+			NexusTesting.Test("Server Callback Middleware", (test) => {
+				{
+					const testing = test.ServerEventWithArgs(false, NexusTypes.String);
+
+					let ranMiddleware = false;
+					testing.InjectCallbackMiddleware((fire, instance) => {
+						return (sender, ...args) => {
+							ranMiddleware = true;
+							fire(sender, ...args);
+						};
+					});
+
+					const result = testing.SendAndWaitForRecieved(undefined!, "Hello, World!");
+					assert(ranMiddleware, "Did not run middleware!");
+				}
+				{
+					const testNoModify = test.ServerEventWithArgs(false, NexusTypes.String);
+					testNoModify.InjectCallbackMiddleware((fire, instance) => {
+						return (sender, ...args) => {
+							fire(sender, 10 as never as string);
+						};
+					});
+
+					const [result] = testNoModify.SendAndWaitForRecieved(undefined!, "test");
+					assert(result === "test", "Unexpected modification, expected 'test' got " + result);
+				}
+			}),
+
+			NexusTesting.Test("Inline Test", (test) => {
+				const testing = Nexus.Server("testing", Nexus.Event(NexusTypes.String));
+
+				test;
 			}),
 
 			NexusTesting.Test("Network Object Model", () => {

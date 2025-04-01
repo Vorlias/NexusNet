@@ -1,15 +1,34 @@
 import type { Player } from "@Easy/Core/Shared/Player/Player";
 import type { AirshipScriptConnection } from "../Objects/NetConnection";
-import type { ServerEvent } from "../Objects/Server/ServerEvent";
-import type { ClientEvent } from "../Objects/Client/ClientEvent";
-import type { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import { ServerEvent } from "../Objects/Server/ServerEvent";
+import { ClientEvent } from "../Objects/Client/ClientEvent";
+import type { NetworkSerializer, StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { AirshipNetworkObjectModelBuilder } from "../Builders/ObjectModelBuilder";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
-import { InferClientRemote, InferNOMDeclarations, InferServerRemote } from "../Core/Types/Inference";
-import type { ContextNetworkModel, NetworkObjectModelBuilder } from "../Core/Types/NetworkObjectModel";
-import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
+import {
+	InferClientRemote,
+	InferNOMDeclarations,
+	InferServerRemote,
+	InferServerRemoteNoBroadcast,
+} from "../Core/Types/Inference";
+import type {
+	ClientBuilder,
+	ClientEventDeclaration,
+	ContextNetworkModel,
+	InferClient,
+	InferServer,
+	NetworkModelConfiguration,
+	NetworkObjectModelBuilder,
+	ServerBuilder,
+	ServerEventDeclaration,
+} from "../Core/Types/NetworkObjectModel";
+import { AnyNetworkDeclaration, AnyServerNetworkObject } from "../Core/Types/Declarations";
 import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
+import { RemoteContext } from "../Core/Generators/RemoteContext";
+import { Game } from "@Easy/Core/Shared/Game";
+import { NexusTypes } from "./AirshipTypes";
+import { NexusResult } from "../Core/Result";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -65,7 +84,7 @@ namespace Nexus {
 	export function Event<T extends ReadonlyArray<unknown>>(...values: ToNetworkArguments<T>): AirshipEventBuilder<T>;
 	export function Event<T extends ReadonlyArray<unknown>>(...values: ToNetworkArguments<T>): AirshipEventBuilder<[]> {
 		if (values.size() > 0) {
-			return new AirshipEventBuilder().WithArguments(...values);
+			return new AirshipEventBuilder().WithArguments(...values) as AirshipEventBuilder<[]>;
 		}
 
 		return new AirshipEventBuilder();
@@ -80,6 +99,90 @@ namespace Nexus {
 	): AirshipFunctionBuilder<T, TRet> {
 		return new AirshipFunctionBuilder(returns).WithArguments(...args);
 	}
+
+	export interface InlineContext<T> {
+		readonly server: InferServerRemote<T>;
+		readonly client: InferClientRemote<T>;
+	}
+
+	/**
+	 * Creates an inline server object - for usage with components
+	 *
+	 * ```ts
+	 * export class MyComponent extends AirshipBehaviour {
+	 * 	private sendHelloEvent = Nexus.Server("MyComponent/SendHello", Nexus.Event(NexusTypes.String));
+	 *
+	 * 	protected Start() {
+	 * 		if (Game.IsServer()) {
+	 * 			Airship.Players.Observe((player) => {
+	 * 				this.sendHelloEvent.Server.SendToPlayer(player, `Hello, ${player.username}!`);
+	 * 			});
+	 * 		}
+	 *
+	 * 		if (Game.IsClient()) {
+	 * 			this.sendHelloEvent.Client.Connect((message) => {
+	 * 				print("The server says", message);
+	 * 			});
+	 * 		}
+	 * 	}
+	 * }
+	 * ```
+	 */
+	export function Server<T extends AnyNetworkDeclaration>(
+		name: string,
+		network: ServerBuilder<T>,
+		configuration?: Partial<NetworkModelConfiguration>,
+	): InlineContext<T> {
+		const declaration = network.OnServer({
+			Debugging: false,
+			UseBuffers: false,
+			Logging: false,
+			...configuration,
+		});
+
+		return {
+			server: new ServerEvent(
+				name,
+				declaration as ServerEventDeclaration<any>,
+			) as unknown as InferServerRemote<T>,
+			client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
+		};
+	}
+
+	/**
+	 * Creates an inline client network object
+	 */
+	export function Client<T extends AnyNetworkDeclaration>(
+		name: string,
+		network: ClientBuilder<T>,
+		configuration?: Partial<NetworkModelConfiguration>,
+	): InlineContext<T> {
+		//const [n, l, s, f, a] = debug.info(2, "nlsfa");
+
+		// if (!name) {
+		// 	assert(n === "constructor", "Inline declarations can only be used inside components");
+		// 	name = `${s}:${l}#${n}`;
+		// }
+
+		const declaration = network.OnClient({
+			Debugging: false,
+			UseBuffers: false,
+			Logging: false,
+			...configuration,
+		});
+
+		return {
+			server: new ServerEvent(
+				name,
+				declaration as ServerEventDeclaration<any>,
+			) as unknown as InferServerRemote<T>,
+			client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
+		};
+	}
 }
 
 export default Nexus;
+const test = Nexus.Server(
+	"test",
+	Nexus.Event(NexusTypes.String).WithServerMiddleware((c) => c),
+);

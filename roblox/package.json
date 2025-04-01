@@ -1,6 +1,6 @@
 {
-  "name": "@rbxts/nexus-net",
-  "version": "1.0.0",
+  "name": "@rbxts/nexus",
+  "version": "1.0.0-rc.0",
   "main": "out/init.lua",
   "scripts": {
     "build": "rbxtsc",

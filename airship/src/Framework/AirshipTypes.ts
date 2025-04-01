@@ -8,52 +8,81 @@ import { Player as AirshipPlayer } from "@Easy/Core/Shared/Player/Player";
 
 const Identity: NetworkSerializableType<NetworkIdentity, uint32> = {
 	Name: "NetworkIdentity",
-	Message: "Expected a NetworkIdentity",
-	NetworkBuffer: NCoreNetworkEncoders.UInt32,
-	Validate(value): value is NetworkIdentity {
-		return typeIs(value, "userdata") && (value as { IsA(name: string): boolean }).IsA("NetworkIdentity");
+	BufferEncoder: NCoreNetworkEncoders.UInt32,
+	Validator: {
+		Validate(value): value is NetworkIdentity {
+			return typeIs(value, "userdata") && (value as { IsA(name: string): boolean }).IsA("NetworkIdentity");
+		},
 	},
-	Serialize(value) {
-		return value.netId;
+	Serializer: {
+		Serialize(value) {
+			return value.netId;
+		},
+		Deserialize(value) {
+			const object = NetworkUtil.GetNetworkIdentity(value);
+			assert(object);
+			return object;
+		},
 	},
-	Deserialize(value) {
-		const object = NetworkUtil.GetNetworkIdentity(value);
-		assert(object);
-		return object;
+};
+
+const NetworkConnectionToClient: NetworkSerializableType<NetworkConnectionToClient, uint32> = {
+	Name: "NetworkConnectionToClient",
+	BufferEncoder: NCoreNetworkEncoders.UInt32,
+	Validator: {
+		Validate(value): value is NetworkConnectionToClient {
+			return false;
+		},
+	},
+	Serializer: {
+		Serialize(value) {
+			return value.connectionId;
+		},
+		Deserialize(value) {
+			const connection = NetworkServer.connections.Get(value);
+			assert(connection);
+			return connection;
+		},
 	},
 };
 
 const Character: NetworkSerializableType<AirshipCharacter, uint32> = {
 	Name: "Character",
-	Message: "Expected a Character",
-	NetworkBuffer: NCoreNetworkEncoders.UInt32,
-	Validate(value): value is AirshipCharacter {
-		return typeIs(value, "table") && value instanceof AirshipCharacter;
+	BufferEncoder: NCoreNetworkEncoders.UInt32,
+	Validator: {
+		Validate(value): value is AirshipCharacter {
+			return typeIs(value, "table") && value instanceof AirshipCharacter;
+		},
 	},
-	Serialize(value) {
-		return value.id;
-	},
-	Deserialize(value) {
-		const character = Airship.Characters.FindById(value);
-		assert(character);
-		return character;
+	Serializer: {
+		Serialize(value) {
+			return value.id;
+		},
+		Deserialize(value) {
+			const character = Airship.Characters.FindById(value);
+			assert(character);
+			return character;
+		},
 	},
 };
 
 const Player: NetworkSerializableType<AirshipPlayer, string> = {
 	Name: "AirshipPlayer",
-	Message: "Expected an AirshipPlayer",
-	NetworkBuffer: NCoreNetworkEncoders.String,
-	Validate(value): value is AirshipPlayer {
-		return typeIs(value, "table") && value instanceof AirshipPlayer;
+	BufferEncoder: NCoreNetworkEncoders.String,
+	Validator: {
+		Validate(value): value is AirshipPlayer {
+			return typeIs(value, "table") && value instanceof AirshipPlayer;
+		},
 	},
-	Serialize(value) {
-		return value.userId;
-	},
-	Deserialize(value) {
-		const player = Airship.Players.WaitForUserId(value);
-		assert(player, `Could not find player with userId '${value}'`);
-		return player;
+	Serializer: {
+		Serialize(value) {
+			return value.userId;
+		},
+		Deserialize(value) {
+			const player = Airship.Players.WaitForUserId(value);
+			assert(player, `Could not find player with userId '${value}'`);
+			return player;
+		},
 	},
 };
 

@@ -1,44 +1,104 @@
 import { Game } from "@Easy/Core/Shared/Game";
-import { ToNetworkArguments } from "../Core/Types/NetworkTypes";
-import { ServerEvent } from "../Objects/Server/ServerEvent";
+import {
+	NetworkSerializableType,
+	NetworkType,
+	StaticNetworkType,
+	ToNetworkArguments,
+} from "../Core/Types/NetworkTypes";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
-import { ServerEvents } from "./NetworkableBehaviour";
+import Nexus, { NexusTypes } from "../Framework";
+import { NexusClientRpc, NexusNetworkBehaviour, NexusServerRpc } from "./NexusNetworkBehaviour";
 import { MapUtil } from "@Easy/Core/Shared/Util/MapUtil";
-import { NexusTypes } from "../Framework";
+import { AnyClientNetworkObject, AnyServerNetworkObject } from "../Core/Types/Declarations";
+import { Player } from "@Easy/Core/Shared/Player/Player";
+import { NetworkBuffers, NeverBuffer, uint32 } from "../Core/Buffers";
 
-interface Broadcaster<T extends unknown[]> {
+export const enum CommandFlags {
+	RequiresAuthority,
+	PassNetworkConnectionArg,
+}
+
+interface Broadcaster<T extends readonly unknown[]> {
 	(
-		target: AirshipBehaviour,
+		target: NexusNetworkBehaviour,
 		property: string,
-		descriptor: TypedPropertyDescriptor<(this: AirshipBehaviour, ...args: T) => void>,
+		descriptor: TypedPropertyDescriptor<(this: NexusNetworkBehaviour, ...args: [...T, Player | undefined]) => void>,
 	): void;
 }
 
-export function Broadcast<T extends Array<unknown>>(...args: ToNetworkArguments<T>): Broadcaster<T> {
+export interface CommandOptions {
+	requiresAuthority?: boolean;
+}
+
+export function CommandWithOptions<T extends ReadonlyArray<unknown>>(
+	options: CommandOptions,
+	args: ToNetworkArguments<T>,
+): Broadcaster<T> {
 	return (target, property, descriptor) => {
 		const name = `${target}::${property}`;
 
+		const constructor = target as unknown as typeof NexusNetworkBehaviour;
+		const rpcList = constructor["$RPC"];
+
 		const event = new AirshipEventBuilder().WithArguments<[NetworkIdentity, ...T]>(NexusTypes.Identity, ...args);
 
-		const serverDeclaration = event.OnServer({ UseBuffers: false, Logging: false, Debugging: false });
-		const clientDeclaration = event.OnClient({ UseBuffers: false, Logging: false, Debugging: false });
+		const inlined = Nexus.Client(name, event);
+		rpcList.push({
+			property,
+			requiresAuthority: options.requiresAuthority ?? true,
+			rpcType: "Command",
+			context: inlined,
+		});
 
-		const declarationMap = MapUtil.GetOrCreate(ServerEvents, target as never, new Map());
-		assert(declarationMap, "No declaration map for " + target);
+		const serverRpcs = MapUtil.GetOrCreate(NexusServerRpc, target, () => new Map<string, AnyServerNetworkObject>());
+		const clientRpcs = MapUtil.GetOrCreate(NexusClientRpc, target, () => new Map<string, AnyClientNetworkObject>());
+		serverRpcs.set(property, inlined.server);
+		clientRpcs.set(property, inlined.client);
 
-		declarationMap.set(name, { property, server: serverDeclaration, client: clientDeclaration });
-
-		if (Game.IsServer()) {
-			const serverEvent = new ServerEvent<[NetworkIdentity, ...T]>(name, serverDeclaration);
-			print("create server event", serverEvent);
-
+		if (Game.IsClient()) {
+			const serverEvent = inlined.client;
 			descriptor.value = (object, ...args) => {
 				const networkIdentity = object.gameObject.GetAirshipComponent<NetworkIdentity>();
 				assert(networkIdentity, "No NetworkIdentity on object");
-				return serverEvent.SendToAllPlayers(networkIdentity, ...args);
+				return serverEvent.SendToServer(networkIdentity, ...(args as unknown as [...T]));
 			};
 
 			return descriptor;
 		}
 	};
 }
+
+// /**
+//  * A function that's invoked by clients
+//  */
+// export function Command<T extends Array<unknown>>(...args: ToNetworkArguments<T>): Broadcaster<T> {
+// 	return CommandWithOptions({}, args);
+// }
+
+interface ConnectionType extends NetworkSerializableType<Player | undefined, string | undefined> {
+	readonly __nominal_NetworkConnectionToClientSymbol?: unique symbol;
+}
+const connectionToClient = {
+	Name: "Connection",
+	Validator: {
+		Validate: NexusTypes.Player.Validator.Validate,
+	},
+	BufferEncoder: NetworkBuffers.Nullable(NexusTypes.Player.BufferEncoder),
+	Serializer: NexusTypes.Optional(NexusTypes.Player).Serializer,
+} as ConnectionType;
+
+interface Command {
+	<T extends ReadonlyArray<unknown>>(...args: ToNetworkArguments<T>): Broadcaster<T>;
+	PlayerSenderArgument: ConnectionType;
+}
+const command = {
+	PlayerSenderArgument: connectionToClient,
+} as Command;
+setmetatable(command, {
+	__call: (obj, ...args) => {
+		const res = CommandWithOptions({}, args as StaticNetworkType[]);
+		return res;
+	},
+});
+
+export const Command = command;

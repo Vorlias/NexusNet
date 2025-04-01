@@ -2,6 +2,7 @@
   <img src="./icon.png">
   <h1>Nexus Networking</h1>
   <p>Cross-platform Networking for Multiplayer Platforms, powered by the <a href="https://vorlias.nz/spec/nom">Network Object Model</a></p>
+  <h3>v1.0.0-pre.0</h3>
 </div>
 
 ## Features

@@ -4,7 +4,7 @@ import { NetworkedEvent } from "../Internal/NetworkEvent";
 import { ClientEventDeclaration, NetworkingFlags } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { AirshipScriptConnection } from "../NetConnection";
 import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
-import { ClientCallbackMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
+import { ClientCallbackMiddleware, ClientInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseClientInvokeArgs, ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { CreateClientEventCallback } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 
@@ -13,7 +13,9 @@ export class ClientEvent<T extends Array<unknown> = unknown[]> implements Client
 	private argumentHandlers?: StaticNetworkType<any>[];
 	private useBuffers = false;
 	private argCountCheck: boolean;
+
 	private callbackMiddleware: ClientCallbackMiddleware[];
+	private invokeMiddleware: ClientInvokeMiddleware[];
 
 	constructor(private readonly name: string, declaration: ClientEventDeclaration<T>) {
 		this.instance = new NetworkedEvent(name);
@@ -21,6 +23,7 @@ export class ClientEvent<T extends Array<unknown> = unknown[]> implements Client
 		this.useBuffers = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
 		this.callbackMiddleware = declaration.CallbackMiddleware as ClientCallbackMiddleware[];
 		this.argCountCheck = (declaration.Flags & NetworkingFlags.EnforceArgumentCount) !== 0;
+		this.invokeMiddleware = declaration.InvokeMiddleware;
 		table.freeze(this);
 	}
 
@@ -29,7 +32,7 @@ export class ClientEvent<T extends Array<unknown> = unknown[]> implements Client
 			this.name,
 			this.useBuffers,
 			this.argumentHandlers ?? [],
-			[],
+			this.invokeMiddleware,
 			args,
 			this.argCountCheck,
 		);
@@ -40,7 +43,7 @@ export class ClientEvent<T extends Array<unknown> = unknown[]> implements Client
 	public Connect(callback: (...args: T) => void): Connection {
 		return new AirshipScriptConnection(
 			this.instance.onServerEvent.Connect(
-				CreateClientEventCallback({
+				CreateClientEventCallback(this.name, {
 					UseBuffers: this.useBuffers,
 					EnforceArguments: this.argCountCheck,
 					NetworkTypes: this.argumentHandlers ?? [],

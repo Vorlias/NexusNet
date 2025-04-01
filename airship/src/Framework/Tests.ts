@@ -6,6 +6,8 @@ import { Player } from "@Easy/Core/Shared/Player/Player";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { OnUpdate, SetInterval } from "@Easy/Core/Shared/Util/Timer";
+import Nexus from ".";
+import { ClientCallbackMiddleware, ServerCallbackMiddleware, ServerInvokeMiddleware } from "../Core/Middleware/Types";
 
 export namespace NexusTesting {
 	let index = 0;
@@ -22,6 +24,14 @@ export namespace NexusTesting {
 
 			const result = this.event.Wait();
 			return result;
+		}
+
+		public InjectInvokeMiddleware(invokeMiddleware: ServerInvokeMiddleware<T>) {
+			this.event["invokeMiddleware"].push(invokeMiddleware as ServerInvokeMiddleware);
+		}
+
+		public InjectCallbackMiddleware(callbackMiddleware: ServerCallbackMiddleware<T>) {
+			this.event["callbackMiddleware"].push(callbackMiddleware as unknown as ServerCallbackMiddleware);
 		}
 
 		public ExpectArgsEqual<T extends ReadonlyArray<unknown>>(value: T, expected: T) {
@@ -60,14 +70,11 @@ export namespace NexusTesting {
 			buffered: boolean,
 			...values: ToNetworkArguments<T>
 		): ServerEventTest<T> {
-			const event = new AirshipEventBuilder().WithArguments(...values);
-			const declaration = event.OnServer({
-				Debugging: true,
-				UseBuffers: buffered,
-				Logging: false,
-			});
-
-			const test = new ServerEventTest<T>(declaration, this);
+			const networkType = Nexus.Event<T>(...values);
+			const test = new ServerEventTest<T>(
+				networkType.OnServer({ Debugging: true, UseBuffers: buffered, Logging: false }),
+				this,
+			);
 			return test;
 		}
 

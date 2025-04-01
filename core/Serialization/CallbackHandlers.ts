@@ -5,17 +5,18 @@ import { TransformArgsToBuffer, TransformBufferToArgs } from "./BufferEncoding";
 import { NetDeserializeArguments, NetSerializeArguments } from "./Serializer";
 
 export function ParseServerCallbackArgs<TArgs extends unknown[]>(
+	name: string,
 	useBuffers: boolean,
 	transformers: StaticNetworkType<any>[],
 	args: TArgs,
 ) {
 	if (useBuffers && transformers.size() > 0) {
 		const [buffer] = args;
-		const data = TransformBufferToArgs(transformers, buffer as buffer);
+		const data = TransformBufferToArgs(name, transformers, buffer as buffer);
 		const transformedArgs = NetDeserializeArguments(transformers, data);
-		return transformedArgs;
+		return table.freeze(transformedArgs);
 	} else {
-		return NetDeserializeArguments(transformers, args); //  wtf ???
+		return table.freeze(NetDeserializeArguments(transformers, args)); //  wtf ???
 	}
 }
 
@@ -28,6 +29,7 @@ interface ServerEventCallback<TArgs extends ReadonlyArray<unknown>> {
 }
 type AnyServerCallback<T extends readonly unknown[] = readonly unknown[]> = (player: NetworkPlayer, ...args: T) => void;
 export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> = ReadonlyArray<unknown>>(
+	name: string,
 	options: ServerEventCallback<TArgs>,
 ): AnyServerCallback {
 	const useBuffers = options.UseBuffers;
@@ -35,11 +37,12 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 	const networkTypes = options.NetworkTypes;
 	let callback = options.Callback;
 
+	print("mw count is ", options.CallbackMiddleware.size());
 	for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyServerCallback, undefined!);
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((player: NetworkPlayer, buffer: buffer) => {
-			const data = TransformBufferToArgs(networkTypes, buffer);
+			const data = TransformBufferToArgs(name, networkTypes, buffer);
 			const transformedArgs = NetDeserializeArguments(networkTypes, data);
 
 			if (enforceArgs && data.size() !== networkTypes.size()) {
@@ -95,6 +98,7 @@ interface ClientEventCallback<TArgs extends ReadonlyArray<unknown>> {
 }
 type AnyClientCallback<T extends readonly unknown[] = readonly unknown[]> = (...args: T) => void;
 export function CreateClientEventCallback<TArgs extends ReadonlyArray<unknown> = ReadonlyArray<unknown>>(
+	name: string,
 	options: ClientEventCallback<TArgs>,
 ): AnyClientCallback {
 	const useBuffers = options.UseBuffers;
@@ -105,7 +109,7 @@ export function CreateClientEventCallback<TArgs extends ReadonlyArray<unknown> =
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((buffer: buffer) => {
-			const data = TransformBufferToArgs(networkTypes, buffer);
+			const data = TransformBufferToArgs(name, networkTypes, buffer);
 			const transformedArgs = NetDeserializeArguments(networkTypes, data);
 			callback(...(transformedArgs as unknown as TArgs));
 		}) as AnyClientCallback;
@@ -133,7 +137,7 @@ type AnyServerFunctionCallback<T extends readonly unknown[] = readonly unknown[]
 export function CreateServerFunctionCallback<
 	TArgs extends ReadonlyArray<unknown> = ReadonlyArray<unknown>,
 	TRet extends unknown = unknown,
->(options: ServerFunctionCallback<TArgs, TRet>): AnyServerFunctionCallback {
+>(name: string, options: ServerFunctionCallback<TArgs, TRet>): AnyServerFunctionCallback {
 	const useBuffers = options.UseBuffers;
 	const networkTypes = options.NetworkTypes;
 	const networkReturnType = options.NetworkReturnType;
@@ -143,7 +147,7 @@ export function CreateServerFunctionCallback<
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((player: NetworkPlayer, buffer: buffer) => {
-			const data = TransformBufferToArgs(networkTypes, buffer);
+			const data = TransformBufferToArgs(name, networkTypes, buffer);
 			const transformedArgs = NetDeserializeArguments(networkTypes, data);
 
 			// Receiving from client needs validation
@@ -159,7 +163,7 @@ export function CreateServerFunctionCallback<
 
 			const result = callback(player, ...(transformedArgs as unknown as TArgs));
 			const resultTransformed = NetSerializeArguments([networkReturnType], [result]);
-			const resultBuffer = TransformArgsToBuffer([networkReturnType], resultTransformed);
+			const resultBuffer = TransformArgsToBuffer(name, [networkReturnType], resultTransformed);
 			return resultBuffer;
 		}) as AnyServerCallback;
 	} else {

@@ -38,10 +38,12 @@ export enum RemoteRunContext {
 export interface ServerBuilder<TServer> {
 	OnServer(configuration: NetworkModelConfiguration): TServer;
 }
+export type InferServer<T> = T extends ServerBuilder<infer O> ? O : never;
 
 export interface ClientBuilder<TClient> {
 	OnClient(configuration: NetworkModelConfiguration): TClient;
 }
+export type InferClient<T> = T extends ClientBuilder<infer O> ? O : never;
 
 export interface ScopeBuilder<TDeclarations extends RemoteDeclarations> {
 	AsScope(configuration?: Partial<NetworkModelConfiguration>): ScopeObjectModelDeclaration<TDeclarations>;
@@ -139,9 +141,44 @@ interface NetworkObjectBuilder {
 	SetUseBuffer(useBuffer: boolean): this;
 }
 
-export interface NetworkEventBuilder<TArgs extends ReadonlyArray<unknown>>
+export interface ServerMiddleware<TIn extends ReadonlyArray<unknown>, TOut extends ReadonlyArray<unknown>> {
+	readonly ClientCallback: ClientCallbackMiddleware<TIn, TOut> | undefined;
+	readonly ServerInvoke: ServerInvokeMiddleware<TIn, TOut> | undefined;
+}
+
+export interface ServerMiddlewareBuilder<TArgs extends ReadonlyArray<unknown>> {
+	OnClientCallback(this: void, callback: ClientCallbackMiddleware<TArgs>): ServerMiddlewareBuilder<TArgs>;
+	OnServerInvoke(this: void, callback: ServerInvokeMiddleware<TArgs>): ServerMiddlewareBuilder<TArgs>;
+}
+
+export interface ClientMiddlewareBuilder<TArgs extends ReadonlyArray<unknown>> {
+	OnServerCallback(this: void, callback: ServerCallbackMiddleware<TArgs>): ClientMiddlewareBuilder<TArgs>;
+	OnClientInvoke(this: void, callback: ClientInvokeMiddleware<TArgs>): ClientMiddlewareBuilder<TArgs>;
+}
+
+export interface NetworkServerEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	extends ServerBuilder<ServerEventDeclaration<TArgs>>,
-		ClientBuilder<ClientEventDeclaration<TArgs>>,
+		NetworkObjectBuilder {
+	/**
+	 * Will
+	 * @param mwb
+	 */
+	WithServerMiddleware(
+		mwb: (builder: ServerMiddlewareBuilder<TArgs>) => ServerMiddlewareBuilder<TArgs>,
+	): NetworkServerEventBuilder<TArgs>;
+}
+
+export interface NetworkClientEventBuilder<TArgs extends ReadonlyArray<unknown>>
+	extends ClientBuilder<ClientEventDeclaration<TArgs>>,
+		NetworkObjectBuilder {
+	WithClientMiddleware(
+		mwb: (builder: ClientMiddlewareBuilder<TArgs>) => ClientMiddlewareBuilder<TArgs>,
+	): NetworkClientEventBuilder<TArgs>;
+}
+
+export interface NetworkEventBuilder<TArgs extends ReadonlyArray<unknown>>
+	extends NetworkServerEventBuilder<TArgs>,
+		NetworkClientEventBuilder<TArgs>,
 		NetworkObjectBuilder {
 	WithArguments<T extends ReadonlyArray<unknown> = TArgs>(...values: ToNetworkArguments<T>): NetworkEventBuilder<T>;
 }
@@ -153,7 +190,6 @@ export interface NetworkFunctionBuilder<TArgs extends ReadonlyArray<unknown>, TR
 	WithArguments<T extends ReadonlyArray<unknown> = TArgs>(
 		...values: ToNetworkArguments<T>
 	): NetworkFunctionBuilder<T, TRet>;
-
 	WhichReturns<R>(returnValue: StaticNetworkType<R>): NetworkFunctionBuilder<TArgs, R>;
 }
 

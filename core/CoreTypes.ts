@@ -14,11 +14,13 @@ type In<TType> = NexusSerialization.Input<TType>;
  */
 export const NexusString: NetworkType<string> = {
 	Name: "string",
-	Validate(value): value is string {
-		return typeIs(value, "string");
+	Validator: {
+		Validate(value): value is string {
+			return typeIs(value, "string");
+		},
+		ValidateError: (value) => "Expected string, got " + typeOf(value),
 	},
-	ValidateError: (value) => "Expected string, got " + typeOf(value),
-	NetworkBuffer: NetworkBuffers.String,
+	BufferEncoder: NetworkBuffers.String,
 };
 
 type Literal = string | number | boolean;
@@ -33,19 +35,23 @@ export function NexusLiteral<T extends Array<Literal>>(...items: T): NetworkSeri
 				}
 			})
 			.join(" | "),
-		ValidateError: (networkType, value) => {
-			return `${typeIs(value, "string") ? `"${value}"` : value} is not in one of ${networkType.Name}`;
+		Validator: {
+			ValidateError: (networkType, value) => {
+				return `${typeIs(value, "string") ? `"${value}"` : value} is not in one of ${networkType.Name}`;
+			},
+			Validate(value): value is T[number] {
+				return items.includes(value as Literal);
+			},
 		},
-		Validate(value): value is T[number] {
-			return items.includes(value as Literal);
+		Serializer: {
+			Serialize(value) {
+				return items.indexOf(value);
+			},
+			Deserialize(value) {
+				return items[value];
+			},
 		},
-		Serialize(value) {
-			return items.indexOf(value);
-		},
-		Deserialize(value) {
-			return items[value];
-		},
-		NetworkBuffer: NetworkBuffers.Int32,
+		BufferEncoder: NetworkBuffers.UInt8,
 	};
 }
 
@@ -66,25 +72,27 @@ const NexusInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 	const name = `Int${bits}`;
 	return {
 		Name: name,
-		Validate(value): value is number {
-			if (!typeIs(value, "number")) return false;
-			if (value % 1 !== 0) {
-				warn(`[${name}] Number is not a ${bits}-bit integer`);
-				return false;
-			}
+		Validator: {
+			Validate(value): value is number {
+				if (!typeIs(value, "number")) return false;
+				if (value % 1 !== 0) {
+					warn(`[${name}] Number is not a ${bits}-bit integer`);
+					return false;
+				}
 
-			if (value > UPPER_BOUND) {
-				warn(`[${name}] Number exceeds the maximum ${bits}-bit integer and may overflow`);
-			} else if (value < LOWER_BOUND) {
-				warn(`[${name}] Number exceeds the minimum ${bits}-bit integer and may underflow`);
-			}
+				if (value > UPPER_BOUND) {
+					warn(`[${name}] Number exceeds the maximum ${bits}-bit integer and may overflow`);
+				} else if (value < LOWER_BOUND) {
+					warn(`[${name}] Number exceeds the minimum ${bits}-bit integer and may underflow`);
+				}
 
-			return true;
+				return true;
+			},
+			ValidateError: (value) => {
+				return `Expected ${name}, got ${typeOf(value)}`;
+			},
 		},
-		ValidateError: (value) => {
-			return `Expected ${name}, got ${typeOf(value)}`;
-		},
-		NetworkBuffer: encoder,
+		BufferEncoder: encoder,
 	};
 };
 export const NexusInt8 = NexusInt(8);
@@ -103,23 +111,25 @@ const NexusUInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 	const name = `UInt${bits}`;
 	return {
 		Name: name,
-		Validate(value): value is number {
-			if (!typeIs(value, "number")) return false;
-			if (value % 1 !== 0) {
-				warn(`[${name}] Number is not a ${bits}-bit unsigned integer`);
-				return false;
-			}
+		Validator: {
+			Validate(value): value is number {
+				if (!typeIs(value, "number")) return false;
+				if (value % 1 !== 0) {
+					warn(`[${name}] Number is not a ${bits}-bit unsigned integer`);
+					return false;
+				}
 
-			if (value > UPPER_BOUND) {
-				warn(`[${name}] Number exceeds the maximum ${bits}-bit unsigned integer and may overflow`);
-			} else if (value < 0) {
-				warn(`[${name}] Number exceeds the minimum ${bits}-bit unsigned integer and may underflow`);
-			}
+				if (value > UPPER_BOUND) {
+					warn(`[${name}] Number exceeds the maximum ${bits}-bit unsigned integer and may overflow`);
+				} else if (value < 0) {
+					warn(`[${name}] Number exceeds the minimum ${bits}-bit unsigned integer and may underflow`);
+				}
 
-			return true;
+				return true;
+			},
+			ValidateError: (value) => "Expected UInt" + bits + ", got " + typeOf(value) + " " + value,
 		},
-		ValidateError: (value) => "Expected UInt" + bits + ", got " + typeOf(value) + " " + value,
-		NetworkBuffer: encoder,
+		BufferEncoder: encoder,
 	};
 };
 export const NexusUInt8 = NexusUInt(8);
@@ -135,11 +145,13 @@ const NexusFloat: (bits?: FloatBits) => NetworkType<number> = (bits = 32) => {
 
 	return {
 		Name: `Float${bits}`,
-		Validate(value): value is number {
-			return typeIs(value, "number");
+		Validator: {
+			Validate(value): value is number {
+				return typeIs(value, "number");
+			},
+			ValidateError: (value) => "Expected Float" + bits + ", got " + typeOf(value) + " " + value,
 		},
-		ValidateError: (value) => "Expected Float" + bits + ", got " + typeOf(value) + " " + value,
-		NetworkBuffer: encoder,
+		BufferEncoder: encoder,
 	};
 };
 export const NexusFloat32 = NexusFloat(32);
@@ -147,20 +159,24 @@ export const NexusFloat64 = NexusFloat(64);
 
 export const NexusBoolean: NetworkType<boolean> = {
 	Name: "boolean",
-	Validate(value): value is boolean {
-		return typeIs(value, "boolean");
+	Validator: {
+		Validate(value): value is boolean {
+			return typeIs(value, "boolean");
+		},
+		ValidateError: (value) => "Expected boolean, got " + typeOf(value),
 	},
-	ValidateError: (value) => "Expected boolean, got " + typeOf(value),
-	NetworkBuffer: NetworkBuffers.Boolean,
+	BufferEncoder: NetworkBuffers.Boolean,
 };
 
 const Undefined: NetworkType<undefined> = {
 	Name: "None",
-	Validate(value): value is undefined {
-		return false;
+	Validator: {
+		Validate(value): value is undefined {
+			return false;
+		},
+		ValidateError: "Expected undefined",
 	},
-	ValidateError: "Expected undefined",
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {},
 		ReadData(reader) {
 			return undefined;
@@ -180,18 +196,24 @@ function isArrayLike(value: unknown): value is defined[] {
 export function NexusArray<T extends StaticNetworkType<defined, defined>>(
 	valueType: T,
 ): NetworkSerializableType<readonly In<T>[], readonly Out<T>[]> {
+	const valueValidator = valueType.Validator;
+
 	return {
 		Name: valueType.Name + "[]",
-		Validate(value: unknown): value is In<T>[] {
-			return isArrayLike(value) && value.every((v) => valueType.Validate(v));
+		Validator: {
+			Validate(value: unknown): value is In<T>[] {
+				return isArrayLike(value) && value.every((v) => valueValidator.Validate(v));
+			},
+			ValidateError: "Expected Array<" + valueType.Name + ">",
 		},
-		ValidateError: "Expected Array<" + valueType.Name + ">",
-		NetworkBuffer: NetworkBuffers.Array(valueType.NetworkBuffer) as NetworkBuffer<Out<T>[]>, // 'cause of roblox-ts
-		Serialize(value) {
-			return value.map((item: In<T>) => NexusSerialization.Serialize(valueType, item));
-		},
-		Deserialize(value) {
-			return (value as Out<T & unknown>[]).map((item) => NexusSerialization.Deserialize(valueType, item));
+		BufferEncoder: NetworkBuffers.Array(valueType.BufferEncoder) as NetworkBuffer<Out<T>[]>, // 'cause of roblox-ts
+		Serializer: {
+			Serialize(value) {
+				return value.map((item: In<T>) => NexusSerialization.Serialize(valueType, item));
+			},
+			Deserialize(value) {
+				return (value as Out<T & unknown>[]).map((item) => NexusSerialization.Deserialize(valueType, item));
+			},
 		},
 	};
 }
@@ -202,44 +224,48 @@ export function NexusTuple<T extends ReadonlyArray<NetworkSerializableType<any, 
 	...items: T
 ): NetworkSerializableType<MapCheckArrayIn<T>, MapCheckArrayOut<T>> {
 	const tupleSize = items.size();
-	const buffer = NetworkBuffers.FixedArray(...items.map((v) => v.NetworkBuffer)) as NetworkBuffer<
+	const buffer = NetworkBuffers.FixedArray(...items.map((v) => v.BufferEncoder)) as NetworkBuffer<
 		MapCheckArrayOut<T>
 	>;
 
 	return {
 		Name: `[ ${items.map((v) => v.Name).join(", ")} ]`,
-		Validate(value): value is MapCheckArrayIn<T> {
-			return isArrayLike(value);
+		Validator: {
+			Validate(value): value is MapCheckArrayIn<T> {
+				return isArrayLike(value);
+			},
+			ValidateError: `Expected a tuple of [ ${items.map((v) => v.Name).join(", ")} ]`,
 		},
-		ValidateError: `Expected a tuple of [ ${items.map((v) => v.Name).join(", ")} ]`,
-		NetworkBuffer: buffer,
-		Serialize(value) {
-			const newTuple = [] as Writable<MapCheckArrayOut<T>>;
+		BufferEncoder: buffer,
+		Serializer: {
+			Serialize(value) {
+				const newTuple = [] as Writable<MapCheckArrayOut<T>>;
 
-			for (let i = 0; i < tupleSize; i++) {
-				const valueAt = (value as unknown[])[i];
+				for (let i = 0; i < tupleSize; i++) {
+					const valueAt = (value as unknown[])[i];
 
-				const typeLike: NetworkSerializableType<unknown, unknown> | NetworkType<unknown> = items[i];
-				newTuple[i] = NetIsSerializer(typeLike) //
-					? typeLike.Serialize(valueAt) //
-					: valueAt;
-			}
+					const typeLike: NetworkSerializableType<unknown, unknown> | NetworkType<unknown> = items[i];
+					newTuple[i] = NetIsSerializer(typeLike) //
+						? typeLike.Serializer.Serialize(valueAt) //
+						: valueAt;
+				}
 
-			return newTuple;
-		},
-		Deserialize(value) {
-			const newTuple = [] as Writable<MapCheckArrayIn<T>>;
+				return newTuple;
+			},
+			Deserialize(value) {
+				const newTuple = [] as Writable<MapCheckArrayIn<T>>;
 
-			for (let i = 0; i < tupleSize; i++) {
-				const valueAt = (value as unknown[])[i];
+				for (let i = 0; i < tupleSize; i++) {
+					const valueAt = (value as unknown[])[i];
 
-				const typeLike: NetworkSerializableType<unknown, unknown> | NetworkType<unknown> = items[i];
-				newTuple[i] = NetIsSerializer(typeLike) //
-					? typeLike.Deserialize(valueAt) //
-					: valueAt;
-			}
+					const typeLike: NetworkSerializableType<unknown, unknown> | NetworkType<unknown> = items[i];
+					newTuple[i] = NetIsSerializer(typeLike) //
+						? typeLike.Serializer.Deserialize(valueAt) //
+						: valueAt;
+				}
 
-			return newTuple;
+				return newTuple;
+			},
 		},
 	};
 }
@@ -254,19 +280,24 @@ export function NexusOptional<T extends NetworkSerializableType<any, any> | Netw
 ): NetworkSerializableType<In<T> | undefined, Out<T> | undefined> {
 	return {
 		Name: "" + typeLike.Name + "?",
-		Validate(value): value is In<T> | undefined {
-			return (value as unknown) === undefined || typeLike.Validate(value);
+		Validator: {
+			Validate(value): value is In<T> | undefined {
+				return (value as unknown) === undefined || typeLike.Validator.Validate(value);
+			},
+			ValidateError: "Expected " + typeLike.Name + " | undefined",
 		},
-		Serialize(value) {
-			if ((value as unknown) === undefined) return undefined;
-			return (NetIsSerializer(typeLike) ? typeLike.Serialize(value as In<T>) : value) as Out<T>;
+		Serializer: {
+			Serialize(value) {
+				if ((value as unknown) === undefined) return undefined;
+				return (NetIsSerializer(typeLike) ? typeLike.Serializer.Serialize(value as In<T>) : value) as Out<T>;
+			},
+			Deserialize(value) {
+				if ((value as unknown) === undefined) return undefined;
+				return (NetIsSerializer(typeLike) ? typeLike.Serializer.Deserialize(value as Out<T>) : value) as In<T>;
+			},
 		},
-		Deserialize(value) {
-			if ((value as unknown) === undefined) return undefined;
-			return (NetIsSerializer(typeLike) ? typeLike.Deserialize(value as Out<T>) : value) as In<T>;
-		},
-		ValidateError: "Expected " + typeLike.Name + " | undefined",
-		NetworkBuffer: NetworkBuffers.Nullable(typeLike.NetworkBuffer),
+
+		BufferEncoder: NetworkBuffers.Nullable(typeLike.BufferEncoder),
 	};
 }
 
@@ -275,37 +306,41 @@ export function NexusSet<T extends NetworkSerializableType<any, any> | NetworkTy
 ): NetworkSerializableType<ReadonlySet<In<T>>, readonly Out<T>[]> {
 	return {
 		Name: `Set<${valueType.Name}>`,
-		ValidateError: (networkType, value) => {
-			return "Expected " + networkType.Name + ", got " + typeOf(value);
+		Validator: {
+			ValidateError: (networkType, value) => {
+				return "Expected " + networkType.Name + ", got " + typeOf(value);
+			},
+			Validate(value): value is Set<In<T>> {
+				if (!typeIs(value, "table")) return false;
+				for (const [k, v] of pairs(value)) {
+					if (!valueType.Validator.Validate(k)) return false;
+					if (!typeIs(v, "boolean")) return false;
+				}
+
+				return true;
+			},
 		},
-		Validate(value): value is Set<In<T>> {
-			if (!typeIs(value, "table")) return false;
-			for (const [k, v] of pairs(value)) {
-				if (!valueType.Validate(k)) return false;
-				if (!typeIs(v, "boolean")) return false;
-			}
+		Serializer: {
+			Serialize(set) {
+				const newArray = new Array<defined>();
 
-			return true;
+				for (const value of set) {
+					newArray.push(NexusSerialization.Serialize(valueType, value));
+				}
+
+				return newArray as Array<Out<T>>;
+			},
+			Deserialize(array) {
+				const set = new Set<defined>();
+
+				for (const value of array) {
+					set.add(NexusSerialization.Deserialize(valueType, value));
+				}
+
+				return set as Set<In<T>>;
+			},
 		},
-		Serialize(set) {
-			const newArray = new Array<defined>();
-
-			for (const value of set) {
-				newArray.push(NexusSerialization.Serialize(valueType, value));
-			}
-
-			return newArray as Array<Out<T>>;
-		},
-		Deserialize(array) {
-			const set = new Set<defined>();
-
-			for (const value of array) {
-				set.add(NexusSerialization.Deserialize(valueType, value));
-			}
-
-			return set as Set<In<T>>;
-		},
-		NetworkBuffer: NetworkBuffers.Array(valueType.NetworkBuffer),
+		BufferEncoder: NetworkBuffers.Array(valueType.BufferEncoder),
 	};
 }
 
@@ -315,51 +350,55 @@ export function NexusMap<K extends StaticNetworkType, V extends StaticNetworkTyp
 ): NetworkSerializableType<ReadonlyMap<In<K>, In<V>>, readonly [Out<K>, Out<V>][]> {
 	return {
 		Name: `Map<${keyType.Name}, ${valueType.Name}>`,
-		ValidateError: (networkType, value) => {
-			return "Expected " + networkType.Name + ", got " + typeOf(value);
+		Validator: {
+			ValidateError: (networkType, value) => {
+				return "Expected " + networkType.Name + ", got " + typeOf(value);
+			},
+			Validate(value): value is ReadonlyMap<In<K>, In<V>> {
+				if (!typeIs(value, "table")) return false;
+				for (const [k, v] of pairs(value)) {
+					if (!keyType.Validator.Validate(k)) return false;
+					if (!valueType.Validator.Validate(v)) return false;
+				}
+
+				return true;
+			},
 		},
-		Validate(value): value is ReadonlyMap<In<K>, In<V>> {
-			if (!typeIs(value, "table")) return false;
-			for (const [k, v] of pairs(value)) {
-				if (!keyType.Validate(k)) return false;
-				if (!valueType.Validate(v)) return false;
-			}
+		Serializer: {
+			Serialize(map) {
+				const arr = new Array<[Out<K>, Out<V>]>();
 
-			return true;
+				for (const [key, value] of map) {
+					const keyEncoded = NexusSerialization.Serialize(keyType, key);
+					const valueEncoded = NexusSerialization.Serialize(valueType, value);
+					arr.push([keyEncoded, valueEncoded]);
+				}
+
+				return arr;
+			},
+			Deserialize(kvPairs) {
+				const map = new Map<defined, defined>();
+
+				for (const pair of kvPairs) {
+					const [k, v] = pair as [defined, defined];
+
+					map.set(
+						NexusSerialization.Deserialize(keyType, k as Out<K>),
+						NexusSerialization.Deserialize(valueType, v as Out<V>),
+					);
+				}
+
+				return map as Map<In<K>, In<V>>;
+			},
 		},
-		Serialize(map) {
-			const arr = new Array<[Out<K>, Out<V>]>();
-
-			for (const [key, value] of map) {
-				const keyEncoded = NexusSerialization.Serialize(keyType, key);
-				const valueEncoded = NexusSerialization.Serialize(valueType, value);
-				arr.push([keyEncoded, valueEncoded]);
-			}
-
-			return arr;
-		},
-		Deserialize(kvPairs) {
-			const map = new Map<defined, defined>();
-
-			for (const pair of kvPairs) {
-				const [k, v] = pair as [defined, defined];
-
-				map.set(
-					NexusSerialization.Deserialize(keyType, k as Out<K>),
-					NexusSerialization.Deserialize(valueType, v as Out<V>),
-				);
-			}
-
-			return map as Map<In<K>, In<V>>;
-		},
-		NetworkBuffer: {
+		BufferEncoder: {
 			ReadData(reader) {
 				const length = reader.ReadUInt32(); // read length
 				const arr = new Array<[Out<K>, Out<V>]>();
 
 				for (let i = 0; i < length; i++) {
-					const k = keyType.NetworkBuffer.ReadData(reader) as Out<K>;
-					const v = valueType.NetworkBuffer.ReadData(reader) as Out<V>;
+					const k = keyType.BufferEncoder.ReadData(reader) as Out<K>;
+					const v = valueType.BufferEncoder.ReadData(reader) as Out<V>;
 
 					arr.push([k, v]);
 				}
@@ -372,8 +411,8 @@ export function NexusMap<K extends StaticNetworkType, V extends StaticNetworkTyp
 				for (const pair of data) {
 					const [k, v] = pair as [defined, defined];
 
-					keyType.NetworkBuffer.WriteData(k, writer);
-					valueType.NetworkBuffer.WriteData(v, writer);
+					keyType.BufferEncoder.WriteData(k, writer);
+					valueType.BufferEncoder.WriteData(v, writer);
 				}
 			},
 		},
@@ -388,7 +427,7 @@ function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T
 	const arr = new Array<[string, NetworkBuffer<any>]>();
 
 	for (const [key, value] of pairs(obj) as IterableFunction<LuaTuple<[string, NetworkType<any>]>>) {
-		arr.push([key, value.NetworkBuffer]);
+		arr.push([key, value.BufferEncoder]);
 	}
 
 	return arr.sort((a, b) => hashstring(tostring(a[0])) < hashstring(tostring(b[0])));
@@ -411,69 +450,77 @@ export function NexusObject<T>(
 
 	return {
 		Name: customLabel ?? `interface { ${ordinalMap.map((value) => value[0]).join("; ")} }`,
-		NetworkBuffer: NetworkBuffers.StringHashMap(ordinalMap),
-		ValidateError: (networkType, value) => {
-			if (!typeIs(value, "table")) {
-				return `Expected object got ${typeOf(value)}`;
-			}
-
-			for (const [key, value] of pairs(objectInterface) as IterableFunction<
-				LuaTuple<[string, NetworkType<any>]>
-			>) {
-				const matchingValue = value[key as keyof typeof value] as unknown;
-				const result = value.Validate(matchingValue);
-				if (!result) return `Expected ${value.Name} for key '${key}' for ${networkType.Name}`;
-			}
-
-			return "Expected interface";
-		},
-		Serialize(value) {
-			const newObj = {} as Serialized<T>;
-
-			// We have to actually serialize the inner values...
-			for (const [key] of pairs(objectInterface) as IterableFunction<LuaTuple<[keyof T, unknown]>>) {
-				const kvPair = objectInterface[key];
-
-				assert(kvPair.Validate(value[key]));
-				if (NetIsSerializer(kvPair)) {
-					newObj[key] = kvPair.Serialize(value[key]) as never;
-				} else {
-					newObj[key] = value[key] as never;
+		BufferEncoder: NetworkBuffers.StringHashMap(ordinalMap),
+		Validator: {
+			ValidateError: (networkType, value) => {
+				if (!typeIs(value, "table")) {
+					return `Expected object got ${typeOf(value)}`;
 				}
-			}
 
-			return newObj as OutTypes<typeof objectInterface>;
-		},
-		Deserialize(value) {
-			const newObj = {} as T;
-
-			// We have to actually deserialize the inner values...
-			for (const [key] of pairs(objectInterface) as IterableFunction<LuaTuple<[keyof T, unknown]>>) {
-				const kvPair = objectInterface[key];
-
-				if (NetIsSerializer(kvPair)) {
-					newObj[key] = kvPair.Deserialize(value[key] as defined);
-				} else {
-					newObj[key] = value[key] as T[keyof T];
+				for (const [key, value] of pairs(objectInterface) as IterableFunction<
+					LuaTuple<[string, NetworkType<any>]>
+				>) {
+					const matchingValue = value[key as keyof typeof value] as unknown;
+					const result = value.Validator.Validate(matchingValue);
+					if (!result) return `Expected ${value.Name} for key '${key}' for ${networkType.Name}`;
 				}
-			}
 
-			return newObj as InTypes<typeof objectInterface>;
+				return "Expected interface";
+			},
+			Validate(value): value is InTypes<typeof objectInterface> {
+				if (!typeIs(value, "table")) {
+					return false;
+				}
+
+				for (const [key, value] of pairs(objectInterface) as IterableFunction<
+					LuaTuple<[string, NetworkType<any>]>
+				>) {
+					const matchingValue = value[key as keyof typeof value] as unknown;
+					const result = value.Validator.Validate(matchingValue);
+					if (!result) return false;
+				}
+
+				return true;
+			},
 		},
-		Validate(value): value is InTypes<typeof objectInterface> {
-			if (!typeIs(value, "table")) {
-				return false;
-			}
+		Serializer: {
+			Serialize(value) {
+				const newObj = {} as Serialized<T>;
 
-			for (const [key, value] of pairs(objectInterface) as IterableFunction<
-				LuaTuple<[string, NetworkType<any>]>
-			>) {
-				const matchingValue = value[key as keyof typeof value] as unknown;
-				const result = value.Validate(matchingValue);
-				if (!result) return false;
-			}
+				// We have to actually serialize the inner values...
+				for (const [key] of pairs(objectInterface) as IterableFunction<LuaTuple<[keyof T, unknown]>>) {
+					const kvPair = objectInterface[key];
 
-			return true;
+					const [success, err] = NetworkType.Check(kvPair, value[key]);
+					if (!success) {
+						error(err, 2);
+					}
+
+					if (NetIsSerializer(kvPair)) {
+						newObj[key] = kvPair.Serializer.Serialize(value[key]) as never;
+					} else {
+						newObj[key] = value[key] as never;
+					}
+				}
+
+				return newObj as OutTypes<typeof objectInterface>;
+			},
+			Deserialize(value) {
+				const newObj = {} as T;
+
+				// We have to actually deserialize the inner values...
+				for (const [key] of pairs(objectInterface) as IterableFunction<LuaTuple<[keyof T, unknown]>>) {
+					const kvPair = objectInterface[key];
+
+					if (NetIsSerializer(kvPair)) {
+						newObj[key] = kvPair.Serializer.Deserialize(value[key] as defined);
+					} else {
+						newObj[key] = value[key] as T[keyof T];
+					}
+				}
+
+				return newObj as InTypes<typeof objectInterface>;
+			},
 		},
 	};
 }

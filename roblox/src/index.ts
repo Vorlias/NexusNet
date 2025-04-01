@@ -1,4 +1,4 @@
-import { NetworkType, StaticNetworkType, ToNetworkArguments } from "./Core/Types/NetworkTypes";
+import { NetworkSerializableType, NetworkType, StaticNetworkType, ToNetworkArguments } from "./Core/Types/NetworkTypes";
 import { EventBuilder } from "./Builders/EventBuilder";
 import { RobloxNetworkObjectModelBuilder } from "./Builders/ObjectModelBuilder";
 import { default as NetV3Compat } from "./v3compat";
@@ -9,7 +9,12 @@ import { InferNOMDeclarations, InferServerRemote, InferClientRemote } from "./Co
 import { NEXUS_VERSION } from "./Core/CoreInfo";
 import { ExperienceEventBuilder } from "./Builders/MessagingBuilder";
 import { ContextNetworkModel } from "./Core/Types/NetworkObjectModel";
+import { NexusTypes } from "./RobloxTypes";
+import { NetworkTypeBuilder } from "./Core/Builders/TypeBuilder";
+import { NetworkBuffers } from "./Core/Buffers";
+
 export { NexusTypes } from "./RobloxTypes";
+export { StaticNetworkType, NetworkType, NetworkSerializableType } from "./Core/Types/NetworkTypes";
 
 declare module "./Core/Types/Dist" {
 	export interface ModuleTypes {
@@ -41,6 +46,12 @@ namespace Nexus {
 	 * Infers the client object type from the given declaration
 	 */
 	export type ToClientObject<T extends AnyNetworkDeclaration> = InferClientRemote<T>;
+
+	/**
+	 * A serializable network type
+	 */
+	export type SerializableType<T, U> = NetworkSerializableType<T, U>;
+	export const Types = NexusTypes;
 
 	/**
 	 * The version of Nexus
@@ -104,3 +115,19 @@ namespace Nexus {
 }
 
 export default Nexus;
+
+const test: Nexus.SerializableType<string, number> = {
+	Name: "Test",
+	Validate(value): value is string {
+		return true;
+	},
+	NetworkBuffer: undefined!,
+	Serializer: {
+		Serialize(value) {
+			return undefined!;
+		},
+		Deserialize(value) {
+			return undefined!;
+		},
+	},
+};

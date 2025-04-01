@@ -1,36 +1,37 @@
-import { NetworkSerializableType, StaticNetworkType } from "../Types/NetworkTypes";
+import { NexusTypes } from "@Vorlias/NexusNet/Framework";
+import { NetworkSerializableType, NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
 
 export function NetIsSerializer<T>(value: StaticNetworkType<T>): value is NetworkSerializableType<T, unknown> {
-	return "Serialize" in value && typeIs(value.Serialize, "function") && typeIs(value.Deserialize, "function");
+	return "Serializer" in value && typeIs(value.Serializer, "table");
 }
 
-export function NetSerializeArguments(transformers: StaticNetworkType<any>[] | undefined, args: unknown[]): unknown[] {
-	if (transformers === undefined) return args;
+export function NetSerializeArguments(networkTypes: StaticNetworkType<any>[] | undefined, args: unknown[]): unknown[] {
+	if (networkTypes === undefined) return args;
+	const serializers = NetworkType.TypesToSerializers(...networkTypes);
 
 	const newArgs: unknown[] = table.clone(args);
-	for (let i = 0; i < transformers.size(); i++) {
+	for (let i = 0; i < networkTypes.size(); i++) {
 		const arg = args[i];
-		const transformer = transformers[i];
-		if (NetIsSerializer(transformer)) {
-			newArgs[i] = transformer.Serialize(arg);
-		}
+
+		const serializer = serializers[i];
+		if (serializer) newArgs[i] = serializer.Serialize(arg);
 	}
 	return newArgs;
 }
 
 export function NetDeserializeArguments(
-	transformers: StaticNetworkType<any>[] | undefined,
+	networkTypes: StaticNetworkType<any>[] | undefined,
 	args: unknown[],
 ): unknown[] {
-	if (transformers === undefined) return args;
+	if (networkTypes === undefined) return args;
+	const serializers = NetworkType.TypesToSerializers(...networkTypes);
 
 	const newArgs: unknown[] = table.clone(args);
-	for (let i = 0; i < transformers.size(); i++) {
+	for (let i = 0; i < networkTypes.size(); i++) {
 		const arg = args[i];
-		const transformer = transformers[i];
-		if (NetIsSerializer(transformer)) {
-			newArgs[i] = transformer.Deserialize(arg);
-		}
+
+		const serializer = serializers[i];
+		if (serializer) newArgs[i] = serializer.Deserialize(arg);
 	}
 	return newArgs;
 }

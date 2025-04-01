@@ -4,54 +4,64 @@ import { NetworkSerializableType, NetworkType } from "./Core/Types/NetworkTypes"
 
 export const NexusPlayer: NetworkSerializableType<Player, float64> = {
 	Name: "Player",
-	ValidateError: "Expected a Player",
-	NetworkBuffer: NCoreNetworkEncoders.Float64,
-	Validate(value): value is Player {
-		return typeIs(value, "Instance") && value.IsA("Player");
+	Validator: {
+		ValidateError: "Expected a Player",
+		Validate(value): value is Player {
+			return typeIs(value, "Instance") && value.IsA("Player");
+		},
 	},
-	Serialize(value) {
-		return value.UserId;
-	},
-	Deserialize(value) {
-		const player = game.GetService("Players").GetPlayerByUserId(value);
-		assert(player, `Could not find player with userId '${value}'`);
-		return player;
+	BufferEncoder: NCoreNetworkEncoders.Float64,
+	Serializer: {
+		Serialize(value) {
+			return value.UserId;
+		},
+		Deserialize(value) {
+			const player = game.GetService("Players").GetPlayerByUserId(value);
+			assert(player, `Could not find player with userId '${value}'`);
+			return player;
+		},
 	},
 };
 
 export const NexusTeam: NetworkSerializableType<Team, string> = {
 	Name: "Team",
-	ValidateError: "Expected a team",
-	NetworkBuffer: NCoreNetworkEncoders.String,
-	Validate(value): value is Team {
-		return typeIs(value, "Instance") && value.IsA("Team");
+	Validator: {
+		ValidateError: "Expected a team",
+		Validate(value): value is Team {
+			return typeIs(value, "Instance") && value.IsA("Team");
+		},
 	},
-	Serialize(value) {
-		return value.Name;
-	},
-	Deserialize(value) {
-		const team = game
-			.GetService("Teams")
-			.GetTeams()
-			.find((f) => f.Name === value);
-		assert(team, `Could not find team with name '${value}'`);
-		return team;
+	BufferEncoder: NCoreNetworkEncoders.String,
+	Serializer: {
+		Serialize(value) {
+			return value.Name;
+		},
+		Deserialize(value) {
+			const team = game
+				.GetService("Teams")
+				.GetTeams()
+				.find((f) => f.Name === value);
+			assert(team, `Could not find team with name '${value}'`);
+			return team;
+		},
 	},
 };
 
 const InstanceOf = <K extends keyof Instances>(instanceType: K): NetworkType<Instances[K], never> => {
 	return {
-		NetworkBuffer: NeverBuffer,
+		BufferEncoder: NeverBuffer,
 		Name: instanceType,
-		ValidateError: "Expected " + instanceType,
-		Validate(value): value is Instances[K] {
-			return typeIs(value, "Instance") && value.IsA(instanceType);
+		Validator: {
+			ValidateError: "Expected " + instanceType,
+			Validate(value): value is Instances[K] {
+				return typeIs(value, "Instance") && value.IsA(instanceType);
+			},
 		},
 	} satisfies NetworkType<Instances[K], never>;
 };
 
 export const NexusVector2: NetworkType<Vector2> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			writer.WriteFloat32(data.X);
 			writer.WriteFloat32(data.Y);
@@ -62,15 +72,17 @@ export const NexusVector2: NetworkType<Vector2> = {
 			return new Vector2(x, y);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "Vector2");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "Vector2");
+		},
+		ValidateError: "Expected Vector2",
 	},
 	Name: "Vector2",
-	ValidateError: "Expected Vector2",
 };
 
 export const NexusVector3: NetworkType<Vector3> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			writer.WriteFloat32(data.X);
 			writer.WriteFloat32(data.Y);
@@ -83,15 +95,18 @@ export const NexusVector3: NetworkType<Vector3> = {
 			return new Vector3(x, y, z);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "Vector3");
-	},
+
 	Name: "Vector3",
-	ValidateError: "Expected Vector3",
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "Vector3");
+		},
+		ValidateError: "Expected Vector3",
+	},
 };
 
 export const NexusVector2Int16: NetworkType<Vector2int16> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			writer.WriteInt16(data.X);
 			writer.WriteInt16(data.Y);
@@ -102,15 +117,17 @@ export const NexusVector2Int16: NetworkType<Vector2int16> = {
 			return new Vector2int16(x, y);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "Vector2int16");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "Vector2int16");
+		},
+		ValidateError: "Expected Vector2int16",
 	},
 	Name: "Vector2int16",
-	ValidateError: "Expected Vector2int16",
 };
 
 export const NexusVector3Int16: NetworkType<Vector3int16> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			writer.WriteInt16(data.X);
 			writer.WriteInt16(data.Y);
@@ -123,15 +140,17 @@ export const NexusVector3Int16: NetworkType<Vector3int16> = {
 			return new Vector3int16(x, y, z);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "Vector3int16");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "Vector3int16");
+		},
+		ValidateError: "Expected Vector3int16",
 	},
 	Name: "Vector3int16",
-	ValidateError: "Expected Vector3int16",
 };
 
 export const NexusColor3: NetworkType<Color3> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			writer.WriteFloat32(data.R);
 			writer.WriteFloat32(data.G);
@@ -144,15 +163,17 @@ export const NexusColor3: NetworkType<Color3> = {
 			return new Color3(r, g, b);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "Color3");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "Color3");
+		},
+		ValidateError: "Expected Color3",
 	},
 	Name: "Color3",
-	ValidateError: "Expected Color3",
 };
 
 export const NexusNumberRange: NetworkType<NumberRange> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			writer.WriteFloat32(data.Min);
 			writer.WriteFloat32(data.Max);
@@ -163,15 +184,17 @@ export const NexusNumberRange: NetworkType<NumberRange> = {
 			return new NumberRange(min, max);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "NumberRange");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "NumberRange");
+		},
+		ValidateError: "Expected NumberRange",
 	},
 	Name: "NumberRange",
-	ValidateError: "Expected NumberRange",
 };
 
 export const NexusNumberSequence: NetworkType<NumberSequence> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			const keypoints = data.Keypoints;
 			writer.WriteInt32(keypoints.size());
@@ -196,22 +219,24 @@ export const NexusNumberSequence: NetworkType<NumberSequence> = {
 			return new NumberSequence(keypoints);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "NumberSequence");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "NumberSequence");
+		},
+		ValidateError: "Expected NumberSequence",
 	},
 	Name: "NumberSequence",
-	ValidateError: "Expected NumberSequence",
 };
 
 export const NexusColorSequence: NetworkType<ColorSequence> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		WriteData(data, writer) {
 			const keypoints = data.Keypoints;
 			writer.WriteInt32(keypoints.size());
 
 			for (const keypoint of keypoints) {
 				writer.WriteFloat32(keypoint.Time);
-				NexusColor3.NetworkBuffer.WriteData(keypoint.Value, writer);
+				NexusColor3.BufferEncoder.WriteData(keypoint.Value, writer);
 			}
 		},
 		ReadData(reader): ColorSequence {
@@ -220,22 +245,24 @@ export const NexusColorSequence: NetworkType<ColorSequence> = {
 
 			for (let i = 0; i < numItems; i++) {
 				const time = reader.ReadFloat32();
-				const value = NexusColor3.NetworkBuffer.ReadData(reader);
+				const value = NexusColor3.BufferEncoder.ReadData(reader);
 				keypoints.push(new ColorSequenceKeypoint(time, value));
 			}
 
 			return new ColorSequence(keypoints);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "ColorSequence");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "ColorSequence");
+		},
+		ValidateError: "Expected ColorSequence",
 	},
 	Name: "ColorSequence",
-	ValidateError: "Expected ColorSequence",
 };
 
 export const NexusDateTime: NetworkType<DateTime> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		ReadData(reader) {
 			const dateTime = reader.ReadFloat64();
 			return DateTime.fromUnixTimestamp(dateTime);
@@ -244,31 +271,35 @@ export const NexusDateTime: NetworkType<DateTime> = {
 			writer.WriteFloat64(data.UnixTimestamp);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "DateTime");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "DateTime");
+		},
+		ValidateError: "Expected DateTime",
 	},
 	Name: "DateTime",
-	ValidateError: "Expected DateTime",
 };
 
 export const NexusCFrame: NetworkType<CFrame> = {
-	NetworkBuffer: {
+	BufferEncoder: {
 		ReadData(reader) {
-			const position = NexusVector3.NetworkBuffer.ReadData(reader);
-			const direction = NexusVector3.NetworkBuffer.ReadData(reader);
+			const position = NexusVector3.BufferEncoder.ReadData(reader);
+			const direction = NexusVector3.BufferEncoder.ReadData(reader);
 			const cf = CFrame.lookAt(position, direction);
 			return cf;
 		},
 		WriteData(data, writer) {
-			NexusVector3.NetworkBuffer.WriteData(data.Position, writer);
-			NexusVector3.NetworkBuffer.WriteData(data.LookVector, writer);
+			NexusVector3.BufferEncoder.WriteData(data.Position, writer);
+			NexusVector3.BufferEncoder.WriteData(data.LookVector, writer);
 		},
 	},
-	Validate(value) {
-		return typeIs(value, "CFrame");
+	Validator: {
+		Validate(value) {
+			return typeIs(value, "CFrame");
+		},
+		ValidateError: "Expected CFrame",
 	},
 	Name: "CFrame",
-	ValidateError: "Expected CFrame",
 };
 
 export const NexusTypes = {
