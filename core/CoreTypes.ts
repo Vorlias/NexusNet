@@ -1,6 +1,7 @@
 /* eslint-disable roblox-ts/no-array-pairs */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { float32, float64, int16, int32, int8, NetworkBuffers, uint16, uint32, uint8 } from "./Buffers";
+import { NexusHashTable__EXPERIMENTAL } from "./NetworkTypes/HashTable";
 import NexusSerialization from "./Serialization";
 import { NetIsSerializer } from "./Serialization/Serializer";
 import { NetworkBuffer, NetworkSerializableType, NetworkType, StaticNetworkType } from "./Types/NetworkTypes";
@@ -435,6 +436,37 @@ function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T
 
 export type Serialized<T> = T extends string | boolean | number ? T : { [P in keyof T]: unknown };
 
+type EnumLike<T> = { [P in keyof T]: T[P] & string };
+export function NexusStringEnum<T extends object>(enumObject: EnumLike<T>): NetworkSerializableType<T[keyof T], int32> {
+	const hashToKey = new Map<number, string>();
+	const keyToHash = new Map<string, number>();
+
+	for (const [key, _] of pairs<{ [P in string]: string }>(enumObject)) {
+		const keyHash = hashstring(key); // will give us the key
+		hashToKey.set(keyHash, key);
+		keyToHash.set(key, keyHash);
+		print("add hash", _, keyHash);
+	}
+
+	return {
+		Name: "StringEnum",
+		Validator: undefined!,
+		Serializer: {
+			Serialize(value: T[keyof T]): int32 {
+				const hash = keyToHash.get(value as string);
+				assert(hash, "Hash fail");
+				return hash;
+			},
+			Deserialize(value: int32): T[keyof T] {
+				const key = hashToKey.get(value);
+				assert(key, "key fail");
+				return enumObject[key as keyof typeof enumObject];
+			},
+		},
+		BufferEncoder: NetworkBuffers.Int32,
+	};
+}
+
 /**
  * Creates a Network Interface
  * @param objectInterface The static interface of this object
@@ -526,21 +558,59 @@ export function NexusObject<T>(
 }
 
 interface NexusCorePrimitives {
+	/**
+	 * A string primitive
+	 */
 	readonly String: NetworkType<string>;
 
+	/**
+	 * A 8-bit signed integer
+	 */
 	readonly Int8: NetworkType<int8>;
+	/**
+	 * A 16-bit signed integer
+	 */
 	readonly Int16: NetworkType<int16>;
+	/**
+	 * A 32-bit signed integer
+	 */
 	readonly Int32: NetworkType<int32>;
 
+	/**
+	 * A 8-bit unsigned integer
+	 */
 	readonly UInt8: NetworkType<uint8>;
+	/**
+	 * A 16-bit unsigned integer
+	 */
 	readonly UInt16: NetworkType<uint16>;
+	/**
+	 * A 32-bit unsigned integer
+	 */
 	readonly UInt32: NetworkType<uint32>;
 
+	/**
+	 * A 32-bit floating point number
+	 */
 	readonly Float32: NetworkType<float32>;
+	/**
+	 * A 64-bit floating point number
+	 */
 	readonly Float64: NetworkType<float64>;
 
+	/**
+	 * Represents any number, equivalent to `Float32`.
+	 */
+	readonly Number: NetworkType<number, float32>;
+
+	/**
+	 * A boolean primitive
+	 */
 	readonly Boolean: NetworkType<boolean>;
 
+	/**
+	 * Nothing
+	 */
 	readonly Undefined: typeof Undefined;
 }
 
@@ -553,7 +623,7 @@ interface NexusCoreTypeOps {
 	 * An array of a type `T[]`
 	 * @param valueType The value type of the array
 	 */
-	ArrayOf<T extends StaticNetworkType>(
+	Array<T extends StaticNetworkType>(
 		this: void,
 		valueType: T,
 	): NetworkSerializableType<readonly In<T>[], readonly Out<T>[]>;
@@ -561,7 +631,7 @@ interface NexusCoreTypeOps {
 	 * A fixed array of a type `[T, ...]`
 	 * @param valueTypes The value types of the tuple
 	 */
-	TupleOf<T extends ReadonlyArray<StaticNetworkType>>(
+	Tuple<T extends ReadonlyArray<StaticNetworkType>>(
 		this: void,
 		...valueTypes: T
 	): NetworkSerializableType<MapCheckArrayIn<T>, MapCheckArrayOut<T>>;
@@ -572,20 +642,20 @@ interface NexusCoreTypeOps {
 		this: void,
 		valueType: T,
 	): NetworkSerializableType<In<T> | undefined, Out<T> | undefined>;
-	/**
-	 * A key-based interface
-	 */
-	Interface<T>(
-		this: void,
-		objectInterface: Interface<T>,
-		customLabel?: string,
-	): NetworkSerializableType<InTypes<typeof objectInterface>, OutTypes<typeof objectInterface>>;
+	// /**
+	//  * An interface that's serialized using a hash table
+	//  */
+	// Interface<T>(
+	// 	this: void,
+	// 	objectInterface: Interface<T>,
+	// 	customLabel?: string,
+	// ): NetworkSerializableType<InTypes<typeof objectInterface>, OutTypes<typeof objectInterface>>;
 
 	/**
 	 * A set of the given value type
 	 * @param valueType The value type
 	 */
-	SetOf<T extends StaticNetworkType>(
+	Set<T extends StaticNetworkType>(
 		this: void,
 		valueType: T,
 	): NetworkSerializableType<ReadonlySet<In<T>>, readonly Out<T>[]>;
@@ -595,37 +665,53 @@ interface NexusCoreTypeOps {
 	 * @param keyType The key type
 	 * @param valueType The value type
 	 */
-	MapOf<K extends StaticNetworkType, V extends StaticNetworkType>(
+	Map<K extends StaticNetworkType, V extends StaticNetworkType>(
 		this: void,
 		keyType: K,
 		valueType: V,
 	): NetworkSerializableType<ReadonlyMap<In<K>, In<V>>, readonly [Out<K>, Out<V>][]>;
+
+	/**
+	 * An enum with string values
+	 *
+	 * - Serializes to the string hash of the item
+	 */
+	StringEnum: typeof NexusStringEnum;
+
+	/**
+	 * An object that's serialized using a hash table
+	 *
+	 * #### *NOTE:* This should be use for NETWORKING **only**!
+	 */
+	Interface: typeof NexusHashTable__EXPERIMENTAL;
 }
 
-interface NexusCoreTypes extends NexusCoreTypeOps, NexusCorePrimitives {}
+export interface NexusCoreTypes extends NexusCoreTypeOps, NexusCorePrimitives {}
 
 export const NexusCoreTypes: NexusCoreTypes = {
 	String: NexusString,
 
-	Int8: NexusInt(8) as NetworkType<int8>,
-	Int16: NexusInt(16) as NetworkType<int16>,
-	Int32: NexusInt(32) as NetworkType<int32>,
+	Int8: NexusInt(8),
+	Int16: NexusInt(16),
+	Int32: NexusInt(32),
 
-	UInt8: NexusUInt(8) as NetworkType<uint8>,
-	UInt16: NexusUInt(8) as NetworkType<uint16>,
-	UInt32: NexusUInt(8) as NetworkType<uint32>,
+	UInt8: NexusUInt(8),
+	UInt16: NexusUInt(8),
+	UInt32: NexusUInt(8),
 
-	Float32: NexusFloat(32) as NetworkType<float32>,
-	Float64: NexusFloat(64) as NetworkType<float64>,
+	Float32: NexusFloat(32),
+	Float64: NexusFloat(64),
+	Number: NexusFloat(32),
 
 	Boolean: NexusBoolean,
 	Undefined,
 
-	SetOf: NexusSet,
-	MapOf: NexusMap,
+	StringEnum: NexusStringEnum,
+	Set: NexusSet,
+	Map: NexusMap,
 	Literal: NexusLiteral,
-	ArrayOf: NexusArray,
-	TupleOf: NexusTuple,
+	Array: NexusArray,
+	Tuple: NexusTuple,
 	Optional: NexusOptional,
-	Interface: NexusObject,
+	Interface: NexusHashTable__EXPERIMENTAL,
 };

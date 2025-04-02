@@ -302,23 +302,76 @@ export const NexusCFrame: NetworkType<CFrame> = {
 	Name: "CFrame",
 };
 
-export const NexusTypes = {
-	...NexusCoreTypes,
-	Player: NexusPlayer,
-	Team: NexusTeam,
+export interface RobloxBuiltInTypes extends NexusCoreTypes {
+	/**
+	 * A Roblox Player
+	 */
+	Player: typeof NexusPlayer;
+	/**
+	 * A Roblox Team
+	 */
+	Team: typeof NexusTeam;
 	/**
 	 * An instance in Roblox of the given type
 	 *
 	 * **NOTE**: This will not work with buffers due to no unique ids for Roblox instances! use of this will disable the buffer setting for a remote.
 	 */
-	InstanceOf: InstanceOf,
+	InstanceOf: typeof InstanceOf;
 	/**
 	 * An arbitrary instance in Roblox
 	 *
 	 * **NOTE**: This will not work with buffers due to no unique ids for Roblox instances! use of this will disable the buffer setting for a remote.
 	 */
+	Instance: NetworkType<Instance, never>;
+	/**
+	 * A `Vector3int16`
+	 */
+	Vector3int16: typeof NexusVector3Int16;
+	/**
+	 * A `Vector2int16`
+	 */
+	Vector2int16: typeof NexusVector2Int16;
+	/**
+	 * A `Vector3`
+	 */
+	Vector3: typeof NexusVector3;
+	/**
+	 * A `Vector2`
+	 */
+	Vector2: typeof NexusVector2;
+	/**
+	 * A `Color3`
+	 */
+	Color3: typeof NexusColor3;
+	/**
+	 * A `NumberRange`
+	 */
+	NumberRange: typeof NexusNumberRange;
+	/**
+	 * A `NumberSequence`
+	 */
+	NumberSequence: typeof NexusNumberSequence;
+	/**
+	 * A `ColorSequence`
+	 */
+	ColorSequence: typeof NexusColorSequence;
+	/**
+	 * A `DateTime`
+	 */
+	DateTime: typeof NexusDateTime;
+	/**
+	 * A `CFrame`
+	 */
+	CFrame: typeof NexusCFrame;
+}
+
+export const NexusTypes: RobloxBuiltInTypes = {
+	...NexusCoreTypes,
+	Player: NexusPlayer,
+	Team: NexusTeam,
+	InstanceOf: InstanceOf,
 	Instance: InstanceOf("Instance"),
-	Vector3int16: NexusVector2Int16,
+	Vector3int16: NexusVector3Int16,
 	Vector3: NexusVector3,
 	Vector2int16: NexusVector2Int16,
 	Vector2: NexusVector2,

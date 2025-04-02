@@ -2,33 +2,23 @@ import type { Player } from "@Easy/Core/Shared/Player/Player";
 import type { AirshipScriptConnection } from "../Objects/NetConnection";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
-import type { NetworkSerializer, StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import type { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { AirshipNetworkObjectModelBuilder } from "../Builders/ObjectModelBuilder";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
-import {
-	InferClientRemote,
-	InferNOMDeclarations,
-	InferServerRemote,
-	InferServerRemoteNoBroadcast,
-} from "../Core/Types/Inference";
+import { InferClientRemote, InferNOMDeclarations, InferServerRemote } from "../Core/Types/Inference";
 import type {
 	ClientBuilder,
 	ClientEventDeclaration,
 	ContextNetworkModel,
-	InferClient,
-	InferServer,
 	NetworkModelConfiguration,
 	NetworkObjectModelBuilder,
 	ServerBuilder,
 	ServerEventDeclaration,
 } from "../Core/Types/NetworkObjectModel";
-import { AnyNetworkDeclaration, AnyServerNetworkObject } from "../Core/Types/Declarations";
+import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
 import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
-import { RemoteContext } from "../Core/Generators/RemoteContext";
-import { Game } from "@Easy/Core/Shared/Game";
 import { NexusTypes } from "./AirshipTypes";
-import { NexusResult } from "../Core/Result";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -182,7 +172,3 @@ namespace Nexus {
 }
 
 export default Nexus;
-const test = Nexus.Server(
-	"test",
-	Nexus.Event(NexusTypes.String).WithServerMiddleware((c) => c),
-);

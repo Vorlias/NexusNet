@@ -6,6 +6,11 @@ import { NetworkingFlags, RemoteRunContext } from "@Vorlias/NexusNet/Core/Types/
 import { NexusServerContext } from "@Vorlias/NexusNet/Core/Generators/RemoteContext";
 import { ServerEvent } from "@Vorlias/NexusNet/Objects/Server/ServerEvent";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
+import { NexusStringEnum } from "@Vorlias/NexusNet/Core/CoreTypes";
+import { NexusHashTable__EXPERIMENTAL } from "@Vorlias/NexusNet/Core/NetworkTypes/HashTable";
+import { BufferWriter } from "@Vorlias/NexusNet/Core/Buffers/BufferWriter";
+import { BufferReader } from "@Vorlias/NexusNet/Core/Buffers/BufferReader";
+import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 
 export default class TestNetworking extends AirshipBehaviour {
 	protected StartServer() {}
@@ -22,11 +27,56 @@ export default class TestNetworking extends AirshipBehaviour {
 			NexusTesting.Test("Array Transportation", (test) => {
 				const arr = ["Hello", "World", ":-)"];
 
-				const serializedEvent = test.ServerEventWithArgs(false, NexusTypes.ArrayOf(NexusTypes.String));
+				const serializedEvent = test.ServerEventWithArgs(false, NexusTypes.Array(NexusTypes.String));
 				serializedEvent.ExpectArgsEqual(serializedEvent.SendAndWaitForRecieved(undefined!, arr), [arr]);
 
-				const bufferedEvent = test.ServerEventWithArgs(true, NexusTypes.ArrayOf(NexusTypes.String));
+				const bufferedEvent = test.ServerEventWithArgs(true, NexusTypes.Array(NexusTypes.String));
 				bufferedEvent.ExpectArgsEqual(serializedEvent.SendAndWaitForRecieved(undefined!, arr), [arr]);
+
+				const t = NexusTypes.Map(
+					NexusTypes.String,
+					NexusTypes.Interface({ a: NexusTypes.String, b: NexusTypes.Set(NexusTypes.String) }),
+				);
+			}),
+
+			NexusTesting.Test("Hash Table Objects", () => {
+				interface Test {
+					Name: string;
+					Class: "Warrior" | "Mage" | "Cleric";
+					Level: number;
+					IsCool: boolean;
+				}
+				const TestHashTableType = NexusHashTable__EXPERIMENTAL<Test>({
+					Name: NexusTypes.String,
+					Class: NexusTypes.Literal("Warrior", "Mage", "Cleric"),
+					Level: NexusTypes.UInt16,
+					IsCool: NexusTypes.Boolean,
+				});
+
+				let rawData: Test = {
+					Name: "test",
+					Class: "Cleric",
+					Level: 10,
+					IsCool: true,
+				};
+
+				const encoded = TestHashTableType.Serializer.Serialize(rawData);
+
+				const [test, level, cclass, isCool] = encoded;
+				// print("encoded is", inspect(encoded));
+
+				assert(test === "test"); // Name is first
+				assert(level === 10); // Level is second
+				assert(cclass === 2); // Class is third
+				assert(isCool === true); // IsCool is fourth
+
+				const writer = new BufferWriter(0);
+				TestHashTableType.BufferEncoder.WriteData(encoded, writer);
+
+				const reader = new BufferReader(writer.ToBuffer());
+				const encodedBufferDecoded = TestHashTableType.BufferEncoder.ReadData(reader);
+				const decoded = TestHashTableType.Serializer.Deserialize(encodedBufferDecoded);
+				assert(ObjectUtils.deepEquals(decoded, rawData), "not equal");
 			}),
 
 			NexusTesting.Test("Interface Serialization", async (test) => {
@@ -41,6 +91,13 @@ export default class TestNetworking extends AirshipBehaviour {
 					Class: NexusTypes.Literal("Warrior", "Mage", "Cleric"),
 					Level: NexusTypes.UInt16,
 				});
+
+				// const serialized = struct.Serializer.Serialize({
+				// 	Name: "hi",
+				// 	Class: "Cleric",
+				// 	Level: 10,
+				// });
+				// print(inspect(serialized));
 
 				const sendCharacterDto = test.ServerEventWithArgs(true, struct);
 				const [result] = sendCharacterDto.SendAndWaitForRecieved(undefined!, {
@@ -117,10 +174,26 @@ export default class TestNetworking extends AirshipBehaviour {
 				}
 			}),
 
-			NexusTesting.Test("Inline Test", (test) => {
-				const testing = Nexus.Server("testing", Nexus.Event(NexusTypes.String));
+			NexusTesting.Test("Inline Test", (test) => {}),
 
-				test;
+			NexusTesting.Test("String Enum Serialization", () => {
+				enum TestEnum {
+					Bob = "Bob",
+					Alice = "Alice",
+					Max = "Max",
+				}
+				const TestEnumType = NexusTypes.StringEnum(TestEnum);
+
+				const hashValueOfAlice = string.hash(TestEnum.Alice);
+				const serializedAlice = TestEnumType.Serializer.Serialize(TestEnum.Alice);
+				print("check", hashValueOfAlice, serializedAlice);
+				assert(
+					hashValueOfAlice === serializedAlice,
+					`hashValueOfAlice(${hashValueOfAlice}) != serializedAlice(${serializedAlice})`,
+				);
+
+				const decode = TestEnumType.Serializer.Deserialize(serializedAlice);
+				assert(decode === TestEnum.Alice, "Expected Alice!");
 			}),
 
 			NexusTesting.Test("Network Object Model", () => {
