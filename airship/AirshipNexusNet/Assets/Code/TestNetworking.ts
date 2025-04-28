@@ -3,14 +3,12 @@ import Nexus, { NexusTypes } from "@Vorlias/NexusNet/Framework";
 import { NexusTesting } from "@Vorlias/NexusNet/Framework/Tests";
 import NexusSerialization from "@Vorlias/NexusNet/Core/Serialization";
 import { NetworkingFlags, RemoteRunContext } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
-import { NexusServerContext } from "@Vorlias/NexusNet/Core/Generators/RemoteContext";
-import { ServerEvent } from "@Vorlias/NexusNet/Objects/Server/ServerEvent";
-import inspect from "@Easy/Core/Shared/Util/Inspect";
-import { NexusStringEnum } from "@Vorlias/NexusNet/Core/CoreTypes";
 import { NexusHashTable__EXPERIMENTAL } from "@Vorlias/NexusNet/Core/NetworkTypes/HashTable";
 import { BufferWriter } from "@Vorlias/NexusNet/Core/Buffers/BufferWriter";
 import { BufferReader } from "@Vorlias/NexusNet/Core/Buffers/BufferReader";
+import { expressionToAst } from "@Vorlias/NexusNet/Inference";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
+import inspect from "@Easy/Core/Shared/Util/Inspect";
 
 export default class TestNetworking extends AirshipBehaviour {
 	protected StartServer() {}
@@ -243,6 +241,50 @@ export default class TestNetworking extends AirshipBehaviour {
 				assert(
 					(testDeclaration.Flags & NetworkingFlags.EnforceArgumentCount) !== 0,
 					"Expected EnforceArgumentCount, flags are " + testDeclaration.Flags,
+				);
+			}),
+
+			NexusTesting.Test("Expression parsing", (test) => {
+				const booleanTest = expressionToAst("boolean");
+				assert(booleanTest.kind === "type" && booleanTest.value === "boolean");
+
+				const optionalBooleanTest = expressionToAst("string?");
+				assert(
+					optionalBooleanTest.kind === "optional" &&
+						optionalBooleanTest.children.kind === "type" &&
+						optionalBooleanTest.children.value === "string",
+				);
+
+				const arrayBooleanTest = expressionToAst("Identity[]");
+				assert(
+					arrayBooleanTest.kind === "array" &&
+						arrayBooleanTest.children.kind === "type" &&
+						arrayBooleanTest.children.value === "Identity",
+				);
+
+				const optionalArrayBooleanTest = expressionToAst("number[]?");
+				assert(
+					optionalArrayBooleanTest.kind === "optional" &&
+						optionalArrayBooleanTest.children.kind === "array" &&
+						optionalArrayBooleanTest.children.children.kind === "type" &&
+						optionalArrayBooleanTest.children.children.value === "number",
+				);
+
+				const arrayOfOptionalBooleans = expressionToAst("Character?[]");
+				assert(
+					arrayOfOptionalBooleans.kind === "array" &&
+						arrayOfOptionalBooleans.children.kind === "optional" &&
+						arrayOfOptionalBooleans.children.children.kind === "type" &&
+						arrayOfOptionalBooleans.children.children.value === "Character",
+				);
+
+				const optionalArrayOfOptionalBooleans = expressionToAst("Inventory?[]?");
+				assert(
+					optionalArrayOfOptionalBooleans.kind === "optional" &&
+						optionalArrayOfOptionalBooleans.children.kind === "array" &&
+						optionalArrayOfOptionalBooleans.children.children.kind === "optional" &&
+						optionalArrayOfOptionalBooleans.children.children.children.kind === "type" &&
+						optionalArrayOfOptionalBooleans.children.children.children.value === "Inventory",
 				);
 			}),
 		]);

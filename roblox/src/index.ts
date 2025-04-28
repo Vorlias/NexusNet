@@ -1,8 +1,8 @@
 import { NetworkSerializableType, NetworkType, StaticNetworkType, ToNetworkArguments } from "./Core/Types/NetworkTypes";
 import { EventBuilder } from "./Builders/EventBuilder";
 import { RobloxNetworkObjectModelBuilder } from "./Builders/ObjectModelBuilder";
-import { default as NetV3Compat } from "./v3compat";
-import { default as NetV4Compat } from "./v4compat";
+import { default as NetV3Compat } from "./Compat/Net4";
+import { default as NetV4Compat } from "./Compat/Net4";
 import { FunctionBuilder } from "./Builders/FunctionBuilder";
 import { AnyNetworkDeclaration } from "./Core/Types/Declarations";
 import { InferNOMDeclarations, InferServerRemote, InferClientRemote } from "./Core/Types/Inference";
@@ -89,7 +89,7 @@ namespace Nexus {
 	export function Event<T extends ReadonlyArray<unknown>>(...values: ToNetworkArguments<T>): EventBuilder<T>;
 	export function Event<T extends ReadonlyArray<unknown>>(...values: ToNetworkArguments<T>): EventBuilder<[]> {
 		if (values.size() > 0) {
-			return new EventBuilder().WithArguments(...values);
+			return new EventBuilder().WithArguments(...values) as EventBuilder<[]>;
 		}
 
 		return new EventBuilder();
@@ -112,22 +112,17 @@ namespace Nexus {
 	): FunctionBuilder<T, TRet> {
 		return new FunctionBuilder(returns).WithArguments(...args);
 	}
+
+	// type TypeExpression<T extends string> = "string" | "number" | "boolean";
+	// export function EventTest<const T extends ReadonlyArray<unknown>>(
+	// 	...values: {
+	// 		[P in keyof T]: T[P] extends string
+	// 			? TypeExpression<T[P]>
+	// 			: T[P] extends StaticNetworkType<infer _>
+	// 				? T[P]
+	// 				: never;
+	// 	}
+	// ) {}
 }
 
 export default Nexus;
-
-const test: Nexus.SerializableType<string, number> = {
-	Name: "Test",
-	Validate(value): value is string {
-		return true;
-	},
-	NetworkBuffer: undefined!,
-	Serializer: {
-		Serialize(value) {
-			return undefined!;
-		},
-		Deserialize(value) {
-			return undefined!;
-		},
-	},
-};

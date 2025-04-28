@@ -1,23 +1,24 @@
 {
 	"folders": [
 		{
-			"name": "Roblox",
+			"name": "Roblox Source",
 			"path": "roblox"
 		},
 		{
 			"path": "airship/AirshipNexusNet/Assets",
-			"name": "Airship"
+			"name": "Airship Project"
+		},
+		//{
+		//	"path": "transformer",
+		//	"name": "Transformer"
+		//},
+		{
+			"path": "tests/roblox",
+			"name": "Roblox Testing"
 		},
 		{
-			"path": "transformer",
-			"name": "Transformer"
-		},
-		{
-			"path": "tests",
-			"name": "Tests"
-		},
-		{
-			"path": "docs"
+			"path": "docs",
+			"name": "Documentation"
 		}
 	],
 	"settings": {

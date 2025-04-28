@@ -42,7 +42,7 @@ export class FunctionBuilder<TArgs extends ReadonlyArray<unknown>, TRet>
 	OnServer(configuration: NetworkModelConfiguration): ServerFunctionDeclaration<TArgs, TRet> {
 		return {
 			Type: "Function",
-			// RunContext: RemoteRunContext.Server,
+			RunContext: RemoteRunContext.Server,
 			UseBufferSerialization: configuration.UseBuffers,
 			Debugging: configuration.Logging,
 			// Arguments: this.arguments,
@@ -55,7 +55,7 @@ export class FunctionBuilder<TArgs extends ReadonlyArray<unknown>, TRet>
 	OnClient(configuration: NetworkModelConfiguration): ClientFunctionDeclaration<TArgs, TRet> {
 		return {
 			Type: "Function",
-			// RunContext: RemoteRunContext.Client,
+			RunContext: RemoteRunContext.Client,
 			UseBufferSerialization: configuration.UseBuffers,
 			Debugging: configuration.Logging,
 			// CallbackMiddleware: [],

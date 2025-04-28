@@ -1,15 +1,17 @@
-import { EventBuilder } from "./Builders/EventBuilder";
-import { RobloxContextNetworkModel, RobloxNetworkObjectModelBuilder } from "./Builders/ObjectModelBuilder";
-import { NEXUS_VERSION } from "./Core/CoreInfo";
-import { ServerCallbackMiddleware } from "./Core/Middleware/Types";
+import { EventBuilder } from "../../Builders/EventBuilder";
+import { FunctionBuilder } from "../../Builders/FunctionBuilder";
+import { RobloxContextNetworkModel, RobloxNetworkObjectModelBuilder } from "../../Builders/ObjectModelBuilder";
+import { NEXUS_VERSION } from "../../Core/CoreInfo";
+import { ServerCallbackMiddleware } from "../../Core/Middleware/Types";
 import {
-	ClientEventDeclaration,
-	NetworkingFlags,
 	RemoteDeclarations,
 	RemoteRunContext,
+	NetworkingFlags,
 	ServerEventDeclaration,
-} from "./Core/Types/NetworkObjectModel";
-import { NexusTypes } from "./RobloxTypes";
+	ClientEventDeclaration,
+} from "../../Core/Types/NetworkObjectModel";
+import { NexusTypes } from "../../RobloxTypes";
+import { Variant } from "../VariantType";
 
 namespace Net3Compat {
 	export interface DefinitionConfiguration {
@@ -58,8 +60,13 @@ namespace Net3Compat {
 				} else {
 					model = model.AddClient(key, eventBuilder);
 				}
-			} else {
-				// TODO:
+			} else if (value.Type === "Function") {
+				const funBuilder = new FunctionBuilder(Variant).WithArguments();
+				if (value.RunContext === RemoteRunContext.Server) {
+					model = model.AddServer(key, funBuilder);
+				} else {
+					model = model.AddClient(key, funBuilder);
+				}
 			}
 		}
 

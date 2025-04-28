@@ -25,7 +25,7 @@ import {
 import { Identity, MergeIdentity, Named } from "../Core/Types/Utility";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
-import { RobloxNetworkModelConfiguration } from "../Types/NetworkObjectModel";
+import { RobloxNetworkModelConfiguration } from "../NOM/NetworkObjectModel";
 
 export interface RobloxContextNetworkModel<T extends RemoteDeclarations> extends ContextNetworkModel<T> {
 	/**
@@ -39,9 +39,6 @@ export interface RobloxContextNetworkModel<T extends RemoteDeclarations> extends
 	 * @client
 	 */
 	readonly Client: ClientRemoteContext<T>;
-
-	// GetClient<K extends DeclarationRemoteKeys<T>>(key: K): InferClientRemote<FilterClientDeclarations<T>[K]>;
-	// GetServer<K extends DeclarationRemoteKeys<T>>(key: K): InferServerRemote<FilterServerDeclarations<T>[K]>;
 }
 
 export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclarations = defined>
@@ -65,6 +62,10 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 		};
 
 		return this as never;
+	}
+
+	AddScoped() {
+		return this;
 	}
 
 	AddClient<TName extends string, TNomRemote extends NetworkObjectDeclaration>(

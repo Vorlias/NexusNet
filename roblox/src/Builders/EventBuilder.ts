@@ -1,10 +1,14 @@
 import { NexusConfiguration } from "../Core/Configuration";
 import {
 	ClientEventDeclaration,
+	ClientMiddlewareBuilder,
+	NetworkClientEventBuilder,
 	NetworkEventBuilder,
 	NetworkModelConfiguration,
+	NetworkServerEventBuilder,
 	RemoteRunContext,
 	ServerEventDeclaration,
+	ServerMiddlewareBuilder,
 } from "../Core/Types/NetworkObjectModel";
 import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 
@@ -25,7 +29,19 @@ export class EventBuilder<TArgs extends ReadonlyArray<unknown>> implements Netwo
 
 	public WithArguments<T extends ReadonlyArray<unknown> = TArgs>(...values: ToNetworkArguments<T>): EventBuilder<T> {
 		this.arguments = values as StaticNetworkType<TArgs>[];
-		return this;
+		return this as never as EventBuilder<T>;
+	}
+
+	WithClientMiddleware(
+		mwb: (builder: ClientMiddlewareBuilder<TArgs>) => ClientMiddlewareBuilder<TArgs>,
+	): NetworkClientEventBuilder<TArgs> {
+		throw `TODO IMPLEMENT`;
+	}
+
+	WithServerMiddleware(
+		mwb: (builder: ServerMiddlewareBuilder<TArgs>) => ServerMiddlewareBuilder<TArgs>,
+	): NetworkServerEventBuilder<TArgs> {
+		throw `TODO IMPLEMENT`;
 	}
 
 	OnServer(configuration: NetworkModelConfiguration): ServerEventDeclaration<TArgs> {

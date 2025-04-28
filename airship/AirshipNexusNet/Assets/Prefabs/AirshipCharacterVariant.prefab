@@ -8,6 +8,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -1624083086148811293, guid: 4bfcf38072e582e42b941b472d5f3dcb, type: 3}
+      propertyPath: guid
+      value: 2e357236-1d90-48cd-b31d-ef50055b6f7b
+      objectReference: {fileID: 0}
+    - target: {fileID: 606316830658707215, guid: 4bfcf38072e582e42b941b472d5f3dcb, type: 3}
+      propertyPath: guid
+      value: b104fef5-1978-46c8-9854-6bb0be2b2ba2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7088081142443290682, guid: 4bfcf38072e582e42b941b472d5f3dcb, type: 3}
+      propertyPath: guid
+      value: c077dbbf-1b1a-4788-8183-e78aac56a076
+      objectReference: {fileID: 0}
+    - target: {fileID: 7124091312930647041, guid: 4bfcf38072e582e42b941b472d5f3dcb, type: 3}
+      propertyPath: guid
+      value: 378ff85f-7d45-425f-8a63-bec730832c4b
+      objectReference: {fileID: 0}
     - target: {fileID: 7124091312930647041, guid: 4bfcf38072e582e42b941b472d5f3dcb, type: 3}
       propertyPath: m_metadata.name
       value: CharacterAnimation

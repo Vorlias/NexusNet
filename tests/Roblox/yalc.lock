@@ -6,6 +6,10 @@
       "signature": "74872dde1a7eb987297428c8da276cb0",
       "file": true,
       "replaced": "file:../../roblox"
+    },
+    "@rbxts/nexus": {
+      "signature": "0eeddeaf4e161b9df49762cafa460b2b",
+      "file": true
     }
   }
 }

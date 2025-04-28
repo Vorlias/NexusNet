@@ -1,7 +1,21 @@
 import { NexusNetworkBehaviour } from "@Vorlias/NexusNet/Components/NexusNetworkBehaviour";
-import Nexus from "@Vorlias/NexusNet/Framework";
+import { Command } from "@Vorlias/NexusNet/Components/ServerRpc";
+import { SyncArray } from "@Vorlias/NexusNet/DataTypes/SyncArray";
+import { NexusTypes } from "@Vorlias/NexusNet/Framework";
 
 export default class TestNetworkable extends NexusNetworkBehaviour {
-	private inlineTest = Nexus.Client("inlineTest", Nexus.Event());
-	private inlineTest2 = Nexus.Server("inlineTest2", Nexus.Event());
+	public testNum2 = new SyncArray(NexusTypes.String);
+
+	@Command()
+	public Test(): void {}
+
+	protected OnStartServer(): void {
+		print("[SERVER] Started");
+	}
+
+	protected OnStartClient(): void {
+		print("[CLIENT] Started");
+	}
 }
+
+const str = new SyncArray(NexusTypes.String);

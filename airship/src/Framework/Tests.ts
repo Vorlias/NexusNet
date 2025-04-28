@@ -1,13 +1,12 @@
 import { ServerEventDeclaration } from "../Core/Types/NetworkObjectModel";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ToNetworkArguments } from "../Core/Types/NetworkTypes";
-import { AirshipEventBuilder } from "../Builders/EventBuilder";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
-import { OnUpdate, SetInterval } from "@Easy/Core/Shared/Util/Timer";
+import { OnUpdate } from "@Easy/Core/Shared/Util/Timer";
 import Nexus from ".";
-import { ClientCallbackMiddleware, ServerCallbackMiddleware, ServerInvokeMiddleware } from "../Core/Middleware/Types";
+import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "../Core/Middleware/Types";
 
 export namespace NexusTesting {
 	let index = 0;

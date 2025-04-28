@@ -20,12 +20,14 @@ import {
 	ServerCallbackMiddleware,
 	ServerInvokeMiddleware,
 } from "../Core/Middleware/Types";
+import { NexusTypes } from "../Framework";
+import { NexusNetworkBehaviour } from "../Components/NexusNetworkBehaviour";
 
 export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implements NetworkEventBuilder<TArgs> {
 	unreliable = false;
 	useBuffer = false;
 
-	private arguments: StaticNetworkType[] | undefined;
+	arguments: StaticNetworkType[] | undefined;
 	private callbackMiddleware: Callback[] = [];
 	private invokeMiddleware: Callback[] = [];
 
@@ -37,6 +39,32 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implement
 	AsUnreliable(): this {
 		this.unreliable = true;
 		return this;
+	}
+
+	BindIdentity(this: NetworkClientEventBuilder<TArgs>, object: NexusNetworkBehaviour, requiresOwnership = false) {
+		(this.arguments ??= []).unshift(NexusTypes.Identity);
+
+		let boundNetworkIdentity: NetworkIdentity | undefined;
+		return (this as unknown as NetworkClientEventBuilder<[id: NetworkIdentity, ...TArgs]>).WithClientMiddleware(
+			(middleware) =>
+				middleware.OnServerCallback((send, i) => {
+					if (boundNetworkIdentity === undefined)
+						boundNetworkIdentity =
+							object["networkIdentity"] ?? object.gameObject.GetComponent<NetworkIdentity>();
+
+					return (player, identity, ...args) => {
+						if (boundNetworkIdentity?.netId !== identity.netId) return;
+						if (
+							requiresOwnership &&
+							boundNetworkIdentity.connectionToClient?.connectionId !== player.connectionId
+						) {
+							return;
+						}
+
+						send(player, identity, ...args);
+					};
+				}),
+		);
 	}
 
 	public WithArguments<T extends ReadonlyArray<unknown> = TArgs>(

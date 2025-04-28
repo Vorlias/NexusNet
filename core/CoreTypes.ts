@@ -436,8 +436,13 @@ function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T
 
 export type Serialized<T> = T extends string | boolean | number ? T : { [P in keyof T]: unknown };
 
-type EnumLike<T> = { [P in keyof T]: T[P] & string };
-export function NexusStringEnum<T extends object>(enumObject: EnumLike<T>): NetworkSerializableType<T[keyof T], int32> {
+type StringEnumLike<T> = { [P in keyof T]: T[P] & string };
+type IntEnumLike<T> = { [P in keyof T]: T[P] & number };
+type ValueOf<T extends object> = { [P in keyof T]: T[P] }[keyof T];
+
+export function NexusStringEnum<T extends object>(
+	enumObject: StringEnumLike<T>,
+): NetworkSerializableType<T[keyof T], int32> {
 	const hashToKey = new Map<number, string>();
 	const keyToHash = new Map<string, number>();
 
@@ -445,11 +450,10 @@ export function NexusStringEnum<T extends object>(enumObject: EnumLike<T>): Netw
 		const keyHash = hashstring(key); // will give us the key
 		hashToKey.set(keyHash, key);
 		keyToHash.set(key, keyHash);
-		print("add hash", _, keyHash);
 	}
 
 	return {
-		Name: "StringEnum",
+		Name: "enum<string>",
 		Validator: undefined!,
 		Serializer: {
 			Serialize(value: T[keyof T]): int32 {
@@ -466,6 +470,55 @@ export function NexusStringEnum<T extends object>(enumObject: EnumLike<T>): Netw
 		BufferEncoder: NetworkBuffers.Int32,
 	};
 }
+
+export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = false): NetworkType<T, int32> {
+	let validator: (value: number) => boolean;
+
+	if (isFlags) {
+		// flags kind of can be any number
+		validator = () => true;
+	} else {
+		const values = new Array<number>();
+		for (const [k, v] of pairs(value)) {
+			values.push(v as number);
+		}
+
+		validator = (value: number) => {
+			return values.includes(value);
+		};
+	}
+
+	return {
+		Name: "enum<int32>",
+		BufferEncoder: NetworkBuffers.Int32,
+		Validator: {
+			Validate(value): value is T {
+				return typeIs(value, "number") && value % 1 === 0 && validator(value);
+			},
+			ValidateError(networkType, value) {
+				if (typeIs(value, "number")) {
+					if (value % 1 !== 0) {
+						return `Expected integer value`;
+					} else {
+						return `${value} is not a valid value for this integer enum`;
+					}
+				} else {
+					return `Expected valid enum value, got ${typeOf(value)}`;
+				}
+			},
+		},
+	};
+}
+
+enum Test {
+	A,
+}
+
+enum Test2 {
+	A = "hi",
+}
+
+const intEnum = NexusIntEnum(Test, false);
 
 /**
  * Creates a Network Interface
@@ -676,7 +729,17 @@ interface NexusCoreTypeOps {
 	 *
 	 * - Serializes to the string hash of the item
 	 */
-	StringEnum: typeof NexusStringEnum;
+	StringEnum<const T extends object>(enumObject: StringEnumLike<T>): NetworkSerializableType<T[keyof T], int32>;
+
+	/**
+	 * An enum with integer values
+	 */
+	IntEnum<const T>(value: IntEnumLike<T>): NetworkType<T, int32>;
+	/**
+	 * An enum with integer values
+	 * @param isFlagEnum Whether or not this is a flag integer enum
+	 */
+	IntEnum<const T>(value: IntEnumLike<T>, isFlagEnum: boolean): NetworkType<T, int32>;
 
 	/**
 	 * An object that's serialized using a hash table
@@ -707,6 +770,8 @@ export const NexusCoreTypes: NexusCoreTypes = {
 	Undefined,
 
 	StringEnum: NexusStringEnum,
+	IntEnum: NexusIntEnum,
+
 	Set: NexusSet,
 	Map: NexusMap,
 	Literal: NexusLiteral,

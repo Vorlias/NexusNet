@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ClientCallbackMiddleware } from "../../Core/Middleware/Types";
-import { CreateClientEventCallback } from "../../Core/Serialization/CallbackHandlers";
+import { CreateClientEventCallback, ParseServerCallbackArgs } from "../../Core/Serialization/CallbackHandlers";
 import { ParseClientInvokeArgs } from "../../Core/Serialization/InvokeHandlers";
 import { ClientListenerEvent, ClientSenderEvent } from "../../Core/Types/Client/NetworkObjects";
 import { Connection } from "../../Core/Types/Dist";
@@ -32,9 +32,22 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 		this.callbackMiddleware = declaration.CallbackMiddleware as ClientCallbackMiddleware[];
 	}
 
+	public Wait(): T {
+		const result = this.instance.OnClientEvent.Wait();
+
+		const transformedArgs = ParseServerCallbackArgs(
+			this.name,
+			this.useBuffers,
+			this.argumentHandlers ?? [],
+			result,
+		) as T;
+
+		return transformedArgs;
+	}
+
 	Connect(callback: (...args: T) => void): Connection {
 		return this.instance.OnClientEvent.Connect(
-			CreateClientEventCallback({
+			CreateClientEventCallback(this.name, {
 				Callback: callback,
 				UseBuffers: this.useBuffers,
 				EnforceArguments: this.argCountCheck,

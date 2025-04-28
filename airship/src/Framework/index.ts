@@ -95,6 +95,8 @@ namespace Nexus {
 		readonly client: InferClientRemote<T>;
 	}
 
+	export type InlineClientEvent<T extends readonly unknown[]> = InlineContext<ClientEventDeclaration<T>>;
+
 	/**
 	 * Creates an inline server object - for usage with components
 	 *
@@ -118,7 +120,7 @@ namespace Nexus {
 	 * }
 	 * ```
 	 */
-	export function Server<T extends AnyNetworkDeclaration>(
+	export function Server<const T extends AnyNetworkDeclaration>(
 		name: string,
 		network: ServerBuilder<T>,
 		configuration?: Partial<NetworkModelConfiguration>,
@@ -142,7 +144,7 @@ namespace Nexus {
 	/**
 	 * Creates an inline client network object
 	 */
-	export function Client<T extends AnyNetworkDeclaration>(
+	export function Client<const T extends AnyNetworkDeclaration>(
 		name: string,
 		network: ClientBuilder<T>,
 		configuration?: Partial<NetworkModelConfiguration>,

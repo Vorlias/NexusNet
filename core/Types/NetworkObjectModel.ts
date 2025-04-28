@@ -72,6 +72,7 @@ export interface FunctionDeclaration<
 	_TArgs extends ReadonlyArray<unknown>,
 	_TRet,
 > {
+	readonly RunContext: TRunContext;
 	readonly Type: "Function";
 	readonly UseBufferSerialization: boolean;
 	readonly Debugging: boolean;
@@ -136,6 +137,7 @@ export interface ContextNetworkModel<TDeclarations extends RemoteDeclarations> {
 interface NetworkObjectBuilder {
 	unreliable: boolean;
 	useBuffer: boolean;
+	arguments: StaticNetworkType[] | undefined;
 
 	AsUnreliable(): this;
 	SetUseBuffer(useBuffer: boolean): this;

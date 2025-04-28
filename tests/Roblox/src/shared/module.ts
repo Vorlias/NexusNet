@@ -1,5 +1,7 @@
-import Nexus, { NexusTypes } from "@rbxts/nexus-net";
+import Nexus, { NexusTypes } from "@rbxts/nexus";
 
-Nexus.BuildObjectModel()
+export const TestNetwork = Nexus.BuildObjectModel()
 	.AddServer("testServerEvent", Nexus.Event(NexusTypes.String)) //
+	.AddClient("TestClientSend", Nexus.Event(NexusTypes.String))
+	.AddServer("TestServerSend", Nexus.Event(NexusTypes.String))
 	.Build();

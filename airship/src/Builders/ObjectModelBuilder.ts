@@ -20,7 +20,7 @@ import {
 } from "../Core/Generators/RemoteContext";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
-import { AirshipNetworkModelConfiguration } from "../Types/NetworkObjectModel";
+import { AirshipNetworkModelConfiguration } from "../NOM/NetworkObjectModel";
 
 type Scoped<K extends string, T extends RemoteDeclarations> = { [P in keyof T as `${K}/${P & string}`]: T[P] };
 

@@ -1,4 +1,3 @@
-import { NexusTypes } from "@Vorlias/NexusNet/Framework";
 import { NetworkSerializableType, NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
 
 export function NetIsSerializer<T>(value: StaticNetworkType<T>): value is NetworkSerializableType<T, unknown> {

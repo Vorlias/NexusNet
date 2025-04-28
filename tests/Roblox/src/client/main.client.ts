@@ -1,6 +1,15 @@
+import Nexus, { NexusTypes } from "@rbxts/nexus";
 import { Network } from "shared/Network";
+import { NexusTesting } from "shared/Tests";
+import { ClientEvent } from "@rbxts/nexus/out/Objects/Client/ClientEvent";
+import { TestNetwork } from "shared/module";
 
-Network.Get("HelloFromServer").Client.Connect((message) => {
-    print("The server says", message);
-    Network.Get("HelloFromClient").Client.SendToServer(1337);
-})
+NexusTesting.RunTests([
+	NexusTesting.Test("Send signal to server", (test) => {
+		const evt = TestNetwork.Get("TestClientSend").Client;
+		evt.SendToServer("Hello, World!");
+		const evt2 = TestNetwork.Get("TestServerSend").Client as ClientEvent<unknown[]>;
+		const [message] = evt2.Wait();
+		assert(message === `Server got 'Hello, World!'`);
+	}),
+]);

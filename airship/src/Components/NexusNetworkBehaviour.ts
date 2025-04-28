@@ -1,4 +1,3 @@
-import { NexusNetwork } from "Code/Network";
 import { AnyClientNetworkObject, AnyNetworkDeclaration, AnyServerNetworkObject } from "../Core/Types/Declarations";
 import Nexus from "../Framework";
 import { ClientEventDeclaration, ServerEventDeclaration } from "../Core/Types/NetworkObjectModel";
@@ -45,6 +44,7 @@ export abstract class NexusNetworkBehaviour extends AirshipBehaviour {
 	protected Awake(): void {
 		const constructor = getmetatable(this) as typeof NexusNetworkBehaviour;
 		const rpcs = constructor.$RPC;
+		const id = (this.networkIdentity ??= this.gameObject.GetAirshipComponentInParent<NetworkIdentity>()!);
 
 		// Server-based listeners
 		if (Game.IsServer()) {
@@ -59,6 +59,18 @@ export abstract class NexusNetworkBehaviour extends AirshipBehaviour {
 						}),
 					);
 				}
+			}
+
+			if (typeIs(this.OnStartServer, "function")) {
+				if (id.netId === 0) {
+					this.bin.Add(id.onStartServer.Connect(() => this.OnStartServer!()));
+				} else {
+					this.OnStartServer();
+				}
+			}
+
+			if (typeIs(this.OnStopServer, "function")) {
+				this.bin.Add(id.onStopServer.Connect(() => this.OnStopServer!()));
 			}
 		}
 
@@ -76,7 +88,48 @@ export abstract class NexusNetworkBehaviour extends AirshipBehaviour {
 					);
 				}
 			}
+
+			if (typeIs(this.OnStartClient, "function")) {
+				if (id.netId === 0) {
+					this.bin.Add(id.onStartClient.Connect(() => this.OnStartClient!()));
+				} else {
+					this.OnStartClient();
+				}
+			}
+
+			if (typeIs(this.OnStopClient, "function")) {
+				this.bin.Add(id.onStopServer.Connect(() => this.OnStopClient!()));
+			}
 		}
+
+		if (typeIs(this.OnStartAuthority, "function")) {
+			this.bin.Add(id.onStartAuthority.Connect(() => this.OnStartAuthority!()));
+		}
+
+		if (typeIs(this.OnStopAuthority, "function")) {
+			this.bin.Add(id.onStopAuthority.Connect(() => this.OnStopAuthority!()));
+		}
+	}
+
+	protected OnStartAuthority?(): void;
+	protected OnStopAuthority?(): void;
+
+	protected OnStartServer?(): void;
+	protected OnStartClient?(): void;
+
+	protected OnStopServer?(): void;
+	protected OnStopClient?(): void;
+
+	protected IsOwned(): boolean {
+		return this.networkIdentity?.isOwned ?? false;
+	}
+
+	protected IsServer() {
+		return this.networkIdentity?.isServer ?? Game.IsServer();
+	}
+
+	protected IsClient() {
+		return this.networkIdentity?.isClient ?? Game.IsClient();
 	}
 
 	protected OnDestroy(): void {

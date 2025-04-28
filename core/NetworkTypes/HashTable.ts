@@ -1,5 +1,3 @@
-import inspect from "@Easy/Core/Shared/Util/Inspect";
-import { NexusTypes } from "../../Framework";
 import NexusSerialization from "../Serialization";
 import { NetworkBuffer, NetworkSerializableType, NetworkSerializer, NetworkType } from "../Types/NetworkTypes";
 import { hashstring } from "../Utils/hash";
@@ -64,23 +62,9 @@ function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): N
 		WriteData(data, writer) {
 			for (let i = 0; i < ordinal.size(); i++) {
 				const [key, encoder] = ordinal[i];
-				try {
-					let value = data[i + 1];
-					encoder.BufferEncoder.WriteData(value, writer); // lol this is where it decides to ignore the `+ 1`
-				} catch (err) {
-					error(
-						"Failed to encode " +
-							key +
-							" at " +
-							(i + 1) +
-							", got value " +
-							tostring(data[i]) +
-							" struct is " +
-							inspect(data) +
-							": " +
-							err,
-					);
-				}
+
+				const value = data[i + 1];
+				encoder.BufferEncoder.WriteData(value, writer); // lol this is where it decides to ignore the `+ 1`
 			}
 		},
 		ReadData(reader) {

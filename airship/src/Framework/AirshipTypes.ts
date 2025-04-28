@@ -1,5 +1,5 @@
 import { NetworkUtil } from "@Easy/Core/Shared/Util/NetworkUtil";
-import { NetworkBuffers, uint32 } from "../Core/Buffers";
+import { int32, NetworkBuffers, uint32 } from "../Core/Buffers";
 import { NexusCoreTypes } from "../Core/CoreTypes";
 import { NetworkSerializableType, NetworkType } from "../Core/Types/NetworkTypes";
 import { default as AirshipCharacter } from "@Easy/Core/Shared/Character/Character";
@@ -68,7 +68,7 @@ const Player: NetworkSerializableType<AirshipPlayer, string> = {
 	},
 };
 
-const AirshipInventory: NetworkSerializableType<Inventory, number> = {
+const AirshipInventory: NetworkSerializableType<Inventory, int32> = {
 	Name: "AirshipInventory",
 	BufferEncoder: NetworkBuffers.Int32,
 	Validator: {
