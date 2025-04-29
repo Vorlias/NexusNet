@@ -5,6 +5,7 @@
   "main": "out/index.js",
   "scripts": {
     "build": "tsc",
+    "watch": "tsc --watch",
     "prepare": "npm run build"
   },
   "repository": {

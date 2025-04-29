@@ -21,7 +21,22 @@ export namespace NexusTesting {
 				this.event.Predict(player, ...args);
 			});
 
-			const result = this.event.Wait();
+			let result: T | undefined;
+			let time = 0;
+
+			task.spawn(() => {
+				result = this.event.Wait();
+			});
+
+			while (result === undefined && time <= 2) {
+				time += Time.deltaTime;
+				task.wait();
+			}
+
+			if (!result) {
+				throw `Failed to recieve response from event, likely errored.`;
+			}
+
 			return result;
 		}
 

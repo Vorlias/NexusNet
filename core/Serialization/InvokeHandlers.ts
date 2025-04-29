@@ -3,6 +3,9 @@ import { TransformArgsToBuffer } from "./BufferEncoding";
 import { StaticNetworkType } from "../Types/NetworkTypes";
 import { NetSerializeArguments } from "./Serializer";
 import { NetworkPlayer } from "../Types/Dist";
+import { NexusIsOptionalType, NexusOptional } from "../CoreTypes";
+import { NexusTypes } from "@Vorlias/NexusNet/Framework";
+import { ValidateResult, ValidateArguments } from "./Arguments";
 
 export function ParseClientInvokeArgs<TArgs extends unknown[]>(
 	name: string,
@@ -49,20 +52,28 @@ export function RunServerInvokeMiddleware<TArgs extends unknown[]>(
 export function ParseServerInvokeArgs<TArgs extends unknown[]>(
 	name: string,
 	useBuffers: boolean,
-	transformers: StaticNetworkType<any>[],
+	networkTypes: StaticNetworkType<any>[],
 	invokeMiddleware: ServerInvokeMiddleware[],
 	args: TArgs,
-	enforceArgCount: boolean,
+	enforceArguments: boolean,
 ) {
-	if (enforceArgCount && transformers.size() !== args.size()) {
-		throw `[NexusNet] Call to ${name} expected ${transformers.size()} arguments, got ${args.size()}`;
+	if (enforceArguments) {
+		const [result, data] = ValidateArguments(args, networkTypes, false);
+		if (result !== ValidateResult.Ok) {
+			switch (result) {
+				case ValidateResult.ArgCountMismatch:
+					throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
+				case ValidateResult.ValidationError:
+					throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
+			}
+		}
 	}
 
-	if (transformers.size() > 0) {
-		const serializedArgs = NetSerializeArguments(transformers, args);
+	if (networkTypes.size() > 0) {
+		const serializedArgs = NetSerializeArguments(networkTypes, args);
 
 		if (useBuffers) {
-			const buf = TransformArgsToBuffer(name, transformers, serializedArgs);
+			const buf = TransformArgsToBuffer(name, networkTypes, serializedArgs);
 			return [buf] as const;
 		}
 

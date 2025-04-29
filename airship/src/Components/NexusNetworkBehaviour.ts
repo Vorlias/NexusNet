@@ -1,8 +1,8 @@
 import { AnyClientNetworkObject, AnyNetworkDeclaration, AnyServerNetworkObject } from "../Core/Types/Declarations";
-import Nexus from "../Framework";
 import { ClientEventDeclaration, ServerEventDeclaration } from "../Core/Types/NetworkObjectModel";
 import { Game } from "@Easy/Core/Shared/Game";
 import { Bin } from "@Easy/Core/Shared/Util/Bin";
+import Nexus from "../Framework";
 
 export const NexusServerRpc = new Map<AirshipBehaviour, Map<string, AnyServerNetworkObject>>();
 export const NexusClientRpc = new Map<AirshipBehaviour, Map<string, AnyClientNetworkObject>>();

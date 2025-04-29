@@ -1,6 +1,7 @@
 import { ClientCallbackMiddleware, ServerCallbackMiddleware } from "../Middleware/Types";
 import { NetworkPlayer } from "../Types/Dist";
 import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
+import { ValidateArguments, ValidateResult } from "./Arguments";
 import { TransformArgsToBuffer, TransformBufferToArgs } from "./BufferEncoding";
 import { NetDeserializeArguments, NetSerializeArguments } from "./Serializer";
 
@@ -45,9 +46,16 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 			const data = TransformBufferToArgs(name, networkTypes, buffer);
 			const transformedArgs = NetDeserializeArguments(networkTypes, data);
 
-			if (enforceArgs && data.size() !== networkTypes.size()) {
-				warn("[NexusNet] Argument count mismatch, expected " + networkTypes.size() + " got " + data.size());
-				return;
+			if (enforceArgs) {
+				const [result, data] = ValidateArguments(transformedArgs, networkTypes, false);
+				if (result !== ValidateResult.Ok) {
+					switch (result) {
+						case ValidateResult.ArgCountMismatch:
+							throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
+						case ValidateResult.ValidationError:
+							throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
+					}
+				}
 			}
 
 			// Receiving from client needs validation
@@ -66,9 +74,17 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 	} else if (networkTypes.size() > 0) {
 		return (player: NetworkPlayer, ...args: unknown[]) => {
 			const transformedArgs = NetDeserializeArguments(networkTypes, args);
-			if (enforceArgs && args.size() !== networkTypes.size()) {
-				warn("[NexusNet] Argument count mismatch, expected " + networkTypes.size() + " got " + args.size());
-				return;
+
+			if (enforceArgs) {
+				const [result, data] = ValidateArguments(transformedArgs, networkTypes, false);
+				if (result !== ValidateResult.Ok) {
+					switch (result) {
+						case ValidateResult.ArgCountMismatch:
+							throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
+						case ValidateResult.ValidationError:
+							throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
+					}
+				}
 			}
 
 			// Receiving from client needs validation

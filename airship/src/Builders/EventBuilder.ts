@@ -20,8 +20,9 @@ import {
 	ServerCallbackMiddleware,
 	ServerInvokeMiddleware,
 } from "../Core/Middleware/Types";
-import { NexusTypes } from "../Framework";
+// import { NexusTypes } from "../Framework";
 import { NexusNetworkBehaviour } from "../Components/NexusNetworkBehaviour";
+import { NexusTypes } from "../Framework/AirshipTypes";
 
 export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implements NetworkEventBuilder<TArgs> {
 	unreliable = false;

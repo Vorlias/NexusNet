@@ -55,7 +55,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 	 * @param scoped
 	 * @returns
 	 */
-	AddScope<KScope extends string, UDeclarations extends RemoteDeclarations>(
+	AddScope<const KScope extends string, UDeclarations extends RemoteDeclarations>(
 		scope: KScope,
 		scoped: ScopeObjectModelDeclaration<UDeclarations>,
 	) {
@@ -84,7 +84,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		}
 	}
 
-	AddServer<TName extends string, TNomRemote extends AnyNetworkDeclaration>(
+	AddServer<const TName extends string, TNomRemote extends AnyNetworkDeclaration>(
 		id: TName,
 		declaration: ServerBuilder<TNomRemote>,
 	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
@@ -97,7 +97,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		return this as never;
 	}
 
-	AddClient<TName extends string, TNomRemote extends AnyNetworkDeclaration>(
+	AddClient<const TName extends string, TNomRemote extends AnyNetworkDeclaration>(
 		id: TName,
 		declaration: ClientBuilder<TNomRemote>,
 	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {

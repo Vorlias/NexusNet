@@ -19,7 +19,7 @@ export const NexusString: NetworkType<string> = {
 		Validate(value): value is string {
 			return typeIs(value, "string");
 		},
-		ValidateError: (value) => "Expected string, got " + typeOf(value),
+		ValidateError: (_, value) => "Expected string, got " + typeOf(value),
 	},
 	BufferEncoder: NetworkBuffers.String,
 };
@@ -221,7 +221,7 @@ export function NexusArray<T extends StaticNetworkType<defined, defined>>(
 
 type MapCheckArrayIn<T> = NexusSerialization.InputInterface<T>;
 type MapCheckArrayOut<T> = NexusSerialization.OutputInterface<T>;
-export function NexusTuple<T extends ReadonlyArray<NetworkSerializableType<any, any> | NetworkType<any>>>(
+export function NexusTuple<const T extends ReadonlyArray<NetworkSerializableType<any, any> | NetworkType<any>>>(
 	...items: T
 ): NetworkSerializableType<MapCheckArrayIn<T>, MapCheckArrayOut<T>> {
 	const tupleSize = items.size();
@@ -271,6 +271,15 @@ export function NexusTuple<T extends ReadonlyArray<NetworkSerializableType<any, 
 	};
 }
 
+export function NexusIsOptionalType<TIn, TOut>(
+	value: StaticNetworkType<TIn | undefined, TOut | undefined>,
+): value is NetworkOptionalType<TIn, TOut> {
+	return "Optional" in value;
+}
+
+export interface NetworkOptionalType<TIn, TOut> extends NetworkSerializableType<TIn | undefined, TOut | undefined> {
+	Optional: true;
+}
 /**
  * Creates an optional network type with the given inner type as the optional value
  * @param typeLike The optional value type
@@ -278,8 +287,9 @@ export function NexusTuple<T extends ReadonlyArray<NetworkSerializableType<any, 
  */
 export function NexusOptional<T extends NetworkSerializableType<any, any> | NetworkType<any, any>>(
 	typeLike: T,
-): NetworkSerializableType<In<T> | undefined, Out<T> | undefined> {
+): NetworkOptionalType<In<T>, Out<T>> {
 	return {
+		Optional: true,
 		Name: "" + typeLike.Name + "?",
 		Validator: {
 			Validate(value): value is In<T> | undefined {
@@ -302,9 +312,10 @@ export function NexusOptional<T extends NetworkSerializableType<any, any> | Netw
 	};
 }
 
+export interface NetworkSetType<TIn, TOut> extends NetworkSerializableType<ReadonlySet<TIn>, readonly TOut[]> {}
 export function NexusSet<T extends NetworkSerializableType<any, any> | NetworkType<any>>(
 	valueType: T,
-): NetworkSerializableType<ReadonlySet<In<T>>, readonly Out<T>[]> {
+): NetworkSetType<In<T>, Out<T>> {
 	return {
 		Name: `Set<${valueType.Name}>`,
 		Validator: {
@@ -345,10 +356,12 @@ export function NexusSet<T extends NetworkSerializableType<any, any> | NetworkTy
 	};
 }
 
+export interface NetworkMapType<K, V>
+	extends NetworkSerializableType<ReadonlyMap<In<K>, In<V>>, readonly [Out<K>, Out<V>][]> {}
 export function NexusMap<K extends StaticNetworkType, V extends StaticNetworkType>(
 	keyType: K,
 	valueType: V,
-): NetworkSerializableType<ReadonlyMap<In<K>, In<V>>, readonly [Out<K>, Out<V>][]> {
+): NetworkMapType<K, V> {
 	return {
 		Name: `Map<${keyType.Name}, ${valueType.Name}>`,
 		Validator: {
@@ -495,7 +508,7 @@ export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = 
 			Validate(value): value is T {
 				return typeIs(value, "number") && value % 1 === 0 && validator(value);
 			},
-			ValidateError(networkType, value) {
+			ValidateError(this: void, networkType, value) {
 				if (typeIs(value, "number")) {
 					if (value % 1 !== 0) {
 						return `Expected integer value`;
@@ -509,16 +522,6 @@ export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = 
 		},
 	};
 }
-
-enum Test {
-	A,
-}
-
-enum Test2 {
-	A = "hi",
-}
-
-const intEnum = NexusIntEnum(Test, false);
 
 /**
  * Creates a Network Interface
@@ -691,10 +694,7 @@ interface NexusCoreTypeOps {
 	/**
 	 * An optional type (`T | undefined`)
 	 */
-	Optional<T extends StaticNetworkType>(
-		this: void,
-		valueType: T,
-	): NetworkSerializableType<In<T> | undefined, Out<T> | undefined>;
+	Optional<T extends StaticNetworkType>(this: void, valueType: T): NetworkOptionalType<In<T>, Out<T>>;
 	// /**
 	//  * An interface that's serialized using a hash table
 	//  */
@@ -729,17 +729,20 @@ interface NexusCoreTypeOps {
 	 *
 	 * - Serializes to the string hash of the item
 	 */
-	StringEnum<const T extends object>(enumObject: StringEnumLike<T>): NetworkSerializableType<T[keyof T], int32>;
+	StringEnum<const T extends object>(
+		this: void,
+		enumObject: StringEnumLike<T>,
+	): NetworkSerializableType<T[keyof T], int32>;
 
 	/**
 	 * An enum with integer values
 	 */
-	IntEnum<const T>(value: IntEnumLike<T>): NetworkType<T, int32>;
+	IntEnum<const T>(this: void, value: IntEnumLike<T>): NetworkType<T, int32>;
 	/**
 	 * An enum with integer values
 	 * @param isFlagEnum Whether or not this is a flag integer enum
 	 */
-	IntEnum<const T>(value: IntEnumLike<T>, isFlagEnum: boolean): NetworkType<T, int32>;
+	IntEnum<const T>(this: void, value: IntEnumLike<T>, isFlagEnum: boolean): NetworkType<T, int32>;
 
 	/**
 	 * An object that's serialized using a hash table

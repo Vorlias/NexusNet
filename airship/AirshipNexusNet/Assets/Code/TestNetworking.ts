@@ -9,12 +9,26 @@ import { BufferReader } from "@Vorlias/NexusNet/Core/Buffers/BufferReader";
 import { expressionToAst } from "@Vorlias/NexusNet/Inference";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
+import { Airship } from "@Easy/Core/Shared/Airship";
 
 export default class TestNetworking extends AirshipBehaviour {
-	protected StartServer() {}
-	protected StartClient() {}
+	private data = Nexus.BuildObjectModel().AddServer("Test", Nexus.Event(NexusTypes.String)).Build();
+
+	protected StartServer() {
+		Airship.Players.ObservePlayers((player) => {
+			this.data.Get("Test").Server.SendToPlayer(player, "Hello, World!");
+		});
+	}
+	protected StartClient() {
+		this.data.Get("Test").Client.Connect((message) => {
+			print("got message", message);
+		});
+	}
 
 	override Start(): void {
+		if (Game.IsServer()) this.StartServer();
+		if (Game.IsClient()) this.StartClient();
+
 		const [, failed] = NexusTesting.RunTests([
 			NexusTesting.Test("Basic Transport", (test) => {
 				const EXPECTED_VALUE = "Hello, World!";
@@ -287,11 +301,20 @@ export default class TestNetworking extends AirshipBehaviour {
 						optionalArrayOfOptionalBooleans.children.children.children.value === "Inventory",
 				);
 			}),
+
+			NexusTesting.Test("Optional params", (test) => {
+				const testOptional = test.ServerEventWithArgs(
+					false,
+					NexusTypes.String,
+					NexusTypes.Optional(NexusTypes.String),
+				);
+
+				const [got] = testOptional.SendAndWaitForRecieved(undefined!, undefined!, undefined);
+				print("value received should be ", got);
+			}),
 		]);
 
 		if (failed.size() > 0) return;
-		if (Game.IsServer()) this.StartServer();
-		if (Game.IsClient()) this.StartClient();
 	}
 
 	override OnDestroy(): void {}

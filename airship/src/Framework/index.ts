@@ -13,12 +13,13 @@ import type {
 	NetworkModelConfiguration,
 	NetworkObjectModelBuilder,
 	ServerBuilder,
-	ServerEventDeclaration,
 } from "../Core/Types/NetworkObjectModel";
 import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
 import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
 import { NexusTypes } from "./AirshipTypes";
+import { NexusInlineClient, NexusInlineServer } from "./Inline";
+import { NexusSyncState } from "../NetworkData/SyncState";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -125,20 +126,7 @@ namespace Nexus {
 		network: ServerBuilder<T>,
 		configuration?: Partial<NetworkModelConfiguration>,
 	): InlineContext<T> {
-		const declaration = network.OnServer({
-			Debugging: false,
-			UseBuffers: false,
-			Logging: false,
-			...configuration,
-		});
-
-		return {
-			server: new ServerEvent(
-				name,
-				declaration as ServerEventDeclaration<any>,
-			) as unknown as InferServerRemote<T>,
-			client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
-		};
+		return NexusInlineServer(name, network, configuration);
 	}
 
 	/**
@@ -149,28 +137,11 @@ namespace Nexus {
 		network: ClientBuilder<T>,
 		configuration?: Partial<NetworkModelConfiguration>,
 	): InlineContext<T> {
-		//const [n, l, s, f, a] = debug.info(2, "nlsfa");
-
-		// if (!name) {
-		// 	assert(n === "constructor", "Inline declarations can only be used inside components");
-		// 	name = `${s}:${l}#${n}`;
-		// }
-
-		const declaration = network.OnClient({
-			Debugging: false,
-			UseBuffers: false,
-			Logging: false,
-			...configuration,
-		});
-
-		return {
-			server: new ServerEvent(
-				name,
-				declaration as ServerEventDeclaration<any>,
-			) as unknown as InferServerRemote<T>,
-			client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
-		};
+		return NexusInlineClient(name, network, configuration);
 	}
+
+	// export const State = NexusSyncState;
+	// export type State<T extends object> = NexusSyncState<T>;
 }
 
 export default Nexus;
