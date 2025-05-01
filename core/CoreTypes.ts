@@ -737,12 +737,16 @@ interface NexusCoreTypeOps {
 	/**
 	 * An enum with integer values
 	 */
-	IntEnum<const T>(this: void, value: IntEnumLike<T>): NetworkType<T, int32>;
+	IntEnum<const T>(this: void, value: IntEnumLike<T>): NetworkType<IntEnumLike<T>[keyof T], int32>;
 	/**
 	 * An enum with integer values
 	 * @param isFlagEnum Whether or not this is a flag integer enum
 	 */
-	IntEnum<const T>(this: void, value: IntEnumLike<T>, isFlagEnum: boolean): NetworkType<T, int32>;
+	IntEnum<const T>(
+		this: void,
+		value: IntEnumLike<T>,
+		isFlagEnum: boolean,
+	): NetworkType<IntEnumLike<T>[keyof T], int32>;
 
 	/**
 	 * An object that's serialized using a hash table
