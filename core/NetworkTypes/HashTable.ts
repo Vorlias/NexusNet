@@ -99,6 +99,15 @@ export function NexusHashTable__EXPERIMENTAL<T extends object>(
 
 				return true;
 			},
+			ValidateError(this: void, networkType, obj) {
+				if (!typeIs(obj, "table")) return "Expected table got " + typeOf(obj);
+				for (const [key, value] of pairs(obj)) {
+					const validator = tbl[key as keyof typeof tbl].Validator;
+					if (!validator.Validate(value)) return "Invalid key '" + key + "'";
+				}
+
+				return "";
+			},
 		},
 		Serializer: serializer,
 		BufferEncoder: buffer,

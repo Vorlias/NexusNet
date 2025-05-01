@@ -58,6 +58,7 @@ export function ParseServerInvokeArgs<TArgs extends unknown[]>(
 	enforceArguments: boolean,
 ) {
 	if (enforceArguments) {
+		print("validate arguments for", name);
 		const [result, data] = ValidateArguments(args, networkTypes, false);
 		if (result !== ValidateResult.Ok) {
 			switch (result) {

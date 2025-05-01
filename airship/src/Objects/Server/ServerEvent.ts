@@ -17,6 +17,7 @@ import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "@Vorlias/Nexus
 import { ParseServerInvokeArgs, RunServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import { Airship } from "@Easy/Core/Shared/Airship";
+import { ValidateArguments, ValidateResult } from "@Vorlias/NexusNet/Core/Serialization/Arguments";
 
 export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 	implements ServerSenderEvent<TArgs>, ServerListenerEvent<TArgs>
@@ -74,9 +75,21 @@ export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 			this.useBuffers,
 			this.argumentHandlers ?? [],
 			args,
+			true,
 		) as TArgs;
 
 		callback(player, ...transformedArgs);
+
+		const [validateResult, data] = ValidateArguments(transformedArgs, this.argumentHandlers ?? [], false);
+		if (validateResult !== ValidateResult.Ok) {
+			switch (validateResult) {
+				case ValidateResult.ArgCountMismatch:
+					throw `[NexusNet] Call to ${this.name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
+				case ValidateResult.ValidationError:
+					throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
+			}
+		}
+
 		return transformedArgs;
 	}
 

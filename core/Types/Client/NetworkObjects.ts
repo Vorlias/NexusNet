@@ -20,15 +20,23 @@ export interface ClientSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 }
 
 export type ClientEventLike = ClientListenerEvent<never> | ClientSenderEvent<never>;
+export type ClientFunctionLike = ClientInvokeFunction<never, never>;
 
 /**
  * Interface for client sender events
  */
 export interface ClientInvokeFunction<CallArguments extends ReadonlyArray<unknown>, TRet extends unknown> {
 	/**
-	 * Sends an event to the server with the specified arguments
+	 * Sends a function call to the server with the specified arguments and returns it asynchronously
 	 * @param args The arguments
+	 * @yields
 	 */
 	SendToServer(...args: CallArguments): TRet;
+
+	/**
+	 * Sends a function call to the server with the specified arguments and returns it asynchronously
+	 * @param args The arguments
+	 * @async
+	 */
 	SendToServerAsync(...args: CallArguments): Promise<TRet>;
 }

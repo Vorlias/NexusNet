@@ -17,9 +17,7 @@ import type {
 import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
 import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
-import { NexusTypes } from "./AirshipTypes";
 import { NexusInlineClient, NexusInlineServer } from "./Inline";
-import { NexusSyncState } from "../NetworkData/SyncState";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {

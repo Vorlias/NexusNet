@@ -1,12 +1,13 @@
 import { ServerEventDeclaration } from "../Core/Types/NetworkObjectModel";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
-import { ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { OnUpdate } from "@Easy/Core/Shared/Util/Timer";
 import Nexus from ".";
 import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "../Core/Middleware/Types";
+import { ServerFunction } from "../Objects/Server/ServerFunction";
 
 export namespace NexusTesting {
 	let index = 0;
@@ -92,6 +93,23 @@ export namespace NexusTesting {
 			return test;
 		}
 
+		public Function<T extends Array<unknown>, R>(
+			buffered: boolean,
+			args: ToNetworkArguments<T>,
+			returns: StaticNetworkType<R>,
+		) {
+			const declaration = Nexus.Function(args, returns);
+
+			return new ServerFunction<T, R>(
+				"__TEST",
+				declaration.OnServer({
+					Debugging: true,
+					UseBuffers: buffered,
+					Logging: false,
+				}),
+			);
+		}
+
 		public IsOk() {
 			return true;
 		}
@@ -135,11 +153,17 @@ export namespace NexusTesting {
 			const [success, value] = pcall(test.execute);
 
 			if (success) {
-				print("✅<color=#77f777>", test.name, string.format("%.2f ms", (timer - startTime) * 1000), "</color>");
+				print(
+					"[NexusTest]",
+					"✅<color=#77f777>",
+					test.name,
+					string.format("%.2f ms", (timer - startTime) * 1000),
+					"</color>",
+				);
 				passedTests.push(test.name);
 				succeeded += 1;
 			} else {
-				warn("❌<color=#ff534a>", test.name, tostring(value), "</color>");
+				warn("[NexusTest]", "❌<color=#ff534a>", test.name, tostring(value), "</color>");
 				failedTests.push([test.name, tostring(value)]);
 				failed += 1;
 			}
@@ -147,9 +171,10 @@ export namespace NexusTesting {
 
 		stopTimer();
 		print(
+			"[NexusTest]",
 			`<color=#A877F7>${tests.size()} tests</color>, <color=#77f777>${succeeded} passed</color>, <color=#ff534a>${failed} failed</color>`,
 		);
-		print("<color=#A877F7>=======================================</color>");
+		print("[NexusTest]", "<color=#A877F7>=======================================</color>");
 
 		return [passedTests, failedTests];
 	}

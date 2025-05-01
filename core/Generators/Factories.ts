@@ -20,12 +20,12 @@ export type ClientEventFactory = new <T extends unknown[]>(
 export type ServerFunctionFactory = new <T extends unknown[], R>(
 	name: string,
 	declaration: ServerFunctionDeclaration<T, R>,
-) => ServerListenerFunction<never, never>;
+) => ServerListenerFunction<T, R>;
 
 export type ClientFunctionFactory = new <T extends unknown[], R>(
 	name: string,
 	declaration: ClientFunctionDeclaration<T, R>,
-) => ClientInvokeFunction<never, never>;
+) => ClientInvokeFunction<T, R>;
 
 export interface NexusEventFactories {
 	Server: ServerEventFactory;

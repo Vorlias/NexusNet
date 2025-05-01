@@ -12,17 +12,31 @@ import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { Airship } from "@Easy/Core/Shared/Airship";
 
 export default class TestNetworking extends AirshipBehaviour {
-	private data = Nexus.BuildObjectModel().AddServer("Test", Nexus.Event(NexusTypes.String)).Build();
+	private data = Nexus.BuildObjectModel()
+		.AddServer("Test", Nexus.Event(NexusTypes.String))
+		.AddServer("Test2", Nexus.Function([], NexusTypes.String))
+		.Build();
 
 	protected StartServer() {
 		Airship.Players.ObservePlayers((player) => {
 			this.data.Get("Test").Server.SendToPlayer(player, "Hello, World!");
+		});
+
+		this.data.Get("Test2").Server.SetCallback((player) => {
+			return "Hello, " + player.username + "!";
 		});
 	}
 	protected StartClient() {
 		this.data.Get("Test").Client.Connect((message) => {
 			print("got message", message);
 		});
+
+		this.data
+			.Get("Test2")
+			.Client.SendToServerAsync()
+			.then((message) => {
+				print("Invoked server and got", message);
+			});
 	}
 
 	override Start(): void {
@@ -181,8 +195,8 @@ export default class TestNetworking extends AirshipBehaviour {
 						};
 					});
 
-					const [result] = testNoModify.SendAndWaitForRecieved(undefined!, "test");
-					assert(result === "test", "Unexpected modification, expected 'test' got " + result);
+					const [success, result] = pcall(() => testNoModify.SendAndWaitForRecieved(undefined!, "test"));
+					assert(!success, "Fire modification passsed somehow???");
 				}
 			}),
 
@@ -303,14 +317,23 @@ export default class TestNetworking extends AirshipBehaviour {
 			}),
 
 			NexusTesting.Test("Optional params", (test) => {
-				const testOptional = test.ServerEventWithArgs(
-					false,
-					NexusTypes.String,
-					NexusTypes.Optional(NexusTypes.String),
-				);
+				const testOptional = test.ServerEventWithArgs(false, NexusTypes.Optional(NexusTypes.String));
 
-				const [got] = testOptional.SendAndWaitForRecieved(undefined!, undefined!, undefined);
+				const [got] = testOptional.SendAndWaitForRecieved(undefined!, undefined);
 				print("value received should be ", got);
+			}),
+
+			NexusTesting.Test("Callback", (test) => {
+				const getMessage = test.Function(false, [], NexusTypes.String);
+
+				const expected = "Hello, World!";
+				const getMessagePredict = getMessage.PredictCallback(() => {
+					return expected;
+				});
+
+				const result = getMessagePredict();
+				assert(result === expected, `Expected '${expected}' got '${result}'`);
+				print("message result is", result);
 			}),
 		]);
 

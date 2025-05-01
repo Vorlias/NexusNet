@@ -10,14 +10,42 @@ export function ParseServerCallbackArgs<TArgs extends unknown[]>(
 	useBuffers: boolean,
 	transformers: StaticNetworkType<any>[],
 	args: TArgs,
+	argCheck: boolean,
 ) {
 	if (useBuffers && transformers.size() > 0) {
 		const [buffer] = args;
 		const data = TransformBufferToArgs(name, transformers, buffer as buffer);
 		const transformedArgs = NetDeserializeArguments(transformers, data);
+
+		if (argCheck) {
+			const [result, data] = ValidateArguments(transformedArgs, transformers, false);
+			if (result !== ValidateResult.Ok) {
+				switch (result) {
+					case ValidateResult.ArgCountMismatch:
+						throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
+					case ValidateResult.ValidationError:
+						throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
+				}
+			}
+		}
+
 		return table.freeze(transformedArgs);
 	} else {
-		return table.freeze(NetDeserializeArguments(transformers, args)); //  wtf ???
+		const transformedArgs = NetDeserializeArguments(transformers, args);
+
+		if (argCheck) {
+			const [result, data] = ValidateArguments(transformedArgs, transformers, false);
+			if (result !== ValidateResult.Ok) {
+				switch (result) {
+					case ValidateResult.ArgCountMismatch:
+						throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
+					case ValidateResult.ValidationError:
+						throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
+				}
+			}
+		}
+
+		return table.freeze(transformedArgs); //  wtf ???
 	}
 }
 

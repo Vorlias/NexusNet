@@ -52,6 +52,7 @@ export interface ServerSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 }
 
 export type ServerEventLike = ServerListenerEvent<never> | ServerSenderEvent<never>;
+export type ServerFunctionLike = ServerListenerFunction<never, never>;
 
 /**
  * Interface for client listening events

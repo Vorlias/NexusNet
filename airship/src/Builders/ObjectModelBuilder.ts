@@ -21,6 +21,8 @@ import {
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { AirshipNetworkModelConfiguration } from "../NOM/NetworkObjectModel";
+import { ServerFunction } from "../Objects/Server/ServerFunction";
+import { ClientFunction } from "../Objects/Client/ClientFunction";
 
 type Scoped<K extends string, T extends RemoteDeclarations> = { [P in keyof T as `${K}/${P & string}`]: T[P] };
 
@@ -125,7 +127,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 			Game.IsClient(),
 			{
 				event: ClientEvent,
-				function: undefined!,
+				function: ClientFunction,
 			},
 			this.declarations,
 			this.configuration,
@@ -134,7 +136,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 			Game.IsServer(),
 			{
 				event: ServerEvent,
-				function: undefined!,
+				function: ServerFunction,
 			},
 			this.declarations,
 			this.configuration,

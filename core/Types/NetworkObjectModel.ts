@@ -74,8 +74,12 @@ export interface FunctionDeclaration<
 > {
 	readonly RunContext: TRunContext;
 	readonly Type: "Function";
-	readonly UseBufferSerialization: boolean;
-	readonly Debugging: boolean;
+	// readonly UseBufferSerialization: boolean;
+	// readonly Debugging: boolean;
+	readonly Flags: NetworkingFlags;
+
+	readonly Arguments: StaticNetworkType[];
+	readonly Returns: StaticNetworkType;
 }
 
 export const enum NetworkingFlags {
