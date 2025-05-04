@@ -73,7 +73,7 @@ function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): N
 
 			for (let i = 0; i < ordinal.size(); i++) {
 				const [, encoder] = ordinal[i];
-				data[i] = encoder.BufferEncoder.ReadData(reader);
+				data[i + 1] = encoder.BufferEncoder.ReadData(reader);
 			}
 
 			return data;
