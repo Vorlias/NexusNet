@@ -26,10 +26,10 @@ export class ClientFunction<T extends Array<unknown>, R> implements ClientInvoke
 
 		if (this.useBuffer) {
 			const decoded = TransformBufferToArgs(this.name, this.arguments, serializedResult as buffer);
-			const [deserializedResult] = NetDeserializeArguments(this.arguments, decoded);
+			const [deserializedResult] = NetDeserializeArguments([this.returnType], decoded);
 			return deserializedResult as R;
 		} else {
-			const [deserializedResult] = NetDeserializeArguments(this.arguments, [serializedResult]);
+			const [deserializedResult] = NetDeserializeArguments([this.returnType], [serializedResult]);
 			return deserializedResult as R;
 		}
 	}

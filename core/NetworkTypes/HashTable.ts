@@ -39,14 +39,15 @@ function CreateHashTableSerializer<T extends object>(
 
 			return data as HashTable<T>;
 		},
-		Deserialize(data): NexusSerialization.InputInterface<TableNetworkType<T>> {
+		Deserialize(data: Array<T[keyof T]>): NexusSerialization.InputInterface<TableNetworkType<T>> {
 			const object = {} as NexusSerialization.InputInterface<TableNetworkType<T>>;
 
 			// Assign properties back from the serializer
 			for (let i = 0; i < ordinal.size(); i++) {
 				const [key, encoder] = ordinal[i];
+				const serializedValue = data[i];
 
-				const value = NexusSerialization.Deserialize(encoder, data[i]);
+				const value = NexusSerialization.Deserialize(encoder, serializedValue);
 				object[key as keyof T] = value;
 			}
 

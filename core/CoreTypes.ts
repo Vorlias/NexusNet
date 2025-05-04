@@ -210,6 +210,8 @@ export function NexusArray<T extends StaticNetworkType<defined, defined>>(
 		BufferEncoder: NetworkBuffers.Array(valueType.BufferEncoder) as NetworkBuffer<Out<T>[]>, // 'cause of roblox-ts
 		Serializer: {
 			Serialize(value) {
+				assert(value, "No value");
+
 				return value.map((item: In<T>) => NexusSerialization.Serialize(valueType, item));
 			},
 			Deserialize(value) {
@@ -459,24 +461,31 @@ export function NexusStringEnum<T extends object>(
 	const hashToKey = new Map<number, string>();
 	const keyToHash = new Map<string, number>();
 
-	for (const [key, _] of pairs<{ [P in string]: string }>(enumObject)) {
-		const keyHash = hashstring(key); // will give us the key
-		hashToKey.set(keyHash, key);
-		keyToHash.set(key, keyHash);
+	for (const [, value] of pairs<{ [P in string]: string }>(enumObject)) {
+		const keyHash = hashstring(value); // will give us the key
+		hashToKey.set(keyHash, value);
+		keyToHash.set(value, keyHash);
 	}
 
 	return {
 		Name: "enum<string>",
-		Validator: undefined!,
+		Validator: {
+			Validate(value): value is T[keyof T] {
+				return typeIs(value, "string") && keyToHash.has(value);
+			},
+			ValidateError: (networkType, value) => {
+				return "Expected valid enum value";
+			},
+		},
 		Serializer: {
 			Serialize(value: T[keyof T]): int32 {
 				const hash = keyToHash.get(value as string);
-				assert(hash, "Hash fail");
+				assert(hash, `Failed to get hash for key '${value}'`);
 				return hash;
 			},
 			Deserialize(value: int32): T[keyof T] {
 				const key = hashToKey.get(value);
-				assert(key, "key fail");
+				assert(key, `Failed to get key matching hash: ${value}`);
 				return enumObject[key as keyof typeof enumObject];
 			},
 		},
