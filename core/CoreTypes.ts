@@ -459,19 +459,22 @@ export function NexusStringEnum<T extends object>(
 	enumObject: StringEnumLike<T>,
 ): NetworkSerializableType<T[keyof T], int32> {
 	const hashToKey = new Map<number, string>();
+
+	const valueToKey = new Map<string, string>();
 	const keyToHash = new Map<string, number>();
 
-	for (const [, value] of pairs<{ [P in string]: string }>(enumObject)) {
+	for (const [key, value] of pairs<{ [P in string]: string }>(enumObject)) {
 		const keyHash = hashstring(value); // will give us the key
-		hashToKey.set(keyHash, value);
-		keyToHash.set(value, keyHash);
+		hashToKey.set(keyHash, key);
+		keyToHash.set(key, keyHash);
+		valueToKey.set(value, key);
 	}
 
 	return {
 		Name: "enum<string>",
 		Validator: {
 			Validate(value): value is T[keyof T] {
-				return typeIs(value, "string") && keyToHash.has(value);
+				return typeIs(value, "string") && valueToKey.has(value);
 			},
 			ValidateError: (networkType, value) => {
 				return "Expected valid enum value";
@@ -479,13 +482,16 @@ export function NexusStringEnum<T extends object>(
 		},
 		Serializer: {
 			Serialize(value: T[keyof T]): int32 {
-				const hash = keyToHash.get(value as string);
-				assert(hash, `Failed to get hash for key '${value}'`);
+				const key = valueToKey.get(value as string);
+				assert(key !== undefined, `Failed to get key for '${value}'`);
+
+				const hash = keyToHash.get(key);
+				assert(hash !== undefined, `Failed to get hash for key '${value}'`);
 				return hash;
 			},
 			Deserialize(value: int32): T[keyof T] {
 				const key = hashToKey.get(value);
-				assert(key, `Failed to get key matching hash: ${value}`);
+				assert(key !== undefined, `Failed to get key matching hash: ${value}`);
 				return enumObject[key as keyof typeof enumObject];
 			},
 		},
