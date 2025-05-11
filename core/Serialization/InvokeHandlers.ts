@@ -3,8 +3,6 @@ import { TransformArgsToBuffer } from "./BufferEncoding";
 import { StaticNetworkType } from "../Types/NetworkTypes";
 import { NetSerializeArguments } from "./Serializer";
 import { NetworkPlayer } from "../Types/Dist";
-import { NexusIsOptionalType, NexusOptional } from "../CoreTypes";
-import { NexusTypes } from "@Vorlias/NexusNet/Framework";
 import { ValidateResult, ValidateArguments } from "./Arguments";
 
 export function ParseClientInvokeArgs<TArgs extends unknown[]>(
@@ -58,7 +56,6 @@ export function ParseServerInvokeArgs<TArgs extends unknown[]>(
 	enforceArguments: boolean,
 ) {
 	if (enforceArguments) {
-		print("validate arguments for", name);
 		const [result, data] = ValidateArguments(args, networkTypes, false);
 		if (result !== ValidateResult.Ok) {
 			switch (result) {

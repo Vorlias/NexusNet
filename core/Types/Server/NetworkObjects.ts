@@ -43,12 +43,6 @@ export interface ServerSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 	 * @deprecated
 	 */
 	SendToPlayers(targets: Array<NetworkPlayer>, ...args: CallArguments): void;
-
-	// Send(target: NetworkPlayer, ...args: CallArguments): void;
-	// Send(targets: ReadonlyArray<NetworkPlayer>, ...args: CallArguments): void;
-	// Send(targets: ReadonlySet<NetworkPlayer>, ...args: CallArguments): void;
-
-	// Broadcast(...args: CallArguments): void;
 }
 
 export type ServerEventLike = ServerListenerEvent<never> | ServerSenderEvent<never>;

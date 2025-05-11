@@ -53,6 +53,8 @@ export interface NetworkSerializer<TInput, TOutput> {
 	Deserialize(this: void, value: TOutput): TInput;
 }
 
+export type ClientNullable<T> = T & { readonly __nominal_Nullable?: unique symbol };
+
 export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TInput, TOutput> {
 	Serializer: NetworkSerializer<TInput, TOutput>;
 }

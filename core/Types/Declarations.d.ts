@@ -10,7 +10,12 @@ import {
 	ServerEventDeclaration,
 	ServerFunctionDeclaration,
 } from "./NetworkObjectModel";
-import { ServerSenderEvent, ServerListenerEvent, ServerListenerFunction } from "./Server/NetworkObjects";
+import {
+	ServerSenderEvent,
+	ServerListenerEvent,
+	ServerListenerFunction,
+	ServerBroadcaster,
+} from "./Server/NetworkObjects";
 
 export type OrderedRemoteDeclarations = Array<readonly [name: string, definition: AnyNetworkDeclaration]>;
 
@@ -24,7 +29,8 @@ export type AnyNetworkDeclaration =
 export type AnyServerNetworkObject =
 	| ServerSenderEvent<any>
 	| ServerListenerEvent<any>
-	| ServerListenerFunction<any, any>;
+	| ServerListenerFunction<any, any>
+	| ServerBroadcaster<any>;
 
 export type AnyClientNetworkObject = ClientSenderEvent<any> | ClientListenerEvent<any> | ClientInvokeFunction<any, any>;
 

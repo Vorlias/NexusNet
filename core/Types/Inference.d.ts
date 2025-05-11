@@ -14,31 +14,36 @@ import {
 	ServerBroadcaster,
 } from "./Server/NetworkObjects";
 
-export type InferServerRemoteNoBroadcast<T> = T extends ServerEventDeclaration<infer TArgs>
-	? ServerSenderEvent<TArgs>
-	: T extends ClientEventDeclaration<infer TArgs>
-	? ServerListenerEvent<TArgs>
-	: T extends ServerFunctionDeclaration<infer TArgs, infer TRet>
-	? ServerListenerFunction<TArgs, TRet>
-	: never;
+export type InferServerRemoteNoBroadcast<T> =
+	T extends ServerEventDeclaration<infer TArgs>
+		? ServerSenderEvent<TArgs>
+		: T extends ClientEventDeclaration<infer TArgs>
+			? ServerListenerEvent<TArgs>
+			: T extends ServerFunctionDeclaration<infer TArgs, infer TRet>
+				? ServerListenerFunction<TArgs, TRet>
+				: never;
 
-export type InferServerRemote<T> = T extends ServerEventDeclaration<infer TArgs>
-	? ServerSenderEvent<TArgs>
-	: T extends ClientEventDeclaration<infer TArgs>
-	? ServerListenerEvent<TArgs>
-	: T extends ServerFunctionDeclaration<infer TArgs, infer TRet>
-	? ServerListenerFunction<TArgs, TRet>
-	: never;
+export type InferServerRemote<T> =
+	T extends ServerEventDeclaration<infer TArgs>
+		? ServerSenderEvent<TArgs>
+		: T extends ClientEventDeclaration<infer TArgs>
+			? ServerListenerEvent<TArgs>
+			: T extends ServerFunctionDeclaration<infer TArgs, infer TRet>
+				? ServerListenerFunction<TArgs, TRet>
+				: T extends CrossServerEventDeclaration<infer TArgs>
+					? ServerBroadcaster<TArgs>
+					: never;
 
-export type InferClientRemote<T> = T extends ClientEventDeclaration<infer TArgs>
-	? ClientSenderEvent<TArgs>
-	: T extends ServerEventDeclaration<infer TArgs>
-	? ClientListenerEvent<TArgs>
-	: T extends ServerFunctionDeclaration<infer TArgs, infer TRet>
-	? ClientInvokeFunction<TArgs, TRet>
-	: T extends CrossServerEventDeclaration<infer _>
-	? never
-	: never;
+export type InferClientRemote<T> =
+	T extends ClientEventDeclaration<infer TArgs>
+		? ClientSenderEvent<TArgs>
+		: T extends ServerEventDeclaration<infer TArgs>
+			? ClientListenerEvent<TArgs>
+			: T extends ServerFunctionDeclaration<infer TArgs, infer TRet>
+				? ClientInvokeFunction<TArgs, TRet>
+				: T extends CrossServerEventDeclaration<infer _>
+					? never
+					: never;
 
 /**
  * Infers the Network Model declarations from {@link T | `T`}, where `T` is a {@link ContextNetworkModel | `ContextNetworkModel`} or {@link NetworkObjectModelBuilder | `NetworkObjectModelBuilder`}
@@ -49,8 +54,9 @@ export type InferClientRemote<T> = T extends ClientEventDeclaration<infer TArgs>
  * ```
  * where `Network` is your {@link ContextNetworkModel | `ContextNetworkModel`}
  */
-export type InferNOMDeclarations<T extends object> = T extends ContextNetworkModel<infer TContextModel>
-	? TContextModel
-	: T extends NetworkObjectModelBuilder<infer TBuilderModel>
-	? TBuilderModel
-	: never;
+export type InferNOMDeclarations<T extends object> =
+	T extends ContextNetworkModel<infer TContextModel>
+		? TContextModel
+		: T extends NetworkObjectModelBuilder<infer TBuilderModel>
+			? TBuilderModel
+			: never;

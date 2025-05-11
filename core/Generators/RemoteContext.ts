@@ -1,3 +1,4 @@
+import { ServerMessagingEvent } from "../../Objects/Server/ServerMessagingEvent";
 import { ClientEventLike, ClientFunctionLike } from "../Types/Client/NetworkObjects";
 import {
 	AnyNetworkDeclaration,
@@ -10,6 +11,7 @@ import { InferClientRemote, InferServerRemote } from "../Types/Inference";
 import {
 	ClientEventDeclaration,
 	ClientFunctionDeclaration,
+	CrossServerEventDeclaration,
 	NetworkModelConfiguration,
 	RemoteDeclarations,
 	RemoteRunContext,
@@ -43,7 +45,8 @@ export interface RemoteContext<
 }
 
 export class NexusServerContext<TDefinitions extends RemoteDeclarations> implements ServerRemoteContext<TDefinitions> {
-	private eventCache = new Map<string, ServerEventLike>();
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	private eventCache = new Map<string, ServerEventLike | ServerMessagingEvent<any>>();
 	private functionCache = new Map<string, ServerFunctionLike>();
 
 	private Event: ServerEventFactory;
@@ -64,7 +67,6 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 	public Init() {
 		const ServerEvent = this.Event;
 		const ServerFunction = this.Function;
-		// const ServerFunction = this.funcFactory.Server;
 
 		for (const [name, declaration] of pairs(this.declarations) as IterableFunction<
 			LuaTuple<[name: string, value: AnyNetworkDeclaration]>
@@ -75,6 +77,9 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 			} else if (declaration.Type === "Function") {
 				const obj = new ServerFunction(name, declaration as ServerFunctionDeclaration<never, never>);
 				this.functionCache.set(name, obj);
+			} else if (declaration.Type === "Messaging") {
+				const obj = new ServerMessagingEvent(name, declaration as CrossServerEventDeclaration<never>);
+				this.eventCache.set(name, obj);
 			}
 		}
 	}

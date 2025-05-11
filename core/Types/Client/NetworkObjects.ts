@@ -1,4 +1,5 @@
 import { Connection } from "../Dist";
+import { ClientNullable } from "../NetworkTypes";
 
 export interface ClientListenerEvent<CallArguments extends ReadonlyArray<unknown>> {
 	/**
