@@ -1,3 +1,4 @@
+import { NexusConfiguration } from "../Core/Configuration";
 import {
 	ClientFunctionDeclaration,
 	NetworkFunctionBuilder,
@@ -40,27 +41,36 @@ export class FunctionBuilder<TArgs extends ReadonlyArray<unknown>, TRet>
 	}
 
 	OnServer(configuration: NetworkModelConfiguration): ServerFunctionDeclaration<TArgs, TRet> {
+		const flags = NexusConfiguration.EncodeConfigFlags({
+			UseBufferSerialization: configuration.UseBuffers || this.useBuffer,
+			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
+			Debugging: configuration.Debugging,
+			Logging: configuration.Logging,
+		});
+
 		return {
 			Type: "Function",
 			RunContext: RemoteRunContext.Server,
-			UseBufferSerialization: configuration.UseBuffers,
-			Debugging: configuration.Logging,
-			// Arguments: this.arguments,
-			// CallbackMiddleware: [],
-			// InvokeMiddleware: [],
-			// Unreliable: this.unreliable,
+			Flags: flags,
+			Arguments: this.arguments ?? [],
+			Returns: this.returns,
 		};
 	}
 
 	OnClient(configuration: NetworkModelConfiguration): ClientFunctionDeclaration<TArgs, TRet> {
+		const flags = NexusConfiguration.EncodeConfigFlags({
+			UseBufferSerialization: configuration.UseBuffers || this.useBuffer,
+			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
+			Debugging: configuration.Debugging,
+			Logging: configuration.Logging,
+		});
+
 		return {
 			Type: "Function",
 			RunContext: RemoteRunContext.Client,
-			UseBufferSerialization: configuration.UseBuffers,
-			Debugging: configuration.Logging,
-			// CallbackMiddleware: [],
-			// InvokeMiddleware: [],
-			// Unreliable: this.unreliable,
+			Flags: flags,
+			Arguments: this.arguments ?? [],
+			Returns: this.returns,
 		};
 	}
 }

@@ -21,7 +21,7 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 		private readonly name: string,
 		declaration: ClientEventDeclaration<T>,
 	) {
-		const id = string.format("%.X", GetRbxNetEventId(name));
+		const id = game.GetService("RunService").IsStudio() ? name : string.format("%.X", GetRbxNetEventId(name));
 		const object = RemotesFolder.WaitForChild(id);
 		assert(object.IsA("RemoteEvent"));
 		this.instance = object;
@@ -30,6 +30,7 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 		this.useBuffers = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
 		this.argCountCheck = (declaration.Flags & NetworkingFlags.EnforceArgumentCount) !== 0;
 		this.callbackMiddleware = declaration.CallbackMiddleware as ClientCallbackMiddleware[];
+		table.freeze(this);
 	}
 
 	public Wait(): T {
@@ -40,6 +41,7 @@ export class ClientEvent<T extends Array<unknown>> implements ClientSenderEvent<
 			this.useBuffers,
 			this.argumentHandlers ?? [],
 			result,
+			this.argCountCheck,
 		) as T;
 
 		return transformedArgs;

@@ -4,6 +4,10 @@ import { ServerEvent } from "@rbxts/nexus/out/Objects/Server/ServerEvent";
 import { TestNetwork } from "shared/module";
 import { NexusTesting } from "shared/Tests";
 
+TestNetwork.Server.Get("TestFunction").SetCallback((player) => {
+	return "Hello, " + player.Name + "!";
+});
+
 NexusTesting.RunTests([
 	NexusTesting.Test("Basic Transport", (test) => {
 		const EXPECTED_VALUE = "Hello, World!";

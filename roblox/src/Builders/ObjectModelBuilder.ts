@@ -26,6 +26,8 @@ import { Identity, MergeIdentity, Named } from "../Core/Types/Utility";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { RobloxNetworkModelConfiguration } from "../NOM/NetworkObjectModel";
+import { ServerFunction } from "../Objects/Server/ServerFunction";
+import { ClientFunction } from "../Objects/Client/ClientFunction";
 
 export interface RobloxContextNetworkModel<T extends RemoteDeclarations> extends ContextNetworkModel<T> {
 	/**
@@ -98,7 +100,7 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 			runService.IsClient(),
 			{
 				event: ClientEvent,
-				function: undefined!,
+				function: ClientFunction,
 			},
 			this.declarations,
 			this.configuration,
@@ -107,7 +109,7 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 			runService.IsServer(),
 			{
 				event: ServerEvent,
-				function: undefined!,
+				function: ServerFunction,
 			},
 			this.declarations,
 			this.configuration,

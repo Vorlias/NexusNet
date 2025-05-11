@@ -25,12 +25,11 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 		declaration: ServerEventDeclaration<T>,
 	) {
 		const instance = new Instance("RemoteEvent");
-		instance.Name = string.format("%.X", GetRbxNetEventId(name));
+		instance.Name = game.GetService("RunService").IsStudio() ? name : string.format("%.X", GetRbxNetEventId(name));
 		instance.Parent = RemotesFolder;
 
 		const bindable = new Instance("BindableEvent");
 		this.onPredict = bindable;
-
 		this.instance = instance;
 
 		this.argumentHandlers = declaration.Arguments;
@@ -38,6 +37,7 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 		this.callbackMiddleware = declaration.CallbackMiddleware as ServerCallbackMiddleware[];
 		this.debugging = (declaration.Flags & NetworkingFlags.Debugging) !== 0;
 		this.argCountCheck = (declaration.Flags & NetworkingFlags.EnforceArgumentCount) !== 0;
+
 		table.freeze(this);
 	}
 
@@ -65,6 +65,7 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 			this.useBuffers,
 			this.argumentHandlers ?? [],
 			args,
+			this.argCountCheck,
 		) as T;
 
 		return transformedArgs as T;
@@ -80,6 +81,7 @@ export class ServerEvent<T extends Array<unknown>> implements ServerSenderEvent<
 			this.useBuffers,
 			this.argumentHandlers ?? [],
 			args,
+			this.argCountCheck,
 		) as T;
 
 		return [player, ...transformedArgs];

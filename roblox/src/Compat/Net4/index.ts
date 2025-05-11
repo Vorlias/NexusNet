@@ -113,8 +113,6 @@ namespace Net4DefinitionsCompat {
 		if (declarations) {
 			let model = new NetDefinitionBuilder().SetConfiguration({
 				ServerCallbackMiddleware: configuration?.ServerGlobalMiddleware,
-				// ClientGetShouldYield: configuration?.ClientGetShouldYield ?? true,
-				// MicroprofileCallbacks: configuration?.MicroprofileCallbacks,
 				UseBuffers: false,
 				EnforceArgumentCount: false,
 			});
@@ -124,14 +122,22 @@ namespace Net4DefinitionsCompat {
 			>) {
 				if (value.Type === "Event") {
 					const eventBuilder = new EventBuilder();
+					eventBuilder.arguments = value.Arguments;
 
 					if (value.RunContext === RemoteRunContext.Server) {
 						model = model.AddServerOwned(key, eventBuilder) as NetDefinitionBuilder<defined>;
 					} else {
 						model = model.AddClientOwned(key, eventBuilder) as NetDefinitionBuilder<defined>;
 					}
-				} else {
-					// TODO:
+				} else if (value.Type === "Function") {
+					const funcBuilder = new FunctionBuilder(value.Returns);
+					funcBuilder.arguments = value.Arguments;
+
+					if (value.RunContext === RemoteRunContext.Server) {
+						model = model.AddServerOwned(key, funcBuilder) as NetDefinitionBuilder<defined>;
+					} else {
+						model = model.AddClientOwned(key, funcBuilder) as NetDefinitionBuilder<defined>;
+					}
 				}
 			}
 
@@ -275,9 +281,7 @@ namespace NetV4Compat {
 	export function Remote(): NetEventBuilder<[]>;
 	export function Remote<T extends ReadonlyArray<unknown>>(): NetEventBuilder<T>;
 	export function Remote<T extends ReadonlyArray<unknown>>(...typeChecks: ToNetworkArguments<T>): NetEventBuilder<T>;
-	export function Remote<T extends ReadonlyArray<unknown>>(
-		...typeChecks: ToNetworkArguments<T>
-	): NetEventBuilder<T> {
+	export function Remote<T extends ReadonlyArray<unknown>>(...typeChecks: ToNetworkArguments<T>): NetEventBuilder<T> {
 		if (typeChecks.size() === 0) {
 			return new NetEventBuilder();
 		}

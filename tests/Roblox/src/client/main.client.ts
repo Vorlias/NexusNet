@@ -13,3 +13,6 @@ NexusTesting.RunTests([
 		assert(message === `Server got 'Hello, World!'`);
 	}),
 ]);
+
+const result = TestNetwork.Client.Get("TestFunction").SendToServer();
+print("got", `'${result}'`, "from server");

@@ -7,12 +7,18 @@ export function GetRbxNetEventId(name: string): number {
 		return id;
 	}
 
-	const hash = hashstring("NOM_EV_" + name);
+	const hash = hashstring("EV:" + name + ":" + game.JobId);
 	eventCache.set(name, hash);
 	return hash;
 }
 
 export function GetRbxNetFunctionId(name: string): number {
-	const hash = 0; // hashstring("NOM_FN_" + name + game.JobId);
+	const id = eventCache.get(name);
+	if (id !== undefined) {
+		return id;
+	}
+
+	const hash = hashstring("FN:" + name + ":" + game.JobId);
+	eventCache.set(name, hash);
 	return hash;
 }
