@@ -1,14 +1,35 @@
 import { NetworkUtil } from "@Easy/Core/Shared/Util/NetworkUtil";
 import { int32, NetworkBuffers, uint32 } from "../Core/Buffers";
 import { NexusCoreTypes } from "../Core/CoreTypes";
-import { NetworkSerializableType, NetworkType } from "../Core/Types/NetworkTypes";
+import { NetworkSerializableType, NetworkSerializer, NetworkType, ClientNullable } from "../Core/Types/NetworkTypes";
 import { default as AirshipCharacter } from "@Easy/Core/Shared/Character/Character";
 import { Airship } from "@Easy/Core/Shared/Airship";
 import { Player as AirshipPlayer } from "@Easy/Core/Shared/Player/Player";
 import Inventory from "@Easy/Core/Shared/Inventory/Inventory";
 import { Team } from "@Easy/Core/Shared/Team/Team";
+import { Game } from "@Easy/Core/Shared/Game";
 
-const Identity: NetworkSerializableType<NetworkIdentity, uint32> = {
+const NullableIdentity: NetworkSerializableType<NetworkIdentity | undefined, uint32> = {
+	Name: "Nullable<NetworkIdentity>",
+	BufferEncoder: NetworkBuffers.UInt32,
+	Validator: {
+		Validate(value): value is NetworkIdentity {
+			return typeIs(value, "userdata") && (value as { IsA(name: string): boolean }).IsA("NetworkIdentity");
+		},
+	},
+	Serializer: {
+		Serialize(value) {
+			return value?.netId ?? 0;
+		},
+		Deserialize(value) {
+			if (value === 0) return undefined;
+			const object = NetworkUtil.GetNetworkIdentity(value);
+			return object;
+		},
+	},
+};
+
+const ServerIdentity: NetworkSerializableType<NetworkIdentity, uint32> = {
 	Name: "NetworkIdentity",
 	BufferEncoder: NetworkBuffers.UInt32,
 	Validator: {
@@ -21,9 +42,16 @@ const Identity: NetworkSerializableType<NetworkIdentity, uint32> = {
 			return value.netId;
 		},
 		Deserialize(value) {
-			const object = NetworkUtil.GetNetworkIdentity(value);
-			assert(object);
-			return object;
+			if (Game.IsServer()) {
+				return NetworkUtil.WaitForNetworkIdentity(value);
+			} else {
+				const object = NetworkUtil.WaitForNetworkIdentityTimeout(value, 2);
+				assert(
+					object,
+					`NetworkIdentity ${value} could not be found on the client: was it destroyed or disabled?`,
+				);
+				return object;
+			}
 		},
 	},
 };
@@ -246,8 +274,19 @@ const UnityVector2: NetworkType<Vector2, Vector2> = {
 interface AirshipBuiltInTypes extends NexusCoreTypes {
 	/**
 	 * A `NetworkIdentity`, representing a networked object in Airship
+	 *
+	 * This can potentially error if the NetworkIdentity is not found.
 	 */
-	Identity: typeof Identity;
+	Identity: typeof ServerIdentity;
+	/**
+	 * A `NetworkIdentity` that can be undefined if it does not exist.
+	 *
+	 * It will serialize as `0` if it's undefined, or deserialize as `undefined` if not found on the receiving end.
+	 *
+	 * Useful for objects that may get destroyed between it being sent and being receieved.
+	 */
+	NullableIdentity: typeof NullableIdentity;
+
 	/**
 	 * A player in Airship
 	 */
@@ -277,7 +316,8 @@ interface AirshipBuiltInTypes extends NexusCoreTypes {
 }
 export const NexusTypes: AirshipBuiltInTypes = {
 	...NexusCoreTypes,
-	Identity,
+	Identity: ServerIdentity,
+	NullableIdentity: NullableIdentity,
 	Character,
 	Player,
 	Inventory: AirshipInventory,
