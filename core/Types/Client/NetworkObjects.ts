@@ -20,6 +20,10 @@ export interface ClientSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 	SendToServer(...args: CallArguments): void;
 }
 
+export interface ClientBidirectionalEvent<CallArguments extends ReadonlyArray<unknown>>
+	extends ClientSenderEvent<CallArguments>,
+		ClientListenerEvent<CallArguments> {}
+
 export type ClientEventLike = ClientListenerEvent<never> | ClientSenderEvent<never>;
 export type ClientFunctionLike = ClientInvokeFunction<never, never>;
 

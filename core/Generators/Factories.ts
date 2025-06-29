@@ -2,10 +2,11 @@ import { ClientEventLike, ClientInvokeFunction } from "../Types/Client/NetworkOb
 import {
 	ClientEventDeclaration,
 	ClientFunctionDeclaration,
+	CrossServerEventDeclaration,
 	ServerEventDeclaration,
 	ServerFunctionDeclaration,
 } from "../Types/NetworkObjectModel";
-import { ServerEventLike, ServerListenerFunction } from "../Types/Server/NetworkObjects";
+import { ServerBroadcaster, ServerEventLike, ServerListenerFunction } from "../Types/Server/NetworkObjects";
 
 export type ServerEventFactory = new <T extends unknown[]>(
 	name: string,
@@ -21,6 +22,11 @@ export type ServerFunctionFactory = new <T extends unknown[], R>(
 	name: string,
 	declaration: ServerFunctionDeclaration<T, R>,
 ) => ServerListenerFunction<T, R>;
+
+export type ServerMessagingFactory = new <T extends unknown[]>(
+	name: string,
+	declaration: CrossServerEventDeclaration<T>,
+) => ServerBroadcaster<T>;
 
 export type ClientFunctionFactory = new <T extends unknown[], R>(
 	name: string,

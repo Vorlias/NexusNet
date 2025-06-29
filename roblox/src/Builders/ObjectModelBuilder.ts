@@ -28,6 +28,7 @@ import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { RobloxNetworkModelConfiguration } from "../NOM/NetworkObjectModel";
 import { ServerFunction } from "../Objects/Server/ServerFunction";
 import { ClientFunction } from "../Objects/Client/ClientFunction";
+import { ServerMessagingEvent } from "../Objects/Server/ServerMessagingEvent";
 
 export interface RobloxContextNetworkModel<T extends RemoteDeclarations> extends ContextNetworkModel<T> {
 	/**
@@ -110,6 +111,7 @@ export class RobloxNetworkObjectModelBuilder<TDeclarations extends RemoteDeclara
 			{
 				event: ServerEvent,
 				function: ServerFunction,
+				messaging: ServerMessagingEvent,
 			},
 			this.declarations,
 			this.configuration,

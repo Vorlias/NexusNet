@@ -5,7 +5,7 @@ import {
 } from "../Core/Types/NetworkObjectModel";
 import { StaticNetworkType } from "../Core/Types/NetworkTypes";
 
-export class ExperienceEventBuilder<TArgs extends ReadonlyArray<unknown>>
+export class CrossServerEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	implements ServerBuilder<CrossServerEventDeclaration<TArgs>>
 {
 	arguments: StaticNetworkType[] = [];
@@ -13,7 +13,7 @@ export class ExperienceEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	OnServer(configuration: NetworkModelConfiguration): CrossServerEventDeclaration<TArgs> {
 		const declaration: CrossServerEventDeclaration<TArgs> = {
 			Type: "Messaging",
-			Arguments: this.arguments,
+			Arguments: [],
 		};
 		return table.freeze(declaration);
 	}

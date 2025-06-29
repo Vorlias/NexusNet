@@ -1,16 +1,15 @@
 import {
 	ClientEventDeclaration,
-	ServerMiddleware,
 	NetworkClientEventBuilder,
 	NetworkEventBuilder,
-	NetworkingFlags,
 	NetworkModelConfiguration,
 	NetworkServerEventBuilder,
 	RemoteRunContext,
-	ServerBuilder,
 	ServerEventDeclaration,
 	ServerMiddlewareBuilder,
 	ClientMiddlewareBuilder,
+	SharedBuilder,
+	BidirectionalEventDeclaration,
 } from "../Core/Types/NetworkObjectModel";
 import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { NexusConfiguration } from "../Core/Configuration";
@@ -24,9 +23,12 @@ import {
 import { NexusNetworkBehaviour } from "../Components/NexusNetworkBehaviour";
 import { NexusTypes } from "../Framework/AirshipTypes";
 
-export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implements NetworkEventBuilder<TArgs> {
+export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
+	implements NetworkEventBuilder<TArgs>, SharedBuilder<BidirectionalEventDeclaration<TArgs>>
+{
 	unreliable = false;
 	useBuffer = false;
+	echo = false;
 
 	arguments: StaticNetworkType[] | undefined;
 	private callbackMiddleware: Callback[] = [];
@@ -42,6 +44,17 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implement
 		return this;
 	}
 
+	Bidirectional(this: SharedBuilder<BidirectionalEventDeclaration<TArgs>>) {
+		// essentially a type conversion lol
+		return this;
+	}
+
+	/**
+	 * Binds this network event to a specific network object
+	 * @param object The network object to bind to
+	 * @param requiresOwnership Whether or not it requires ownership to invoke this method
+	 * @returns
+	 */
 	BindIdentity(this: NetworkClientEventBuilder<TArgs>, object: NexusNetworkBehaviour, requiresOwnership = false) {
 		(this.arguments ??= []).unshift(NexusTypes.Identity);
 
@@ -148,6 +161,25 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>> implement
 			RunContext: RemoteRunContext.Client,
 			CallbackMiddleware: this.callbackMiddleware,
 			InvokeMiddleware: [],
+			Arguments: this.arguments,
+			Unreliable: this.unreliable,
+		};
+
+		return table.freeze(declaration);
+	}
+
+	OnShared(configuration: NetworkModelConfiguration): BidirectionalEventDeclaration<TArgs> {
+		const flags = NexusConfiguration.EncodeConfigFlags({
+			UseBufferSerialization: configuration.UseBuffers && this.useBuffer,
+			EnforceArgumentCount: configuration.EnforceArgumentCount ?? true,
+			Debugging: configuration.Debugging,
+			Logging: configuration.Logging,
+		});
+
+		const declaration: BidirectionalEventDeclaration<TArgs> = {
+			Type: "Event",
+			Flags: flags,
+			RunContext: RemoteRunContext.Both,
 			Arguments: this.arguments,
 			Unreliable: this.unreliable,
 		};

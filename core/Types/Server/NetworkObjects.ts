@@ -6,10 +6,6 @@ export interface ServerListenerEvent<CallArguments extends ReadonlyArray<unknown
 	 * @param callback The callback function
 	 */
 	Connect(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
-
-	// Once(callback: (player: NetworkPlayer, ...args: CallArguments) => void): Connection;
-
-	// Predict(player: NetworkPlayer, ...args: CallArguments): void;
 }
 
 /**
@@ -45,6 +41,10 @@ export interface ServerSenderEvent<CallArguments extends ReadonlyArray<unknown>>
 	SendToPlayers(targets: Array<NetworkPlayer>, ...args: CallArguments): void;
 }
 
+export interface ServerBidirectionalEvent<CallArguments extends ReadonlyArray<unknown>>
+	extends ServerListenerEvent<CallArguments>,
+		ServerSenderEvent<CallArguments> {}
+
 export type ServerEventLike = ServerListenerEvent<never> | ServerSenderEvent<never>;
 export type ServerFunctionLike = ServerListenerFunction<never, never>;
 
@@ -60,7 +60,20 @@ export interface ServerListenerFunction<CallArguments extends ReadonlyArray<unkn
 }
 
 export interface ServerBroadcaster<TMessage extends ReadonlyArray<unknown>> {
-	Broadcast(...message: TMessage): void;
+	/**
+	 *  Broadcasts the given messages to all servers in this game
+	 * @param message
+	 */
+	BroadcastAllServers(...message: TMessage): void;
+	/**
+	 * Broadcasts this message to a specific server
+	 * @param serverId The server id
+	 * @param message The message to broadcast
+	 */
 	BroadcastToServer(serverId: string, ...message: TMessage): void;
+	/**
+	 * Connects to any broadcasted messages from other servers
+	 * @param callback The callback function
+	 */
 	Connect(callback: (serverId: string, ...message: TMessage) => void): Connection;
 }

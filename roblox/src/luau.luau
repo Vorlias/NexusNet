@@ -1,7 +1,7 @@
 --!strict
 -- This is experimental Luau types, not yet implemented as Luau is still missing a few things
 
-type function Partial(tbl)
+type function Partial(tbl: type): type
     if not tbl:is("table") then
         error("Expected table at T")
     end
@@ -11,9 +11,9 @@ type function Partial(tbl)
         tbl:setproperty(k, types.unionof(v, typeof(nil)))
     end
 
-    return T
+    return props
 end
-type function Merge(T, U)
+type function Merge(T: type, U: type)
     if not T:is("table") then
         error("Expected table at T")
     end
@@ -26,7 +26,7 @@ type function Merge(T, U)
 end
 
 -- Equiv to { [K]: T }
-type function Named(K, T)
+type function Named(K: type, T: type)
     if K:is("string") then
         error("Expected string for K")
     end

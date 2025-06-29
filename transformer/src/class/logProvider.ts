@@ -1,5 +1,5 @@
 import chalk from "chalk";
-const TRANSFORMER_NAME = "Debug";
+const TRANSFORMER_NAME = "NexusX";
 
 export class LoggerProvider {
 	public constructor(public readonly debug: boolean, public readonly verbose: boolean) {

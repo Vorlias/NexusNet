@@ -8,6 +8,7 @@ import {
 	ScopeBuilder,
 	ScopeObjectModelDeclaration,
 	ServerBuilder,
+	SharedBuilder,
 } from "../Core/Types/NetworkObjectModel";
 import { Identity, MergeIdentity, Named } from "../Core/Types/Utility";
 import { AnyNetworkDeclaration, DeclarationRemoteKeys } from "../Core/Types/Declarations";
@@ -23,10 +24,12 @@ import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { AirshipNetworkModelConfiguration } from "../NOM/NetworkObjectModel";
 import { ServerFunction } from "../Objects/Server/ServerFunction";
 import { ClientFunction } from "../Objects/Client/ClientFunction";
+import { ServerMessagingEvent } from "../Objects/Server/ServerMessagingEvent";
 
 type Scoped<K extends string, T extends RemoteDeclarations> = { [P in keyof T as `${K}/${P & string}`]: T[P] };
 
-// const declarationMap = new Map<AirshipNetworkObjectModelBuilder, RemoteDeclarations>();
+export interface AirshipContextNetworkModel<TDeclarations extends RemoteDeclarations>
+	extends ContextNetworkModel<TDeclarations> {}
 
 export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclarations = defined>
 	implements NetworkObjectModelBuilder<TDeclarations>, ScopeBuilder<TDeclarations>
@@ -61,8 +64,6 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		scope: KScope,
 		scoped: ScopeObjectModelDeclaration<UDeclarations>,
 	) {
-		// const scopedModel = scoped.OnScope(this.configuration);
-
 		if (scoped instanceof AirshipNetworkObjectModelBuilder) {
 			for (const [key, value] of pairs(scoped.declarations) as IterableFunction<
 				LuaTuple<[string, RemoteDeclarations[number]]>
@@ -86,6 +87,12 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		}
 	}
 
+	/**
+	 * Adds a network object handled by the server
+	 * @param id The id of the server-handled network object
+	 * @param declaration The declaration of the network object
+	 * @returns
+	 */
 	AddServer<const TName extends string, TNomRemote extends AnyNetworkDeclaration>(
 		id: TName,
 		declaration: ServerBuilder<TNomRemote>,
@@ -99,11 +106,36 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		return this as never;
 	}
 
+	/**
+	 * Adds a network object handled by the client
+	 * @param id The id of the client-handled network object
+	 * @param declaration The declaration of the network object
+	 * @returns
+	 */
 	AddClient<const TName extends string, TNomRemote extends AnyNetworkDeclaration>(
 		id: TName,
 		declaration: ClientBuilder<TNomRemote>,
 	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
 		const definition = declaration.OnClient(this.configuration);
+		this.declarations = {
+			...this.declarations,
+			[id]: definition,
+		};
+
+		return this as never;
+	}
+
+	/**
+	 * Adds a network object that can be handled by either the server or client
+	 * @param id The id of the network object
+	 * @param declaration The declaration of the network object
+	 * @returns
+	 */
+	AddBidirectional<const TName extends string, TNomRemote extends AnyNetworkDeclaration>(
+		id: TName,
+		declaration: SharedBuilder<TNomRemote>,
+	): AirshipNetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TNomRemote>>, TDeclarations>> {
+		const definition = declaration.OnShared(this.configuration);
 		this.declarations = {
 			...this.declarations,
 			[id]: definition,
@@ -120,7 +152,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		return this;
 	}
 
-	Build(): ContextNetworkModel<TDeclarations> {
+	Build(): AirshipContextNetworkModel<TDeclarations> {
 		const objectCache = new Map<keyof TDeclarations, RemoteContext<TDeclarations, any>>();
 
 		const clientContext: ClientRemoteContext<TDeclarations> = new NexusClientContext(
@@ -137,6 +169,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 			{
 				event: ServerEvent,
 				function: ServerFunction,
+				messaging: ServerMessagingEvent,
 			},
 			this.declarations,
 			this.configuration,

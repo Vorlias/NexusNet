@@ -13,11 +13,17 @@ import type {
 	NetworkModelConfiguration,
 	NetworkObjectModelBuilder,
 	ServerBuilder,
+	SharedBuilder,
 } from "../Core/Types/NetworkObjectModel";
-import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
+import { AnyNetworkDeclaration, DeclarationRemoteKeys } from "../Core/Types/Declarations";
 import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
-import { NexusInlineClient, NexusInlineServer } from "./Inline";
+import { NexusInlineClient, NexusInlineServer, NexusInlineShared } from "./Inline";
+import { NexusTypes } from "./AirshipTypes";
+import { CrossServerEventBuilder } from "../Builders/MessagingBuilder";
+import { NetworkPlayer } from "../Core/Types/Dist";
+import { ClientBidirectionalEvent } from "../Core/Types/Client/NetworkObjects";
+import { ServerBidirectionalEvent } from "../Core/Types/Server/NetworkObjects";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -128,7 +134,13 @@ namespace Nexus {
 	}
 
 	/**
-	 * Creates an inline client network object
+	 * Creates an inline client object - for usage with components
+	 *
+	 * ```ts
+	 * export class MyComponent extends AirshipBehaviour {
+	 * 	private sendHelloEvent = Nexus.Client("MyComponent/SendHello", Nexus.Event(NexusTypes.String));
+	 * }
+	 * ```
 	 */
 	export function Client<const T extends AnyNetworkDeclaration>(
 		name: string,
@@ -138,8 +150,69 @@ namespace Nexus {
 		return NexusInlineClient(name, network, configuration);
 	}
 
-	// export const State = NexusSyncState;
-	// export type State<T extends object> = NexusSyncState<T>;
+	export function Shared<const T extends AnyNetworkDeclaration>(
+		name: string,
+		network: SharedBuilder<T>,
+		configuration?: Partial<NetworkModelConfiguration>,
+	): InlineContext<T> {
+		return NexusInlineShared(name, network, configuration);
+	}
+
+	/**
+	 * Defines an event that messages between servers in the experience
+	 * @returns
+	 * @deprecated Not yet implemented
+	 */
+	export function CrossServerEvent(): CrossServerEventBuilder<[]>;
+	export function CrossServerEvent<T extends ReadonlyArray<unknown>>(
+		...values: ToNetworkArguments<T>
+	): CrossServerEventBuilder<T>;
+	export function CrossServerEvent<T extends ReadonlyArray<unknown>>(
+		...values: ToNetworkArguments<T>
+	): CrossServerEventBuilder<[]> {
+		const xServerEvent = new CrossServerEventBuilder();
+		xServerEvent.arguments = values as StaticNetworkType[];
+		return xServerEvent;
+	}
+
+	export namespace Macros {
+		/**
+		 * Will replicate messages sent to the server back to other clients except the person who sent it
+		 *
+		 * Example:
+		 * ```ts
+		 * const sendMessage = Nexus.Shared("TestReplicate", Nexus.Event(NexusTypes.String).Bidirectional())
+		 *
+		 * if (Game.IsServer()) {
+		 * 	Nexus.Macros.ServerReplicate(sendMessage.server); // any client calls will now replicate
+		 * }
+		 * ```
+		 *
+		 * Internally it is equivalent to
+		 * ```ts
+		 * event.Connect((player, ...args) => {
+		 * 	event.SendToAllPlayersExcept(player, ...args);
+		 * });
+		 * ```
+		 * @param event The event to repliate to other clients
+		 * @returns The connection for the replicated messages
+		 */
+		export const ServerReplicate = <T extends unknown[]>(
+			event: ServerBidirectionalEvent<T>,
+			validate?: (player: Player, ...args: T) => boolean,
+		) => {
+			return event.Connect((player, ...args) => {
+				if (typeIs(validate, "function") && !validate(player, ...args)) {
+					return;
+				}
+
+				event.SendToAllPlayersExcept(player, ...args);
+			});
+		};
+	}
 }
 
 export default Nexus;
+
+const test2 = Nexus.Server("test", Nexus.CrossServerEvent());
+test2.client

@@ -7,17 +7,13 @@ import {
 	ParseServerCallbackArgs,
 } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 import { AirshipScriptConnection } from "../NetConnection";
-import {
-	NetworkSerializer,
-	NetworkType,
-	NetworkValidator,
-	StaticNetworkType,
-} from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseServerInvokeArgs, RunServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import { Airship } from "@Easy/Core/Shared/Airship";
 import { ValidateArguments, ValidateResult } from "@Vorlias/NexusNet/Core/Serialization/Arguments";
+import { Collection, NexusCollectionUtils } from "@Vorlias/NexusNet/Core/Utils/Collections";
 
 export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 	implements ServerSenderEvent<TArgs>, ServerListenerEvent<TArgs>
@@ -176,32 +172,40 @@ export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 		}
 	}
 
-	// Send(
-	// 	targetOrTargets: ReadonlySet<NetworkPlayer> | NetworkPlayer | ReadonlyArray<NetworkPlayer>,
-	// 	...args: TArgs
-	// ): void {
-	// 	const handledArgs = ParseServerInvokeArgs(
-	// 		this.name,
-	// 		this.useBuffers,
-	// 		this.argumentHandlers ?? [],
-	// 		[],
-	// 		args,
-	// 		this.argCountCheck,
-	// 	);
-	// 	if (!handledArgs) return;
+	Fire(target: NetworkPlayer | Collection<NetworkPlayer>, ...args: TArgs) {
+		if (NexusCollectionUtils.IsArrayLike(target)) {
+			for (const player of target) {
+				this.SendToPlayer(player, ...args);
+			}
+		} else if (NexusCollectionUtils.IsSetLike(target)) {
+			for (const player of target) {
+				this.SendToPlayer(player, ...args);
+			}
+		} else {
+			this.SendToPlayer(target, ...args);
+		}
+	}
 
-	// 	if (this.isPlayer(targetOrTargets)) {
-	// 		this.instance.FireClient(targetOrTargets as Player, ...handledArgs);
-	// 	} else {
-	// 		if (isArrayLike(targetOrTargets)) {
-	// 			for (const target of targetOrTargets) this.instance.FireClient(target, ...handledArgs);
-	// 		} else {
-	// 			for (const target of targetOrTargets) this.instance.FireClient(target, ...handledArgs);
-	// 		}
-	// 	}
-	// }
+	FireExcept(blacklist: NetworkPlayer | Collection<NetworkPlayer>, ...args: TArgs) {
+		if (NexusCollectionUtils.IsArrayLike(blacklist)) {
+			for (const player of Airship.Players.GetPlayers()) {
+				if (blacklist.includes(player)) continue;
+				this.SendToPlayer(player, ...args);
+			}
+		} else if (NexusCollectionUtils.IsSetLike(blacklist)) {
+			for (const player of Airship.Players.GetPlayers()) {
+				if (blacklist.has(player)) continue;
+				this.SendToPlayer(player, ...args);
+			}
+		} else {
+			for (const player of Airship.Players.GetPlayers()) {
+				if (blacklist.userId === player.userId) continue;
+				this.SendToPlayer(player, ...args);
+			}
+		}
+	}
 
-	// Broadcast(...args: TArgs): void {
-	// 	this.SendToAllPlayers(...args);
-	// }
+	Broadcast(...args: TArgs) {
+		this.SendToAllPlayers(...args);
+	}
 }

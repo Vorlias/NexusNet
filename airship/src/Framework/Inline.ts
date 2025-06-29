@@ -7,6 +7,7 @@ import {
 	NetworkModelConfiguration,
 	ServerBuilder,
 	ServerEventDeclaration,
+	SharedBuilder,
 } from "../Core/Types/NetworkObjectModel";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
@@ -45,6 +46,34 @@ export function NexusInlineClient<const T extends AnyNetworkDeclaration>(
 	// }
 
 	const declaration = network.OnClient({
+		Debugging: false,
+		UseBuffers: false,
+		Logging: false,
+		...configuration,
+	});
+
+	return {
+		server: new ServerEvent(name, declaration as ServerEventDeclaration<any>) as unknown as InferServerRemote<T>,
+		client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
+	};
+}
+
+/**
+ * Creates an inline client network object
+ */
+export function NexusInlineShared<const T extends AnyNetworkDeclaration>(
+	name: string,
+	network: SharedBuilder<T>,
+	configuration?: Partial<NetworkModelConfiguration>,
+): Nexus.InlineContext<T> {
+	//const [n, l, s, f, a] = debug.info(2, "nlsfa");
+
+	// if (!name) {
+	// 	assert(n === "constructor", "Inline declarations can only be used inside components");
+	// 	name = `${s}:${l}#${n}`;
+	// }
+
+	const declaration = network.OnShared({
 		Debugging: false,
 		UseBuffers: false,
 		Logging: false,

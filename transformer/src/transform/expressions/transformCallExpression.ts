@@ -1,0 +1,21 @@
+import ts from "typescript";
+import { transformNode } from "../transformNode";
+import { TransformState } from "../../class/TransformState";
+
+export function transformCallExpression(state: TransformState, node: ts.CallExpression): ts.Expression {
+	const symbol = state.getSymbol(node.expression);
+	if (symbol !== undefined) {
+		const callMacro = state.getCallMacro(symbol);
+		if (callMacro) {
+			return ts.visitEachChild(
+				callMacro.transform(state, node, { symbol, symbols: [symbol] }),
+				(node) => transformNode(state, node),
+				state.context,
+			);
+        } else {
+            console.warn("no call macro for symbol", symbol.id);
+        }
+	}
+
+	return ts.visitEachChild(node, (node) => transformNode(state, node), state.context);
+}

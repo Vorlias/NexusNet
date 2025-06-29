@@ -5,7 +5,7 @@ import { Player } from "@Easy/Core/Shared/Player/Player";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { OnUpdate } from "@Easy/Core/Shared/Util/Timer";
-import Nexus from ".";
+import Nexus, { NexusTypes } from ".";
 import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "../Core/Middleware/Types";
 import { ServerFunction } from "../Objects/Server/ServerFunction";
 
@@ -179,3 +179,6 @@ export namespace NexusTesting {
 		return [passedTests, failedTests];
 	}
 }
+
+// const test = Nexus.BuildObjectModel().AddServer("Test", Nexus.Event(NexusTypes.Identity)).Build();
+// test.Get("Test").Server.SendToAllPlayers();

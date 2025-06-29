@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ClientSenderEvent, ClientListenerEvent, ClientInvokeFunction } from "./Client/NetworkObjects";
 import {
+	BidirectionalEventDeclaration,
 	ClientEventDeclaration,
 	ClientFunctionDeclaration,
 	CrossServerEventDeclaration,
@@ -24,7 +25,8 @@ export type AnyNetworkDeclaration =
 	| ClientEventDeclaration<any>
 	| ServerFunctionDeclaration<any, any>
 	| ClientFunctionDeclaration<any, any>
-	| CrossServerEventDeclaration<any>;
+	| CrossServerEventDeclaration<any>
+	| BidirectionalEventDeclaration<any>;
 
 export type AnyServerNetworkObject =
 	| ServerSenderEvent<any>

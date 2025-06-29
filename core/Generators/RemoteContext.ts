@@ -1,11 +1,9 @@
-import { ServerMessagingEvent } from "../../Objects/Server/ServerMessagingEvent";
 import { ClientEventLike, ClientFunctionLike } from "../Types/Client/NetworkObjects";
 import {
 	AnyNetworkDeclaration,
 	DeclarationRemoteKeys,
 	FilterClientDeclarations,
 	FilterServerDeclarations,
-	OrderedRemoteDeclarations,
 } from "../Types/Declarations";
 import { InferClientRemote, InferServerRemote } from "../Types/Inference";
 import {
@@ -14,18 +12,16 @@ import {
 	CrossServerEventDeclaration,
 	NetworkModelConfiguration,
 	RemoteDeclarations,
-	RemoteRunContext,
 	ServerEventDeclaration,
 	ServerFunctionDeclaration,
 } from "../Types/NetworkObjectModel";
-import { ServerEventLike, ServerFunctionLike } from "../Types/Server/NetworkObjects";
+import { ServerBroadcaster, ServerEventLike, ServerFunctionLike } from "../Types/Server/NetworkObjects";
 import {
 	ClientEventFactory,
 	ClientFunctionFactory,
-	NexusEventFactories,
-	NexusFunctionFactories,
 	ServerEventFactory,
 	ServerFunctionFactory,
+	ServerMessagingFactory,
 } from "./Factories";
 
 export interface ServerRemoteContext<TDefinitions extends RemoteDeclarations> {
@@ -44,22 +40,35 @@ export interface RemoteContext<
 	Server: InferServerRemote<TDeclarations[K]>;
 }
 
+interface NexusServerObjectFactories {
+	event: ServerEventFactory;
+	function: ServerFunctionFactory;
+	messaging?: ServerMessagingFactory;
+}
+
+interface NexusClientObjectFactories {
+	event: ClientEventFactory;
+	function: ClientFunctionFactory;
+}
+
 export class NexusServerContext<TDefinitions extends RemoteDeclarations> implements ServerRemoteContext<TDefinitions> {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	private eventCache = new Map<string, ServerEventLike | ServerMessagingEvent<any>>();
+	private eventCache = new Map<string, ServerEventLike | ServerBroadcaster<any>>();
 	private functionCache = new Map<string, ServerFunctionLike>();
 
 	private Event: ServerEventFactory;
 	private Function: ServerFunctionFactory;
+	private Messaging?: ServerMessagingFactory;
 
 	public constructor(
 		isServer: boolean,
-		factories: { event: ServerEventFactory; function: ServerFunctionFactory },
+		factories: NexusServerObjectFactories,
 		private declarations: TDefinitions,
 		private configuration: NetworkModelConfiguration,
 	) {
 		this.Event = factories.event;
 		this.Function = factories.function;
+		this.Messaging = factories.messaging;
 
 		if (isServer) this.Init();
 	}
@@ -67,6 +76,7 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 	public Init() {
 		const ServerEvent = this.Event;
 		const ServerFunction = this.Function;
+		const CrossMessagingEvent = this.Messaging;
 
 		for (const [name, declaration] of pairs(this.declarations) as IterableFunction<
 			LuaTuple<[name: string, value: AnyNetworkDeclaration]>
@@ -77,8 +87,8 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 			} else if (declaration.Type === "Function") {
 				const obj = new ServerFunction(name, declaration as ServerFunctionDeclaration<never, never>);
 				this.functionCache.set(name, obj);
-			} else if (declaration.Type === "Messaging") {
-				const obj = new ServerMessagingEvent(name, declaration as CrossServerEventDeclaration<never>);
+			} else if (declaration.Type === "Messaging" && CrossMessagingEvent) {
+				const obj = new CrossMessagingEvent(name, declaration);
 				this.eventCache.set(name, obj);
 			}
 		}
@@ -102,7 +112,7 @@ export class NexusClientContext<TDefinitions extends RemoteDeclarations> impleme
 
 	public constructor(
 		isClient: boolean,
-		factories: { event: ClientEventFactory; function: ClientFunctionFactory },
+		factories: NexusClientObjectFactories,
 		private declarations: TDefinitions,
 		private configuration: NetworkModelConfiguration,
 	) {

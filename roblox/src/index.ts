@@ -99,8 +99,16 @@ namespace Nexus {
 	 * Defines an event that messages between servers in the experience
 	 * @returns
 	 */
-	export function ExperienceEvent(): ExperienceEventBuilder<[]> {
-		return new ExperienceEventBuilder();
+	export function CrossServerEvent(): ExperienceEventBuilder<[]>;
+	export function CrossServerEvent<T extends ReadonlyArray<unknown>>(
+		...values: ToNetworkArguments<T>
+	): ExperienceEventBuilder<T>;
+	export function CrossServerEvent<T extends ReadonlyArray<unknown>>(
+		...values: ToNetworkArguments<T>
+	): ExperienceEventBuilder<[]> {
+		const xServerEvent = new ExperienceEventBuilder();
+		xServerEvent.arguments = values as StaticNetworkType[];
+		return xServerEvent;
 	}
 
 	/**

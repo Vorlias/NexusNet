@@ -40,7 +40,7 @@ export class ServerMessagingEvent<TArgs extends unknown[]> implements ServerBroa
 		} satisfies ServerBroadcastMessage);
 	}
 
-	Broadcast(...args: TArgs): void {
+	BroadcastAllServers(...args: TArgs): void {
 		messagingService.PublishAsync(TOPIC, {
 			EventId: this.name,
 			SourceServerId: game.JobId,

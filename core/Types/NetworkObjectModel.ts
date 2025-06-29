@@ -33,6 +33,7 @@ export interface NetworkModelConfiguration {
 export enum RemoteRunContext {
 	Server,
 	Client,
+	Both,
 }
 
 export interface ServerBuilder<TServer> {
@@ -44,6 +45,11 @@ export interface ClientBuilder<TClient> {
 	OnClient(configuration: NetworkModelConfiguration): TClient;
 }
 export type InferClient<T> = T extends ClientBuilder<infer O> ? O : never;
+
+export interface SharedBuilder<TShared> {
+	OnShared(configuration: NetworkModelConfiguration): TShared;
+}
+export type InferShared<T> = T extends SharedBuilder<infer O> ? O : never;
 
 export interface ScopeBuilder<TDeclarations extends RemoteDeclarations> {
 	AsScope(configuration?: Partial<NetworkModelConfiguration>): ScopeObjectModelDeclaration<TDeclarations>;
@@ -95,6 +101,7 @@ export const enum NetworkingFlags {
 
 export interface CrossServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> {
 	readonly Type: "Messaging";
+	readonly Arguments: StaticNetworkType[];
 }
 
 export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>>
@@ -108,6 +115,9 @@ export interface ClientEventDeclaration<_TArgs extends ReadonlyArray<unknown>>
 	readonly CallbackMiddleware: ClientCallbackMiddleware[];
 	readonly InvokeMiddleware: ClientInvokeMiddleware[];
 }
+
+export interface BidirectionalEventDeclaration<_TArgs extends ReadonlyArray<unknown>>
+	extends EventDeclaration<RemoteRunContext.Both, _TArgs> {}
 
 export interface ServerFunctionDeclaration<_TArgs extends ReadonlyArray<unknown>, _TRet>
 	extends FunctionDeclaration<RemoteRunContext.Server, _TArgs, _TRet> {}
