@@ -6,7 +6,7 @@ import {
 	CreateServerEventCallback,
 	ParseServerCallbackArgs,
 } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
-import { AirshipScriptConnection } from "../NetConnection";
+import { NexusEventConnection } from "../NetConnection";
 import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseServerInvokeArgs, RunServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
@@ -98,7 +98,7 @@ export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 			CallbackMiddleware: this.callbackMiddleware,
 		});
 
-		return new AirshipScriptConnection(this.instance.onClientEvent.Once(overloadCallback));
+		return new NexusEventConnection(this.instance.onClientEvent.Once(overloadCallback));
 	}
 
 	public Connect(callback: (player: NetworkPlayer, ...args: TArgs) => void): Connection {
@@ -110,7 +110,7 @@ export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 			CallbackMiddleware: this.callbackMiddleware,
 		});
 
-		return new AirshipScriptConnection(this.instance.onClientEvent.Connect(overloadCallback));
+		return new NexusEventConnection(this.instance.onClientEvent.Connect(overloadCallback));
 	}
 
 	public SendToAllPlayers(...args: TArgs): void {

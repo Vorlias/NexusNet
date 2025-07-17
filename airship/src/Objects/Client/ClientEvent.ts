@@ -2,7 +2,7 @@ import { ClientListenerEvent, ClientSenderEvent } from "@Vorlias/NexusNet/Core/T
 import { Connection, NetworkPlayer } from "@Vorlias/NexusNet/Core/Types/Dist";
 import { NetworkedEvent } from "../Internal/NetworkEvent";
 import { ClientEventDeclaration, NetworkingFlags } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
-import { AirshipScriptConnection } from "../NetConnection";
+import { NexusEventConnection } from "../NetConnection";
 import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { ClientCallbackMiddleware, ClientInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseClientInvokeArgs, ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
@@ -41,7 +41,7 @@ export class ClientEvent<T extends Array<unknown> = unknown[]> implements Client
 	}
 
 	public Connect(callback: (...args: T) => void): Connection {
-		return new AirshipScriptConnection(
+		return new NexusEventConnection(
 			this.instance.onServerEvent.Connect(
 				CreateClientEventCallback(this.name, {
 					UseBuffers: this.useBuffers,

@@ -102,6 +102,7 @@ export const enum NetworkingFlags {
 export interface CrossServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> {
 	readonly Type: "Messaging";
 	readonly Arguments: StaticNetworkType[];
+	readonly UseBuffer: boolean;
 }
 
 export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>>

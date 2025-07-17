@@ -67,13 +67,13 @@ export interface ServerBroadcaster<TMessage extends ReadonlyArray<unknown>> {
 	BroadcastAllServers(...message: TMessage): void;
 	/**
 	 * Broadcasts this message to a specific server
-	 * @param serverId The server id
+	 * @param targetServerId The server id
 	 * @param message The message to broadcast
 	 */
-	BroadcastToServer(serverId: string, ...message: TMessage): void;
+	BroadcastToServer(targetServerId: string, ...message: TMessage): void;
 	/**
 	 * Connects to any broadcasted messages from other servers
 	 * @param callback The callback function
 	 */
-	Connect(callback: (serverId: string, ...message: TMessage) => void): Connection;
+	Connect(callback: (sourceServerId: string, ...message: TMessage) => void): Connection;
 }

@@ -1,5 +1,5 @@
 import type { Player } from "@Easy/Core/Shared/Player/Player";
-import type { AirshipScriptConnection } from "../Objects/NetConnection";
+import type { NexusEventConnection } from "../Objects/NetConnection";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import type { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
@@ -29,7 +29,7 @@ export { NexusTypes } from "./AirshipTypes";
 declare module "../Core/Types/Dist" {
 	export interface ModuleTypes {
 		NetworkPlayer: Player;
-		Connection: AirshipScriptConnection;
+		Connection: NexusEventConnection;
 		NetworkServerEvent: ServerEvent<unknown[]>;
 		NetworkClientEvent: ClientEvent<unknown[]>;
 	}
@@ -161,7 +161,6 @@ namespace Nexus {
 	/**
 	 * Defines an event that messages between servers in the experience
 	 * @returns
-	 * @deprecated Not yet implemented
 	 */
 	export function CrossServerEvent(): CrossServerEventBuilder<[]>;
 	export function CrossServerEvent<T extends ReadonlyArray<unknown>>(
@@ -213,6 +212,3 @@ namespace Nexus {
 }
 
 export default Nexus;
-
-const test2 = Nexus.Server("test", Nexus.CrossServerEvent());
-test2.client

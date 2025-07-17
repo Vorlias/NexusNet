@@ -1,6 +1,6 @@
 import { NetworkedEvent } from "./Internal/NetworkEvent";
 
-export class AirshipScriptConnection {
+export class NexusEventConnection {
 	private connected = true;
 
 	public constructor(private readonly disconnect: () => void) {}

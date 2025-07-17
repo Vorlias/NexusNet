@@ -11,6 +11,7 @@ import {
 } from "../Core/Types/NetworkObjectModel";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
+import { ServerMessagingEvent } from "../Objects/Server/ServerMessagingEvent";
 
 export function NexusInlineServer<const T extends AnyNetworkDeclaration>(
 	name: string,
@@ -24,10 +25,20 @@ export function NexusInlineServer<const T extends AnyNetworkDeclaration>(
 		...configuration,
 	});
 
-	return {
-		server: new ServerEvent(name, declaration as ServerEventDeclaration<any>) as unknown as InferServerRemote<T>,
-		client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
-	};
+	if (declaration.Type === "Messaging") {
+		return {
+			server: new ServerMessagingEvent(name, declaration) as unknown as InferServerRemote<T>,
+			client: undefined as InferClientRemote<T>,
+		};
+	} else {
+		return {
+			server: new ServerEvent(
+				name,
+				declaration as ServerEventDeclaration<any>,
+			) as unknown as InferServerRemote<T>,
+			client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
+		};
+	}
 }
 
 /**

@@ -1,68 +1,112 @@
 import { Connection } from "@Vorlias/NexusNet/Core/Types/Dist";
 import { CrossServerEventDeclaration } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { ServerBroadcaster } from "@Vorlias/NexusNet/Core/Types/Server/NetworkObjects";
-import { AirshipScriptConnection } from "../NetConnection";
+import { NexusEventConnection } from "../NetConnection";
 import { Platform } from "@Easy/Core/Shared/Airship";
 import { Game } from "@Easy/Core/Shared/Game";
 import { Signal } from "@Easy/Core/Shared/Util/Signal";
+import { ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
+import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { TransformArgsToBuffer, TransformBufferToArgs } from "@Vorlias/NexusNet/Core/Serialization/BufferEncoding";
+import { ParseServerCallbackArgs } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 
 interface ServerBroadcastMessage {
 	readonly sourceServerId: string;
 	readonly targetServerId: string | undefined;
-	readonly args: unknown[];
+	readonly data: unknown;
 }
 
 export function isServerBroadcastMessage(value: unknown): value is ServerBroadcastMessage {
-	return typeIs(value, "table") && "sourceServerId" in value && "args" in value;
+	return typeIs(value, "table") && "sourceServerId" in value && "data" in value;
 }
 
 export class ServerMessagingEvent<TArgs extends unknown[]> implements ServerBroadcaster<TArgs> {
 	private readonly topic: string;
 	private readonly onMockBroadcast = new Signal<[data: ServerBroadcastMessage]>();
+	private arguments: StaticNetworkType[];
+	private useBuffer: boolean;
 
 	public constructor(name: string, declaration: CrossServerEventDeclaration<TArgs>) {
-		this.topic = `nexus-${name.gsub("/", "-")[0]}`;
+		assert(name, "Name expected");
+		this.topic = `nexus-${name.gsub("%p", "-")[0].lower()}`;
+		this.arguments = declaration.Arguments;
+		this.useBuffer = declaration.UseBuffer;
 	}
 
-	private GetBroadcastData(targetServerId: string | undefined, args: TArgs): ServerBroadcastMessage {
-		let data: ServerBroadcastMessage = {
-			sourceServerId: Game.serverId,
-			targetServerId,
-			args,
-		};
-		return data;
-	}
-
-	public BroadcastAllServers(...message: TArgs): void {
-		if (Game.IsEditor()) {
-			this.onMockBroadcast.Fire(this.GetBroadcastData(undefined, message));
+	private ToBroadcastMessage(targetServerId: string | undefined, args: TArgs): ServerBroadcastMessage {
+		if (this.useBuffer) {
+			let data: ServerBroadcastMessage = {
+				sourceServerId: Game.serverId,
+				targetServerId,
+				data: buffer.tostring(TransformArgsToBuffer(this.topic, this.arguments, args)),
+			};
+			return data;
 		} else {
-			Platform.Server.Messaging.Publish(this.topic, this.GetBroadcastData(undefined, message));
+			let data: ServerBroadcastMessage = {
+				sourceServerId: Game.serverId,
+				targetServerId,
+				data: ParseServerInvokeArgs(this.topic, false, this.arguments, [], args, true),
+			};
+			return data;
 		}
 	}
 
-	public BroadcastToServer(serverId: string, ...message: TArgs): void {
-		if (Game.IsEditor()) {
-			this.onMockBroadcast.Fire(this.GetBroadcastData(serverId, message));
+	private DecodeBroadcastData(message: ServerBroadcastMessage): TArgs | undefined {
+		if (!isServerBroadcastMessage(message)) return undefined;
+		if (this.useBuffer) {
+			const bufferRes = buffer.fromstring(message.data as string);
+			return TransformBufferToArgs(this.topic, this.arguments, bufferRes) as TArgs;
 		} else {
-			Platform.Server.Messaging.Publish(this.topic, this.GetBroadcastData(serverId, message));
+			return ParseServerCallbackArgs(
+				this.topic,
+				this.useBuffer,
+				this.arguments,
+				message.data as unknown[],
+				true,
+			) as TArgs;
 		}
 	}
 
-	public Connect(callback: (serverId: string, ...message: TArgs) => void): Connection {
+	public BroadcastAllServers(...message: TArgs) {
 		if (Game.IsEditor()) {
-			const unsubscribe = this.onMockBroadcast.Connect((data) => {});
-			return new AirshipScriptConnection(unsubscribe);
+			this.onMockBroadcast.Fire(this.ToBroadcastMessage(undefined, message));
 		} else {
-			const subscription = Platform.Server.Messaging.Subscribe(this.topic, (data) => {
-				if (!isServerBroadcastMessage(data)) return;
+			return Platform.Server.Messaging.Publish(this.topic, this.ToBroadcastMessage(undefined, message));
+		}
+	}
 
-				if (data.targetServerId === undefined || data.targetServerId === Game.serverId) {
-					callback(data.sourceServerId, ...(data.args as TArgs));
-				}
+	public BroadcastToServer(targetServerId: string, ...message: TArgs): void {
+		if (Game.IsEditor()) {
+			this.onMockBroadcast.Fire(this.ToBroadcastMessage(targetServerId, message));
+		} else {
+			Platform.Server.Messaging.Publish(this.topic, this.ToBroadcastMessage(targetServerId, message));
+		}
+	}
+
+	private InvokeCallback(callback: (serverId: string, ...message: TArgs) => void, message: ServerBroadcastMessage) {
+		const args = this.DecodeBroadcastData(message);
+		if (!args) return;
+
+		const targetServerId = message.targetServerId;
+		if (targetServerId === undefined || targetServerId === Game.serverId) {
+			callback(message.sourceServerId, ...args);
+		}
+	}
+
+	public Connect(callback: (sourceServerId: string, ...message: TArgs) => void): Connection {
+		if (Game.IsEditor()) {
+			const unsubscribe = this.onMockBroadcast.Connect((message) => {
+				if (!isServerBroadcastMessage(message)) return;
+				this.InvokeCallback(callback, message);
+			});
+			return new NexusEventConnection(unsubscribe);
+		} else {
+			const subscription = Platform.Server.Messaging.Subscribe(this.topic, (message) => {
+				if (!isServerBroadcastMessage(message)) return;
+				this.InvokeCallback(callback, message);
 			});
 
-			return new AirshipScriptConnection(() => {
+			return new NexusEventConnection(() => {
 				subscription.unsubscribe();
 			});
 		}

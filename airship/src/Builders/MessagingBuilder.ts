@@ -14,6 +14,7 @@ export class CrossServerEventBuilder<TArgs extends ReadonlyArray<unknown>>
 		const declaration: CrossServerEventDeclaration<TArgs> = {
 			Type: "Messaging",
 			Arguments: [],
+			UseBuffer: true,
 		};
 		return table.freeze(declaration);
 	}
