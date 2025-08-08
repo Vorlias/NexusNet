@@ -18,7 +18,7 @@ namespace NexusSerialization {
 	export type OutputInterface<T> = { [P in keyof T]: Output<T[P]> };
 
 	export function IsSerializableType<T>(value: StaticNetworkType<T>): value is NetworkSerializableType<T, unknown> {
-		return "Serializer" in value && typeIs(value.Serialization, "table");
+		return "Serialization" in value && typeIs(value.Serialization, "table");
 	}
 
 	export function Serialize<TNetworkType extends NetworkSerializableType<any, any> | NetworkType<any>>(

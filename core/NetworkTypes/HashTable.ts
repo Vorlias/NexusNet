@@ -1,5 +1,11 @@
 import NexusSerialization from "../Serialization";
-import { NetworkBuffer, NetworkSerializableType, NetworkSerializer, NetworkType } from "../Types/NetworkTypes";
+import {
+	NetworkBuffer,
+	NetworkSerializableType,
+	NetworkSerializer,
+	NetworkType,
+	NetworkTypeSerialization,
+} from "../Types/NetworkTypes";
 import { hashstring } from "../Utils/hash";
 
 function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T): Array<[string, NetworkType<any>]> {
@@ -18,7 +24,7 @@ interface HashTable<T extends object> extends Array<T[keyof T]> {
 type TableNetworkType<T> = { [P in keyof T]: NetworkSerializableType<T[P], any> | NetworkType<T[P]> };
 function CreateHashTableSerializer<T extends object>(
 	struct: TableNetworkType<T>,
-): NetworkSerializer<NexusSerialization.InputInterface<TableNetworkType<T>>, HashTable<T>> {
+): NetworkTypeSerialization<NexusSerialization.InputInterface<TableNetworkType<T>>, HashTable<T>> {
 	const ordinal = getHashSortedKeys(struct);
 
 	return {

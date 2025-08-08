@@ -194,7 +194,11 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 	Build(): AirshipContextNetworkModel<TDeclarations> {
 		const objectCache = new Map<keyof TDeclarations, RemoteContext<TDeclarations, any>>();
 
+		const [scr, name, line] = debug.info(2, "snl");
+		let scope = `${name}@${scr}:${line}`;
+
 		const clientContext: ClientRemoteContext<TDeclarations> = new NexusClientContext(
+			scope,
 			Game.IsClient(),
 			{
 				event: ClientEvent,
@@ -204,6 +208,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 			this.configuration,
 		);
 		const serverContext: ServerRemoteContext<TDeclarations> = new NexusServerContext(
+			scope,
 			Game.IsServer(),
 			{
 				event: ServerEvent,

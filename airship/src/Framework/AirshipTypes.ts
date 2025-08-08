@@ -56,6 +56,7 @@ const ServerIdentity: NetworkSerializableType<NetworkIdentity, uint32> = {
 			}
 		},
 		OnDeserializeException(exception) {
+			warn("exception", exception.error);
 			return; // nada.
 		},
 	},

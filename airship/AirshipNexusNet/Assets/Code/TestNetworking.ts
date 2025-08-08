@@ -10,6 +10,7 @@ import { expressionToAst } from "@Vorlias/NexusNet/Inference";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { Airship } from "@Easy/Core/Shared/Airship";
+import { NexusLiteral } from "@Vorlias/NexusNet/Core/CoreTypes";
 
 export default class TestNetworking extends AirshipBehaviour {
 	private data = Nexus.BuildObjectModel()
@@ -74,7 +75,7 @@ export default class TestNetworking extends AirshipBehaviour {
 				}
 				const TestHashTableType = NexusHashTable__EXPERIMENTAL<Test>({
 					Name: NexusTypes.String,
-					Class: NexusTypes.Literal("Warrior", "Mage", "Cleric"),
+					Class: NexusLiteral("Warrior", "Mage", "Cleric"),
 					Level: NexusTypes.UInt16,
 					IsCool: NexusTypes.Boolean,
 				});
@@ -89,12 +90,12 @@ export default class TestNetworking extends AirshipBehaviour {
 				const encoded = TestHashTableType.Serialization.Serialize(rawData);
 
 				const [test, level, cclass, isCool] = encoded;
-				// print("encoded is", inspect(encoded));
+				print("encoded is", inspect(encoded));
 
-				assert(test === "test"); // Name is first
-				assert(level === 10); // Level is second
-				assert(cclass === 2); // Class is third
-				assert(isCool === true); // IsCool is fourth
+				assert(test === "test", `Expected 'test' got ${test}`); // Name is first
+				assert(level === 10, `Expected 10 got ${level}`); // Level is second
+				assert(cclass === 2, `Expected 2 got ${cclass}`); // Class is third
+				assert(isCool === true, `Expected true got ${isCool}`); // IsCool is fourth
 
 				const writer = new BufferWriter(0);
 				TestHashTableType.Encoding.WriteData(encoded, writer);

@@ -61,6 +61,7 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 	private Messaging?: ServerMessagingFactory;
 
 	public constructor(
+		private readonly scope: string,
 		isServer: boolean,
 		factories: NexusServerObjectFactories,
 		private declarations: TDefinitions,
@@ -81,22 +82,26 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 		for (const [name, declaration] of pairs(this.declarations) as IterableFunction<
 			LuaTuple<[name: string, value: AnyNetworkDeclaration]>
 		>) {
+			let id = `${this.scope}~${name}`;
+
 			if (declaration.Type === "Event") {
-				const obj = new ServerEvent(name, declaration as ServerEventDeclaration<never>);
-				this.eventCache.set(name, obj);
+				const obj = new ServerEvent(id, declaration as ServerEventDeclaration<never>);
+				this.eventCache.set(id, obj);
 			} else if (declaration.Type === "Function") {
-				const obj = new ServerFunction(name, declaration as ServerFunctionDeclaration<never, never>);
-				this.functionCache.set(name, obj);
+				const obj = new ServerFunction(id, declaration as ServerFunctionDeclaration<never, never>);
+				this.functionCache.set(id, obj);
 			} else if (declaration.Type === "Messaging" && CrossMessagingEvent) {
-				const obj = new CrossMessagingEvent(name, declaration);
-				this.eventCache.set(name, obj);
+				const obj = new CrossMessagingEvent(id, declaration);
+				this.eventCache.set(id, obj);
 			}
 		}
 	}
 
 	public Get<K extends keyof FilterServerDeclarations<TDefinitions> & string>(
-		id: K,
+		key: K,
 	): InferServerRemote<TDefinitions[K]> {
+		let id = `${this.scope}~${key}`;
+
 		const obj = this.eventCache.get(id) ?? this.functionCache.get(id);
 		assert(obj, `Failed to get server network object with id '${id}'`);
 		return obj as InferServerRemote<TDefinitions[K]>;
@@ -111,6 +116,7 @@ export class NexusClientContext<TDefinitions extends RemoteDeclarations> impleme
 	private Function: ClientFunctionFactory;
 
 	public constructor(
+		private readonly scope: string,
 		isClient: boolean,
 		factories: NexusClientObjectFactories,
 		private declarations: TDefinitions,
@@ -130,19 +136,23 @@ export class NexusClientContext<TDefinitions extends RemoteDeclarations> impleme
 		for (const [name, declaration] of pairs(this.declarations) as IterableFunction<
 			LuaTuple<[name: string, value: AnyNetworkDeclaration]>
 		>) {
+			let id = `${this.scope}~${name}`;
+
 			if (declaration.Type === "Event") {
-				const obj = new ClientEvent(name, declaration as ClientEventDeclaration<never>);
-				this.eventCache.set(name, obj);
+				const obj = new ClientEvent(id, declaration as ClientEventDeclaration<never>);
+				this.eventCache.set(id, obj);
 			} else if (declaration.Type === "Function") {
-				const obj = new ClientFunction(name, declaration as ClientFunctionDeclaration<never, never>);
-				this.functionCache.set(name, obj);
+				const obj = new ClientFunction(id, declaration as ClientFunctionDeclaration<never, never>);
+				this.functionCache.set(id, obj);
 			}
 		}
 	}
 
 	public Get<K extends keyof FilterClientDeclarations<TDefinitions> & string>(
-		id: K,
+		key: K,
 	): InferClientRemote<TDefinitions[K]> {
+		let id = `${this.scope}~${key}`;
+
 		const obj = this.eventCache.get(id) ?? this.functionCache.get(id);
 		assert(obj, `Failed to get client network object with id '${id}'`);
 		return obj as InferClientRemote<TDefinitions[K]>;
