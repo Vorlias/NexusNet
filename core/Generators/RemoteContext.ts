@@ -72,6 +72,7 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 		this.Messaging = factories.messaging;
 
 		if (isServer) this.Init();
+		table.freeze(this);
 	}
 
 	public Init() {
@@ -82,7 +83,7 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 		for (const [name, declaration] of pairs(this.declarations) as IterableFunction<
 			LuaTuple<[name: string, value: AnyNetworkDeclaration]>
 		>) {
-			let id = `${this.scope}~${name}`;
+			let id = `${this.scope}:${name}`;
 
 			if (declaration.Type === "Event") {
 				const obj = new ServerEvent(id, declaration as ServerEventDeclaration<never>);
@@ -95,12 +96,15 @@ export class NexusServerContext<TDefinitions extends RemoteDeclarations> impleme
 				this.eventCache.set(id, obj);
 			}
 		}
+
+		table.freeze(this.eventCache);
+		table.freeze(this.functionCache);
 	}
 
 	public Get<K extends keyof FilterServerDeclarations<TDefinitions> & string>(
 		key: K,
 	): InferServerRemote<TDefinitions[K]> {
-		let id = `${this.scope}~${key}`;
+		let id = `${this.scope}:${key}`;
 
 		const obj = this.eventCache.get(id) ?? this.functionCache.get(id);
 		assert(obj, `Failed to get server network object with id '${id}'`);
@@ -126,6 +130,7 @@ export class NexusClientContext<TDefinitions extends RemoteDeclarations> impleme
 		this.Function = factories.function;
 
 		if (isClient) this.Init();
+		table.freeze(this);
 	}
 
 	public Init() {
@@ -136,7 +141,7 @@ export class NexusClientContext<TDefinitions extends RemoteDeclarations> impleme
 		for (const [name, declaration] of pairs(this.declarations) as IterableFunction<
 			LuaTuple<[name: string, value: AnyNetworkDeclaration]>
 		>) {
-			let id = `${this.scope}~${name}`;
+			let id = `${this.scope}:${name}`;
 
 			if (declaration.Type === "Event") {
 				const obj = new ClientEvent(id, declaration as ClientEventDeclaration<never>);
@@ -146,12 +151,15 @@ export class NexusClientContext<TDefinitions extends RemoteDeclarations> impleme
 				this.functionCache.set(id, obj);
 			}
 		}
+
+		table.freeze(this.eventCache);
+		table.freeze(this.functionCache);
 	}
 
 	public Get<K extends keyof FilterClientDeclarations<TDefinitions> & string>(
 		key: K,
 	): InferClientRemote<TDefinitions[K]> {
-		let id = `${this.scope}~${key}`;
+		let id = `${this.scope}:${key}`;
 
 		const obj = this.eventCache.get(id) ?? this.functionCache.get(id);
 		assert(obj, `Failed to get client network object with id '${id}'`);

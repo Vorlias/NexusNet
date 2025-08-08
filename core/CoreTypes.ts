@@ -69,7 +69,6 @@ export function NexusLiteral<T extends Array<Literal>>(...items: T): NetworkSeri
 		},
 		Serialization: {
 			Serialize(value) {
-				print("serialize", value, "to", items.indexOf(value));
 				return items.indexOf(value);
 			},
 			Deserialize(value) {

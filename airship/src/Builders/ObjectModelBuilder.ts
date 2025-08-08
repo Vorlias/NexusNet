@@ -219,6 +219,10 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 			this.configuration,
 		);
 
+		table.freeze(this.declarations);
+		table.freeze(this.configuration);
+		table.freeze(this);
+
 		return {
 			Get<K extends DeclarationRemoteKeys<TDeclarations>>(key: K) {
 				if (objectCache.has(key)) return objectCache.get(key) as RemoteContext<TDeclarations, K>;
