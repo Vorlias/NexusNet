@@ -65,7 +65,7 @@ function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): N
 				const [key, encoder] = ordinal[i];
 
 				const value = data[i + 1];
-				encoder.BufferEncoder.WriteData(value, writer); // lol this is where it decides to ignore the `+ 1`
+				encoder.Encoding.WriteData(value, writer); // lol this is where it decides to ignore the `+ 1`
 			}
 		},
 		ReadData(reader) {
@@ -73,7 +73,7 @@ function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): N
 
 			for (let i = 0; i < ordinal.size(); i++) {
 				const [, encoder] = ordinal[i];
-				data[i + 1] = encoder.BufferEncoder.ReadData(reader);
+				data[i + 1] = encoder.Encoding.ReadData(reader);
 			}
 
 			return data;
@@ -90,11 +90,11 @@ export function NexusHashTable__EXPERIMENTAL<T extends object>(
 
 	return {
 		Name: debugName ?? "HashTable",
-		Validator: {
+		Validation: {
 			Validate(obj): obj is NexusSerialization.InputInterface<typeof tbl> {
 				if (!typeIs(obj, "table")) return false;
 				for (const [key, value] of pairs(obj)) {
-					const validator = tbl[key as keyof typeof tbl].Validator;
+					const validator = tbl[key as keyof typeof tbl].Validation;
 					if (!validator.Validate(value)) return false;
 				}
 
@@ -103,14 +103,14 @@ export function NexusHashTable__EXPERIMENTAL<T extends object>(
 			ValidateError(this: void, networkType, obj) {
 				if (!typeIs(obj, "table")) return "Expected table got " + typeOf(obj);
 				for (const [key, value] of pairs(obj)) {
-					const validator = tbl[key as keyof typeof tbl].Validator;
+					const validator = tbl[key as keyof typeof tbl].Validation;
 					if (!validator.Validate(value)) return "Invalid key '" + key + "'";
 				}
 
 				return "";
 			},
 		},
-		Serializer: serializer,
-		BufferEncoder: buffer,
+		Serialization: serializer,
+		Encoding: buffer,
 	};
 }

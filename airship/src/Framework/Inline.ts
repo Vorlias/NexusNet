@@ -4,13 +4,17 @@ import { InferServerRemote, InferClientRemote } from "../Core/Types/Inference";
 import {
 	ClientBuilder,
 	ClientEventDeclaration,
+	ClientFunctionDeclaration,
 	NetworkModelConfiguration,
 	ServerBuilder,
 	ServerEventDeclaration,
+	ServerFunctionDeclaration,
 	SharedBuilder,
 } from "../Core/Types/NetworkObjectModel";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
+import { ClientFunction } from "../Objects/Client/ClientFunction";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
+import { ServerFunction } from "../Objects/Server/ServerFunction";
 import { ServerMessagingEvent } from "../Objects/Server/ServerMessagingEvent";
 
 export function NexusInlineServer<const T extends AnyNetworkDeclaration>(
@@ -30,13 +34,24 @@ export function NexusInlineServer<const T extends AnyNetworkDeclaration>(
 			server: new ServerMessagingEvent(name, declaration) as unknown as InferServerRemote<T>,
 			client: undefined as InferClientRemote<T>,
 		};
-	} else {
+	} else if (declaration.Type === "Event") {
 		return {
 			server: new ServerEvent(
 				name,
 				declaration as ServerEventDeclaration<any>,
 			) as unknown as InferServerRemote<T>,
 			client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
+		};
+	} else {
+		return {
+			server: new ServerFunction(
+				name,
+				declaration as ServerFunctionDeclaration<any, any>,
+			) as unknown as InferServerRemote<T>,
+			client: new ClientFunction(
+				name,
+				declaration as ClientFunctionDeclaration<any, any>,
+			) as InferClientRemote<T>,
 		};
 	}
 }
@@ -49,13 +64,6 @@ export function NexusInlineClient<const T extends AnyNetworkDeclaration>(
 	network: ClientBuilder<T>,
 	configuration?: Partial<NetworkModelConfiguration>,
 ): Nexus.InlineContext<T> {
-	//const [n, l, s, f, a] = debug.info(2, "nlsfa");
-
-	// if (!name) {
-	// 	assert(n === "constructor", "Inline declarations can only be used inside components");
-	// 	name = `${s}:${l}#${n}`;
-	// }
-
 	const declaration = network.OnClient({
 		Debugging: false,
 		UseBuffers: false,
@@ -63,10 +71,28 @@ export function NexusInlineClient<const T extends AnyNetworkDeclaration>(
 		...configuration,
 	});
 
-	return {
-		server: new ServerEvent(name, declaration as ServerEventDeclaration<any>) as unknown as InferServerRemote<T>,
-		client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
-	};
+	if (declaration.Type === "Event") {
+		return {
+			server: new ServerEvent(
+				name,
+				declaration as ServerEventDeclaration<any>,
+			) as unknown as InferServerRemote<T>,
+			client: new ClientEvent(name, declaration as ClientEventDeclaration<any>) as InferClientRemote<T>,
+		};
+	} else if (declaration.Type === "Function") {
+		return {
+			server: new ServerFunction(
+				name,
+				declaration as ServerFunctionDeclaration<any, any>,
+			) as unknown as InferServerRemote<T>,
+			client: new ClientFunction(
+				name,
+				declaration as ClientFunctionDeclaration<any, any>,
+			) as InferClientRemote<T>,
+		};
+	} else {
+		throw `Unsupported type ${declaration.Type}`;
+	}
 }
 
 /**

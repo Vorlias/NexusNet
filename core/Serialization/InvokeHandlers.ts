@@ -13,7 +13,7 @@ export function ParseClientInvokeArgs<TArgs extends unknown[]>(
 	args: TArgs,
 	enforceArgCount: boolean,
 ) {
-	const encoders = transformers.map((v) => v.BufferEncoder);
+	const encoders = transformers.map((v) => v.Encoding);
 
 	if (enforceArgCount && transformers.size() !== args.size()) {
 		throw `[NexusNet] Call to ${name} expected ${transformers.size()} arguments, got ${args.size()}`;

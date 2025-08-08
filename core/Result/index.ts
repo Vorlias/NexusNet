@@ -37,7 +37,7 @@ function NetType<T extends defined, E extends defined>(
 ): NetworkSerializableType<NexusResult<T, E>, [true, T] | [false, E]> {
 	return {
 		Name: `Result<${valueType.Name}, ${errorType.Name}>`,
-		Validator: {
+		Validation: {
 			ValidateError: (typeId) => {
 				return "Expected " + typeId.Name;
 			},
@@ -45,7 +45,7 @@ function NetType<T extends defined, E extends defined>(
 				return IsResult(value);
 			},
 		},
-		Serializer: {
+		Serialization: {
 			Serialize(result) {
 				if (result.ok) {
 					return [true, NexusSerialization.Serialize(valueType, result.value)];
@@ -62,23 +62,23 @@ function NetType<T extends defined, E extends defined>(
 				}
 			},
 		},
-		BufferEncoder: {
+		Encoding: {
 			WriteData(data, writer) {
 				const [isOk, value] = data;
 				if (isOk) {
 					writer.WriteBoolean(true);
-					valueType.BufferEncoder.WriteData(value, writer);
+					valueType.Encoding.WriteData(value, writer);
 				} else {
 					writer.WriteBoolean(false);
-					errorType.BufferEncoder.WriteData(value, writer);
+					errorType.Encoding.WriteData(value, writer);
 				}
 			},
 			ReadData(reader) {
 				const isOk = reader.ReadBoolean();
 				if (isOk) {
-					return [true, valueType.BufferEncoder.ReadData(reader)];
+					return [true, valueType.Encoding.ReadData(reader)];
 				} else {
-					return [false, errorType.BufferEncoder.ReadData(reader)];
+					return [false, errorType.Encoding.ReadData(reader)];
 				}
 			},
 		},

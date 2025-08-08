@@ -86,7 +86,7 @@ export default class TestNetworking extends AirshipBehaviour {
 					IsCool: true,
 				};
 
-				const encoded = TestHashTableType.Serializer.Serialize(rawData);
+				const encoded = TestHashTableType.Serialization.Serialize(rawData);
 
 				const [test, level, cclass, isCool] = encoded;
 				// print("encoded is", inspect(encoded));
@@ -97,11 +97,11 @@ export default class TestNetworking extends AirshipBehaviour {
 				assert(isCool === true); // IsCool is fourth
 
 				const writer = new BufferWriter(0);
-				TestHashTableType.BufferEncoder.WriteData(encoded, writer);
+				TestHashTableType.Encoding.WriteData(encoded, writer);
 
 				const reader = new BufferReader(writer.ToBuffer());
-				const encodedBufferDecoded = TestHashTableType.BufferEncoder.ReadData(reader);
-				const decoded = TestHashTableType.Serializer.Deserialize(encodedBufferDecoded);
+				const encodedBufferDecoded = TestHashTableType.Encoding.ReadData(reader);
+				const decoded = TestHashTableType.Serialization.Deserialize(encodedBufferDecoded);
 				assert(ObjectUtils.deepEquals(decoded, rawData), "not equal");
 			}),
 
@@ -211,14 +211,14 @@ export default class TestNetworking extends AirshipBehaviour {
 				const TestEnumType = NexusTypes.StringEnum(TestEnum);
 
 				const hashValueOfAlice = string.hash(TestEnum.Alice);
-				const serializedAlice = TestEnumType.Serializer.Serialize(TestEnum.Alice);
+				const serializedAlice = TestEnumType.Serialization.Serialize(TestEnum.Alice);
 				print("check", hashValueOfAlice, serializedAlice);
 				assert(
 					hashValueOfAlice === serializedAlice,
 					`hashValueOfAlice(${hashValueOfAlice}) != serializedAlice(${serializedAlice})`,
 				);
 
-				const decode = TestEnumType.Serializer.Deserialize(serializedAlice);
+				const decode = TestEnumType.Serialization.Deserialize(serializedAlice);
 				assert(decode === TestEnum.Alice, "Expected Alice!");
 			}),
 

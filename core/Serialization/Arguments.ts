@@ -43,7 +43,7 @@ export function ValidateArguments(
 		for (let i = 0; i < args.size(); i++) {
 			const arg = args[i];
 			const argType = networkTypes[i];
-			const validator = argType.Validator;
+			const validator = argType.Validation;
 
 			if (!validator.Validate(arg)) {
 				return $tuple(ValidateResult.ValidationError, {

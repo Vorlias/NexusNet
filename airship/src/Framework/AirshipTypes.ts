@@ -1,7 +1,7 @@
 import { NetworkUtil } from "@Easy/Core/Shared/Util/NetworkUtil";
 import { int32, NetworkBuffers, uint32 } from "../Core/Buffers";
 import { NexusCoreTypes } from "../Core/CoreTypes";
-import { NetworkSerializableType, NetworkSerializer, NetworkType, ClientNullable } from "../Core/Types/NetworkTypes";
+import { NetworkSerializableType, NetworkType } from "../Core/Types/NetworkTypes";
 import { default as AirshipCharacter } from "@Easy/Core/Shared/Character/Character";
 import { Airship } from "@Easy/Core/Shared/Airship";
 import { Player as AirshipPlayer } from "@Easy/Core/Shared/Player/Player";
@@ -11,13 +11,13 @@ import { Game } from "@Easy/Core/Shared/Game";
 
 const NullableIdentity: NetworkSerializableType<NetworkIdentity | undefined, uint32> = {
 	Name: "Nullable<NetworkIdentity>",
-	BufferEncoder: NetworkBuffers.UInt32,
-	Validator: {
+	Encoding: NetworkBuffers.UInt32,
+	Validation: {
 		Validate(value): value is NetworkIdentity {
 			return typeIs(value, "userdata") && (value as { IsA(name: string): boolean }).IsA("NetworkIdentity");
 		},
 	},
-	Serializer: {
+	Serialization: {
 		Serialize(value) {
 			return value?.netId ?? 0;
 		},
@@ -29,15 +29,20 @@ const NullableIdentity: NetworkSerializableType<NetworkIdentity | undefined, uin
 	},
 };
 
+const enum Exceptions {
+	NetworkIdentityClient = "Failed to find NetworkIdentity with id %d on the client - " +
+		"object either no longer exsits, or is out of interest management range",
+}
+
 const ServerIdentity: NetworkSerializableType<NetworkIdentity, uint32> = {
 	Name: "NetworkIdentity",
-	BufferEncoder: NetworkBuffers.UInt32,
-	Validator: {
+	Encoding: NetworkBuffers.UInt32,
+	Validation: {
 		Validate(value): value is NetworkIdentity {
 			return typeIs(value, "userdata") && (value as { IsA(name: string): boolean }).IsA("NetworkIdentity");
 		},
 	},
-	Serializer: {
+	Serialization: {
 		Serialize(value) {
 			return value.netId;
 		},
@@ -45,26 +50,26 @@ const ServerIdentity: NetworkSerializableType<NetworkIdentity, uint32> = {
 			if (Game.IsServer()) {
 				return NetworkUtil.WaitForNetworkIdentity(value);
 			} else {
-				const object = NetworkUtil.WaitForNetworkIdentityTimeout(value, 2);
-				assert(
-					object,
-					`NetworkIdentity ${value} could not be found on the client: was it destroyed or disabled?`,
-				);
+				const object = NetworkUtil.WaitForNetworkIdentityTimeout(value, 1);
+				assert(object, Exceptions.NetworkIdentityClient.format(value));
 				return object;
 			}
+		},
+		OnDeserializeException(exception) {
+			return; // nada.
 		},
 	},
 };
 
 const Character: NetworkSerializableType<AirshipCharacter, uint32> = {
 	Name: "Character",
-	BufferEncoder: NetworkBuffers.UInt32,
-	Validator: {
+	Encoding: NetworkBuffers.UInt32,
+	Validation: {
 		Validate(value): value is AirshipCharacter {
 			return typeIs(value, "table") && value instanceof AirshipCharacter;
 		},
 	},
-	Serializer: {
+	Serialization: {
 		Serialize(value) {
 			return value.id;
 		},
@@ -78,13 +83,13 @@ const Character: NetworkSerializableType<AirshipCharacter, uint32> = {
 
 const Player: NetworkSerializableType<AirshipPlayer, string> = {
 	Name: "AirshipPlayer",
-	BufferEncoder: NetworkBuffers.String,
-	Validator: {
+	Encoding: NetworkBuffers.String,
+	Validation: {
 		Validate(value): value is AirshipPlayer {
 			return typeIs(value, "table") && value instanceof AirshipPlayer;
 		},
 	},
-	Serializer: {
+	Serialization: {
 		Serialize(value) {
 			return value.userId;
 		},
@@ -98,13 +103,13 @@ const Player: NetworkSerializableType<AirshipPlayer, string> = {
 
 const AirshipInventory: NetworkSerializableType<Inventory, int32> = {
 	Name: "AirshipInventory",
-	BufferEncoder: NetworkBuffers.Int32,
-	Validator: {
+	Encoding: NetworkBuffers.Int32,
+	Validation: {
 		Validate(value): value is Inventory {
 			return typeIs(value, "table") && value instanceof Inventory;
 		},
 	},
-	Serializer: {
+	Serialization: {
 		Serialize(value) {
 			return value.id;
 		},
@@ -118,13 +123,13 @@ const AirshipInventory: NetworkSerializableType<Inventory, int32> = {
 
 const AirshipTeam: NetworkSerializableType<Team, string> = {
 	Name: "AirshipTeam",
-	BufferEncoder: NetworkBuffers.String,
-	Validator: {
+	Encoding: NetworkBuffers.String,
+	Validation: {
 		Validate(value): value is Team {
 			return typeIs(value, "table") && value instanceof Team;
 		},
 	},
-	Serializer: {
+	Serialization: {
 		Serialize(value) {
 			return value.id;
 		},
@@ -138,7 +143,7 @@ const AirshipTeam: NetworkSerializableType<Team, string> = {
 
 const UnityColor: NetworkType<Color, Color> = {
 	Name: "Color",
-	BufferEncoder: {
+	Encoding: {
 		WriteData(data: Color, writer) {
 			writer.WriteFloat32(data.r);
 			writer.WriteFloat32(data.g);
@@ -153,7 +158,7 @@ const UnityColor: NetworkType<Color, Color> = {
 			return new Color(r, g, b, a);
 		},
 	},
-	Validator: {
+	Validation: {
 		Validate(value): value is Color {
 			return true;
 		},
@@ -162,7 +167,7 @@ const UnityColor: NetworkType<Color, Color> = {
 
 const UnityVector4: NetworkType<Vector4, Vector4> = {
 	Name: "Vector4",
-	BufferEncoder: {
+	Encoding: {
 		WriteData(data: Vector4, writer) {
 			writer.WriteFloat32(data.x);
 			writer.WriteFloat32(data.y);
@@ -177,7 +182,7 @@ const UnityVector4: NetworkType<Vector4, Vector4> = {
 			return new Vector4(x, y, z, w);
 		},
 	},
-	Validator: {
+	Validation: {
 		Validate(value): value is Vector4 {
 			return true;
 		},
@@ -186,7 +191,7 @@ const UnityVector4: NetworkType<Vector4, Vector4> = {
 
 const UnityQuat: NetworkType<Quaternion, Quaternion> = {
 	Name: "Quaternion",
-	BufferEncoder: {
+	Encoding: {
 		WriteData(data: Quaternion, writer) {
 			writer.WriteFloat32(data.x);
 			writer.WriteFloat32(data.y);
@@ -201,7 +206,7 @@ const UnityQuat: NetworkType<Quaternion, Quaternion> = {
 			return new Quaternion(x, y, z, w);
 		},
 	},
-	Validator: {
+	Validation: {
 		Validate(value): value is Quaternion {
 			return true;
 		},
@@ -210,19 +215,19 @@ const UnityQuat: NetworkType<Quaternion, Quaternion> = {
 
 const UnityRay: NetworkType<Ray, Ray> = {
 	Name: "Ray",
-	BufferEncoder: {
+	Encoding: {
 		WriteData(data: Ray, writer) {
-			UnityVector3.BufferEncoder.WriteData(data.origin, writer);
-			UnityVector3.BufferEncoder.WriteData(data.direction, writer);
+			UnityVector3.Encoding.WriteData(data.origin, writer);
+			UnityVector3.Encoding.WriteData(data.direction, writer);
 		},
 		ReadData(reader): Ray {
-			const origin = UnityVector3.BufferEncoder.ReadData(reader);
-			const direction = UnityVector3.BufferEncoder.ReadData(reader);
+			const origin = UnityVector3.Encoding.ReadData(reader);
+			const direction = UnityVector3.Encoding.ReadData(reader);
 
 			return new Ray(origin, direction);
 		},
 	},
-	Validator: {
+	Validation: {
 		Validate(value): value is Ray {
 			return true;
 		},
@@ -231,7 +236,7 @@ const UnityRay: NetworkType<Ray, Ray> = {
 
 const UnityVector3: NetworkType<Vector3, Vector3> = {
 	Name: "Vector3",
-	BufferEncoder: {
+	Encoding: {
 		WriteData(data: Vector3, writer) {
 			writer.WriteFloat32(data.x);
 			writer.WriteFloat32(data.y);
@@ -244,7 +249,7 @@ const UnityVector3: NetworkType<Vector3, Vector3> = {
 			return new Vector3(x, y, z);
 		},
 	},
-	Validator: {
+	Validation: {
 		Validate(value): value is Vector3 {
 			return true;
 		},
@@ -253,7 +258,7 @@ const UnityVector3: NetworkType<Vector3, Vector3> = {
 
 const UnityVector2: NetworkType<Vector2, Vector2> = {
 	Name: "Vector2",
-	BufferEncoder: {
+	Encoding: {
 		WriteData(data: Vector2, writer) {
 			writer.WriteFloat32(data.x);
 			writer.WriteFloat32(data.y);
@@ -264,7 +269,7 @@ const UnityVector2: NetworkType<Vector2, Vector2> = {
 			return new Vector2(x, y);
 		},
 	},
-	Validator: {
+	Validation: {
 		Validate(value): value is Vector2 {
 			return true;
 		},
@@ -283,7 +288,7 @@ interface AirshipBuiltInTypes extends NexusCoreTypes {
 	 *
 	 * It will serialize as `0` if it's undefined, or deserialize as `undefined` if not found on the receiving end.
 	 *
-	 * Useful for objects that may get destroyed between it being sent and being receieved.
+	 * Useful for objects that may get destroyed between it being sent and being receieved, as well as objects that are affected by [interest management](https://mirror-networking.gitbook.io/docs/manual/interest-management).
 	 */
 	NullableIdentity: typeof NullableIdentity;
 
@@ -331,3 +336,5 @@ export const NexusTypes: AirshipBuiltInTypes = {
 	Quaternion: UnityQuat,
 	// Ray: UnityRay,
 };
+
+NexusTypes.NumberConstrained(0, 100);

@@ -2,7 +2,12 @@ import type { Player } from "@Easy/Core/Shared/Player/Player";
 import type { NexusEventConnection } from "../Objects/NetConnection";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
-import type { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import type {
+	NetworkSerializableType,
+	NetworkType,
+	StaticNetworkType,
+	ToNetworkArguments,
+} from "../Core/Types/NetworkTypes";
 import { AirshipNetworkObjectModelBuilder } from "../Builders/ObjectModelBuilder";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
 import { InferClientRemote, InferNOMDeclarations, InferServerRemote } from "../Core/Types/Inference";
@@ -58,6 +63,13 @@ namespace Nexus {
 	 * Infers the client object type from the given declaration
 	 */
 	export type ToClientObject<T extends AnyNetworkDeclaration> = InferClientRemote<T>;
+
+	export type ToValueTypes<T extends readonly StaticNetworkType[]> = { [P in keyof T]: ToValueType<T[P]> };
+	export type ToValueType<T extends StaticNetworkType> = T extends NetworkSerializableType<infer A, infer _>
+		? A
+		: T extends NetworkType<infer A>
+		? A
+		: never;
 
 	/**
 	 * The version of Nexus
@@ -212,3 +224,5 @@ namespace Nexus {
 }
 
 export default Nexus;
+
+const server = Nexus.Server("test", Nexus.Event(NexusTypes.NullableIdentity)).client.Connect((netId) => {});

@@ -80,11 +80,11 @@ interface ConnectionType extends NetworkSerializableType<Player | undefined, str
 }
 const connectionToClient = {
 	Name: "Connection",
-	Validator: {
-		Validate: NexusTypes.Player.Validator.Validate,
+	Validation: {
+		Validate: NexusTypes.Player.Validation.Validate,
 	},
-	BufferEncoder: NetworkBuffers.Nullable(NexusTypes.Player.BufferEncoder),
-	Serializer: NexusTypes.Optional(NexusTypes.Player).Serializer,
+	Encoding: NetworkBuffers.Nullable(NexusTypes.Player.Encoding),
+	Serialization: NexusTypes.Optional(NexusTypes.Player).Serialization,
 } as ConnectionType;
 
 interface Command {

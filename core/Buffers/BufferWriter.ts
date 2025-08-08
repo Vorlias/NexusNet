@@ -26,6 +26,10 @@ export class BufferWriter {
 		this.buffer = newBuffer;
 	}
 
+	SetBuffer(buffer: buffer) {
+		this.buffer = buffer;
+	}
+
 	WriteInt8(i8: number) {
 		this.ResizeTo(this.cursor + 1);
 		buffer.writei8(this.buffer, this.cursor, i8);

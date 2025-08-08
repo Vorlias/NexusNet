@@ -1,13 +1,16 @@
 import { Game } from "@Easy/Core/Shared/Game";
 import {
 	ClientBuilder,
+	ClientMiddlewareBuilder,
 	ContextNetworkModel,
 	NetworkModelConfiguration,
 	NetworkObjectModelBuilder,
 	RemoteDeclarations,
+	RemoteRunContext,
 	ScopeBuilder,
 	ScopeObjectModelDeclaration,
 	ServerBuilder,
+	ServerMiddlewareBuilder,
 	SharedBuilder,
 } from "../Core/Types/NetworkObjectModel";
 import { Identity, MergeIdentity, Named } from "../Core/Types/Utility";
@@ -25,6 +28,12 @@ import { AirshipNetworkModelConfiguration } from "../NOM/NetworkObjectModel";
 import { ServerFunction } from "../Objects/Server/ServerFunction";
 import { ClientFunction } from "../Objects/Client/ClientFunction";
 import { ServerMessagingEvent } from "../Objects/Server/ServerMessagingEvent";
+import {
+	ClientCallbackMiddleware,
+	ClientInvokeMiddleware,
+	ServerCallbackMiddleware,
+	ServerInvokeMiddleware,
+} from "../Core/Middleware/Types";
 
 type Scoped<K extends string, T extends RemoteDeclarations> = { [P in keyof T as `${K}/${P & string}`]: T[P] };
 
@@ -123,6 +132,36 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 		};
 
 		return this as never;
+	}
+
+	ApplyServerMiddleware(build: (builder: ServerMiddlewareBuilder<unknown[]>) => ServerMiddlewareBuilder<unknown[]>) {
+		const builder: ServerMiddlewareBuilder<unknown[]> = {
+			OnClientCallback: (callback: ClientCallbackMiddleware) => {
+				//this.callbackMiddleware.push(callback);
+				return builder as unknown as ServerMiddlewareBuilder<unknown[]>;
+			},
+			OnServerInvoke: (callback: ServerInvokeMiddleware) => {
+				//this.invokeMiddleware.push(callback);
+				return builder as unknown as ServerMiddlewareBuilder<unknown[]>;
+			},
+		};
+
+		return this;
+	}
+
+	ApplyClientMiddleware(build: (builder: ClientMiddlewareBuilder<unknown[]>) => ClientMiddlewareBuilder<unknown[]>) {
+		const builder: ClientMiddlewareBuilder<unknown[]> = {
+			OnServerCallback: (callback: ServerCallbackMiddleware) => {
+				//this.callbackMiddleware.push(callback);
+				return builder as unknown as ClientMiddlewareBuilder<unknown[]>;
+			},
+			OnClientInvoke: (callback: ClientInvokeMiddleware<unknown[]>) => {
+				//this.invokeMiddleware.push(callback);
+				return builder as unknown as ClientMiddlewareBuilder<unknown[]>;
+			},
+		};
+
+		return this;
 	}
 
 	/**

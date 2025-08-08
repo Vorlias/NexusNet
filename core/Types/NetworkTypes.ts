@@ -3,6 +3,7 @@ import { int32, NetworkBuffers } from "../Buffers";
 import { BufferReader } from "../Buffers/BufferReader";
 import { BufferWriter } from "../Buffers/BufferWriter";
 import NexusSerialization, { Input, Output } from "../Serialization";
+import { DeserializationException } from "../Serialization/Serializer";
 
 export type i8 = number;
 export type u8 = number;
@@ -38,25 +39,40 @@ export interface NetworkType<TValue, TEncode = TValue> {
 	/**
 	 * A network buffer for this network type - used for buffer serialization
 	 */
-	BufferEncoder: NetworkBuffer<TEncode>;
-	Validator: NetworkValidator<TValue, TEncode>;
+	Encoding: NetworkBuffer<TEncode>;
+	Validation: NetworkValidator<TValue, TEncode>;
+}
+
+export interface SerializationContext {}
+export interface DeserializationContext {
+	Invalidate(this: void): void;
 }
 
 export interface NetworkSerializer<TInput, TOutput> {
 	/**
 	 * Serializes the given value to the serialized value for this network type
 	 */
-	Serialize(this: void, value: TInput): TOutput;
+	Serialize(this: void, value: TInput, serializer?: SerializationContext): TOutput;
+}
+
+export interface NetworkDeserializer<TInput, TOutput> {
 	/**
 	 * Deserializes a serialized value for this network type to the original type
 	 */
-	Deserialize(this: void, value: TOutput): TInput;
+	Deserialize(this: void, value: TOutput, deserializer?: DeserializationContext): TInput;
+
+	/**
+	 * Handle errors that might happen with the deserialization process
+	 */
+	OnDeserializeException?(this: void, exception: DeserializationException): boolean | void;
 }
 
-export type ClientNullable<T> = T & { readonly __nominal_Nullable?: unique symbol };
+export interface NetworkTypeSerialization<TInput, TOutput>
+	extends NetworkSerializer<TInput, TOutput>,
+		NetworkDeserializer<TInput, TOutput> {}
 
 export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TInput, TOutput> {
-	Serializer: NetworkSerializer<TInput, TOutput>;
+	Serialization: NetworkTypeSerialization<TInput, TOutput>;
 }
 
 export namespace NetworkType {
@@ -64,8 +80,8 @@ export namespace NetworkType {
 		networkType: NetworkType<T, TEncode>,
 		value: unknown,
 	): LuaTuple<[true, undefined] | [false, string]> {
-		if (networkType.Validator) {
-			const validator = networkType.Validator;
+		if (networkType.Validation) {
+			const validator = networkType.Validation;
 
 			if (validator.Validate(value)) {
 				return $tuple<[true, undefined]>(true, undefined);
@@ -82,14 +98,14 @@ export namespace NetworkType {
 	}
 
 	type InferSerializer<T> = T extends NetworkSerializableType<infer _TInput, infer _TOutput>
-		? T["Serializer"]
+		? T["Serialization"]
 		: undefined;
 	type InferSerializers<T extends ReadonlyArray<StaticNetworkType>> = {
 		[P in keyof T]: InferSerializer<T[P]>;
 	};
 
 	type InferBuffers<T extends ReadonlyArray<StaticNetworkType>> = {
-		[P in keyof T]: T[P]["BufferEncoder"];
+		[P in keyof T]: T[P]["Encoding"];
 	};
 
 	type InferValidators<T extends ReadonlyArray<StaticNetworkType>> = {
@@ -102,7 +118,7 @@ export namespace NetworkType {
 		for (let i = 0; i < values.size(); i++) {
 			const positionalNetworkType = values[i];
 			if (NexusSerialization.IsSerializableType(positionalNetworkType)) {
-				serializers[i] = positionalNetworkType.Serializer;
+				serializers[i] = positionalNetworkType.Serialization;
 			}
 		}
 
@@ -114,7 +130,7 @@ export namespace NetworkType {
 
 		for (let i = 0; i < values.size(); i++) {
 			const positionalNetworkType = values[i];
-			buffers[i] = positionalNetworkType.BufferEncoder;
+			buffers[i] = positionalNetworkType.Encoding;
 		}
 
 		return buffers as InferBuffers<T>;
@@ -125,7 +141,7 @@ export namespace NetworkType {
 
 		for (let i = 0; i < values.size(); i++) {
 			const positionalNetworkType = values[i];
-			validators[i] = positionalNetworkType.Validator;
+			validators[i] = positionalNetworkType.Validation;
 		}
 
 		return validators as InferValidators<T>;

@@ -3,7 +3,13 @@ import { NetworkPlayer } from "../Types/Dist";
 import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
 import { ValidateArguments, ValidateResult } from "./Arguments";
 import { TransformArgsToBuffer, TransformBufferToArgs } from "./BufferEncoding";
-import { NetDeserializeArguments, NetSerializeArguments } from "./Serializer";
+import {
+	DeserializeError,
+	DeserializeErrorType,
+	NetDeserializeArguments,
+	NetDeserializeArgumentsWithExceptionHandler,
+	NetSerializeArguments,
+} from "./Serializer";
 
 export function ParseServerCallbackArgs<TArgs extends unknown[]>(
 	name: string,
@@ -133,6 +139,25 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 	}
 }
 
+function onDeserializationError(result: DeserializeError) {
+	if (result.type === DeserializeErrorType.DeserializationException) {
+		const exception = result.serialization.OnDeserializeException;
+		if (typeIs(exception, "function")) {
+			exception(result);
+		} else {
+			warn(
+				"[NexusNet] Failed to deserialize",
+				result.networkType.Name,
+				"at position",
+				result.argIndex + ":",
+				tostring(result.error),
+			);
+		}
+	} else {
+		warn("[NexusNet] Failed to deserialize with exception", result.type);
+	}
+}
+
 interface ClientEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly UseBuffers: boolean;
 	readonly EnforceArguments: boolean;
@@ -154,13 +179,22 @@ export function CreateClientEventCallback<TArgs extends ReadonlyArray<unknown> =
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((buffer: buffer) => {
 			const data = TransformBufferToArgs(name, networkTypes, buffer);
-			const transformedArgs = NetDeserializeArguments(networkTypes, data);
-			callback(...(transformedArgs as unknown as TArgs));
+			const [success, result] = NetDeserializeArgumentsWithExceptionHandler(networkTypes, data);
+			if (success) {
+				callback(...(result as unknown as TArgs));
+			} else {
+				// TODO: Handle lol
+			}
 		}) as AnyClientCallback;
 	} else if (networkTypes.size() > 0) {
 		return (...args: unknown[]) => {
-			const transformedArgs = NetDeserializeArguments(networkTypes, args);
-			callback(...(transformedArgs as unknown as TArgs));
+			const [success, result] = NetDeserializeArgumentsWithExceptionHandler(networkTypes, args);
+
+			if (success) {
+				callback(...(result as unknown as TArgs));
+			} else {
+				onDeserializationError(result);
+			}
 		};
 	} else {
 		return callback as AnyClientCallback;

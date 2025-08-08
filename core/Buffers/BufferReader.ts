@@ -8,6 +8,10 @@ export class BufferReader {
 		this.size = buffer.len(this.buffer);
 	}
 
+	public GetBuffer() {
+		return this.buffer;
+	}
+
 	public ReadInt8() {
 		const n = buffer.readi8(this.buffer, this.cursor);
 		this.cursor += 1;
