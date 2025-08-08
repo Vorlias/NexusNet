@@ -28,11 +28,11 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="2.71877"
-     inkscape:cx="322.38843"
-     inkscape:cy="-44.137606"
-     inkscape:window-width="3440"
+     inkscape:cx="405.69816"
+     inkscape:cy="-41.930726"
+     inkscape:window-width="2560"
      inkscape:window-height="1369"
-     inkscape:window-x="-8"
+     inkscape:window-x="3432"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1">
@@ -42,7 +42,10 @@
        width="79.375"
        height="7.9374995"
        id="page693"
-       inkscape:label="RobloxNPM" />
+       inkscape:label="RobloxNPM"
+       inkscape:export-filename=".\RobloxNPM.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
     <inkscape:page
        x="89.375"
        y="0"
@@ -53,6 +56,12 @@
        inkscape:export-filename=".\Airship.png"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96" />
+    <inkscape:page
+       x="60.509495"
+       y="21.020535"
+       width="79.375"
+       height="7.9374995"
+       id="page1643" />
   </sodipodi:namedview>
   <defs
      id="defs2" />
@@ -61,7 +70,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:#ffffff;stroke-width:0.648095;paint-order:stroke markers fill"
+       style="fill:#212830;stroke-width:0.648095;paint-order:stroke markers fill;fill-opacity:1"
        id="rect671"
        width="79.375"
        height="7.9375"
@@ -95,24 +104,68 @@
          y="6.8791666">TYPESCRIPT</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.91705px;font-family:Orbitron;-inkscape-font-specification:'Orbitron Bold';text-align:end;text-anchor:end;fill:#cccccc;stroke-width:0.102439;paint-order:stroke markers fill"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.91705px;font-family:Orbitron;-inkscape-font-specification:'Orbitron Bold';text-align:end;text-anchor:end;fill:#4d4d4d;stroke-width:0.102439;paint-order:stroke markers fill"
        x="78.2257"
        y="5.7388878"
        id="text515"><tspan
          sodipodi:role="line"
          id="tspan513"
-         style="fill:#cccccc;stroke-width:0.102439"
+         style="fill:#4d4d4d;stroke-width:0.102439"
          x="78.2257"
          y="5.7388878">SOON™</tspan></text>
     <rect
-       style="fill:#ffffff;stroke-width:0.648095;paint-order:stroke markers fill"
+       style="fill:#212830;stroke-width:0.648095;paint-order:stroke markers fill;fill-opacity:1"
+       id="rect671-2"
+       width="79.375"
+       height="7.9375"
+       x="60.509495"
+       y="21.020536" />
+    <path
+       style="fill:#3779c8;stroke-width:0.529167;paint-order:stroke markers fill;fill-opacity:1"
+       d="m 83.252429,28.958036 6.915779,-7.9375 H 60.509496 v 7.9375 z"
+       id="path245-0" />
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:4.30393px;font-family:Arial;-inkscape-font-specification:'Arial Bold';text-align:end;text-anchor:end;fill:#ffffff;stroke-width:0.0896655;paint-order:stroke markers fill"
+       x="83.368439"
+       y="25.239588"
+       id="text409-4"><tspan
+         sodipodi:role="line"
+         id="tspan407-47"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Orbitron;-inkscape-font-specification:'Orbitron Bold';fill:#ffffff;stroke-width:0.0896655"
+         x="83.368439"
+         y="25.239588">ROBLOX</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-weight:bold;font-size:2.73515px;font-family:Arial;-inkscape-font-specification:'Arial Bold';text-align:end;text-anchor:end;fill:#ffffff;stroke-width:0.0569826;paint-order:stroke markers fill"
+       x="82.723267"
+       y="27.899702"
+       id="text409-9-7"><tspan
+         sodipodi:role="line"
+         id="tspan407-7-6"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Orbitron;-inkscape-font-specification:'Orbitron Bold';fill:#ffffff;stroke-width:0.0569826"
+         x="82.723267"
+         y="27.899702">LUAU</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.91705px;font-family:Orbitron;-inkscape-font-specification:'Orbitron Bold';text-align:end;text-anchor:end;fill:#4d4d4d;stroke-width:0.102439;paint-order:stroke markers fill"
+       x="138.7352"
+       y="26.759424"
+       id="text515-0"><tspan
+         sodipodi:role="line"
+         id="tspan513-4"
+         style="fill:#4d4d4d;stroke-width:0.102439"
+         x="138.7352"
+         y="26.759424">SOON™</tspan></text>
+    <rect
+       style="fill:#212830;stroke-width:0.648095;paint-order:stroke markers fill;fill-opacity:1"
        id="rect671-3"
        width="79.375"
        height="7.9375"
        x="89.375"
        y="1.144714e-08" />
     <path
-       style="fill:#3b37c8;stroke-width:0.529167;paint-order:stroke markers fill;fill-opacity:1"
+       style="fill:#5837c8;stroke-width:0.529167;paint-order:stroke markers fill;fill-opacity:1"
        d="M 112.11793,7.9374999 119.03371,-8.8284305e-8 H 89.375003 V 7.9374999 Z"
        id="path245-1" />
     <text
@@ -128,13 +181,13 @@
          y="5.5884981">AIRSHIP</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.3918px;font-family:Orbitron;-inkscape-font-specification:'Orbitron Bold';text-align:end;text-anchor:end;fill:#333333;stroke-width:0.0914962;paint-order:stroke markers fill"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.3918px;font-family:Orbitron;-inkscape-font-specification:'Orbitron Bold';text-align:end;text-anchor:end;fill:#f9f9f9;stroke-width:0.0914962;paint-order:stroke markers fill"
        x="166.88338"
        y="5.7395725"
        id="text515-2"><tspan
          sodipodi:role="line"
          id="tspan513-5"
-         style="fill:#333333;stroke-width:0.0914962"
+         style="fill:#f9f9f9;stroke-width:0.0914962"
          x="166.88338"
          y="5.7395725">@Vorlias/NexusNet</tspan></text>
   </g>
