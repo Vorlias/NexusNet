@@ -1,11 +1,10 @@
 <div align="center">
   <img src="./icon.png">
-  <h1>Nexus Networking</h1>
-  <img src="./RobloxNPM.png?v=2"/>&nbsp;
-  <img src="./Airship.png?v=2"/>
+  <h1>NEXUS</h1>
   <p>Cross-platform Networking for Multiplayer Platforms, powered by the <a href="https://vorlias.nz/spec/nom">Network Object Model</a></p>
-
-  <h3>v1.0.0-pre.0</h3>
+  <h4>Available on:</h4>
+  <img src="./RobloxNPM.png?v=2"/>&nbsp;
+  <a href="https://airship.gg"><img src="./Airship.png?v=2"/></a>
 </div>
 
 ## Features
