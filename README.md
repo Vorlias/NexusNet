@@ -1,7 +1,10 @@
 <div align="center">
   <img src="./icon.png">
   <h1>Nexus Networking</h1>
+  <img src="./RobloxNPM.png?v=2"/>&nbsp;
+  <img src="./AIRSHIP.png?v=2"/>
   <p>Cross-platform Networking for Multiplayer Platforms, powered by the <a href="https://vorlias.nz/spec/nom">Network Object Model</a></p>
+
   <h3>v1.0.0-pre.0</h3>
 </div>
 
@@ -9,7 +12,7 @@
 
 - The **Network Object Model** - simply define a network object model, and build it and NexusNet will generate the appropriate network objects and allow you to use them with the same general API.
 - **Validation** - First-class type validation and enforcement, no weird issues with invalid types
-- **Serialization** - Serialize structures into more network-friendly variants
+- [**Serialization**](./WritingCustomTypes.md) - Serialize structures into more network-friendly variants
 - **Buffer Encoding** - Turn your network messages into binary messages
 
 ### Defining a model
