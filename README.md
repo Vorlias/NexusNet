@@ -3,8 +3,9 @@
   <h1>NEXUS</h1>
   <p>Cross-platform Networking for Multiplayer Platforms, powered by the <a href="https://vorlias.nz/spec/nom">Network Object Model</a></p>
   <h4>Available on:</h4>
+
+  <a href="https://airship.gg"><img src="./Airship.png?v=4"/></a>
   <img src="./RobloxNPM.png?v=3"/>&nbsp;
-  <a href="https://airship.gg"><img src="./Airship.png?v=3"/></a>
 </div>
 
 ## Features
