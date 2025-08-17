@@ -1,7 +1,7 @@
 /* eslint-disable roblox-ts/no-array-pairs */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { float32, float64, int16, int32, int8, NetworkBuffers, uint16, uint32, uint8 } from "./Buffers";
-import { NexusHashTable__EXPERIMENTAL } from "./NetworkTypes/HashTable";
+import { NexusHashTable } from "./NetworkTypes/HashTable";
 import NexusSerialization from "./Serialization";
 import { NetIsSerializer } from "./Serialization/Serializer";
 import {
@@ -322,14 +322,12 @@ export function NexusOptional<T extends NetworkSerializableType<any, any> | Netw
 		},
 		Serialization: {
 			Serialize(value) {
-				if ((value as unknown) === undefined) return undefined;
-				return (NetIsSerializer(typeLike) ? typeLike.Serialization.Serialize(value as In<T>) : value) as Out<T>;
+				if ((value as In<T>) === undefined) return undefined;
+				return NexusSerialization.Serialize(typeLike, value as In<T>);
 			},
 			Deserialize(value) {
-				if ((value as unknown) === undefined) return undefined;
-				return (
-					NetIsSerializer(typeLike) ? typeLike.Serialization.Deserialize(value as Out<T>) : value
-				) as In<T>;
+				if ((value as Out<T>) === undefined) return undefined;
+				return NexusSerialization.Deserialize(typeLike, value as Out<T>);
 			},
 		},
 
@@ -646,96 +644,6 @@ export function NexusRange<T extends number>(numericType: NetworkType<T>) {
 	};
 }
 
-/**
- * Creates a Network Interface
- * @param objectInterface The static interface of this object
- * @param customLabel A custom label for this interface
- * @returns A custom serializer for this interface
- */
-export function NexusObject<T>(
-	objectInterface: Interface<T>,
-	customLabel?: string,
-): NetworkSerializableType<InTypes<typeof objectInterface>, OutTypes<typeof objectInterface>> {
-	// We need to create a guaranteed ordered map
-	const ordinalMap = getHashSortedKeys(objectInterface);
-
-	return {
-		Name: customLabel ?? `interface { ${ordinalMap.map((value) => value[0]).join("; ")} }`,
-		Encoding: NetworkBuffers.StringHashMap(ordinalMap),
-		Validation: {
-			ValidateError: (networkType, value) => {
-				if (!typeIs(value, "table")) {
-					return `Expected object got ${typeOf(value)}`;
-				}
-
-				for (const [key, value] of pairs(objectInterface) as IterableFunction<
-					LuaTuple<[string, NetworkType<any>]>
-				>) {
-					const matchingValue = value[key as keyof typeof value] as unknown;
-					const result = value.Validation.Validate(matchingValue);
-					if (!result) return `Expected ${value.Name} for key '${key}' for ${networkType.Name}`;
-				}
-
-				return "Expected interface";
-			},
-			Validate(value): value is InTypes<typeof objectInterface> {
-				if (!typeIs(value, "table")) {
-					return false;
-				}
-
-				for (const [key, value] of pairs(objectInterface) as IterableFunction<
-					LuaTuple<[string, NetworkType<any>]>
-				>) {
-					const matchingValue = value[key as keyof typeof value] as unknown;
-					const result = value.Validation.Validate(matchingValue);
-					if (!result) return false;
-				}
-
-				return true;
-			},
-		},
-		Serialization: {
-			Serialize(value) {
-				const newObj = {} as Serialized<T>;
-
-				// We have to actually serialize the inner values...
-				for (const [key] of pairs(objectInterface) as IterableFunction<LuaTuple<[keyof T, unknown]>>) {
-					const kvPair = objectInterface[key];
-
-					const [success, err] = NetworkType.Check(kvPair, value[key]);
-					if (!success) {
-						error(err, 2);
-					}
-
-					if (NetIsSerializer(kvPair)) {
-						newObj[key] = kvPair.Serialization.Serialize(value[key]) as never;
-					} else {
-						newObj[key] = value[key] as never;
-					}
-				}
-
-				return newObj as OutTypes<typeof objectInterface>;
-			},
-			Deserialize(value) {
-				const newObj = {} as T;
-
-				// We have to actually deserialize the inner values...
-				for (const [key] of pairs(objectInterface) as IterableFunction<LuaTuple<[keyof T, unknown]>>) {
-					const kvPair = objectInterface[key];
-
-					if (NetIsSerializer(kvPair)) {
-						newObj[key] = kvPair.Serialization.Deserialize(value[key] as defined);
-					} else {
-						newObj[key] = value[key] as T[keyof T];
-					}
-				}
-
-				return newObj as InTypes<typeof objectInterface>;
-			},
-		},
-	};
-}
-
 interface NexusCorePrimitives {
 	/**
 	 * A string primitive
@@ -882,7 +790,7 @@ interface NexusCoreTypeOps {
 	 *
 	 * #### *NOTE:* This should be use for NETWORKING **only**!
 	 */
-	Interface: typeof NexusHashTable__EXPERIMENTAL;
+	Interface: typeof NexusHashTable;
 
 	IntConstrained: (min: int32, max: int32) => NetworkType<int32>;
 	NumberConstrained: (min: float32, max: float32) => NetworkType<int32>;
@@ -922,5 +830,5 @@ export const NexusCoreTypes: NexusCoreTypes = {
 	Array: NexusArray,
 	Tuple: NexusTuple,
 	Optional: NexusOptional,
-	Interface: NexusHashTable__EXPERIMENTAL,
+	Interface: NexusHashTable,
 };

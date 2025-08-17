@@ -29,7 +29,7 @@ const NullableIdentity: NetworkSerializableType<NetworkIdentity | undefined, uin
 	},
 };
 
-const enum Exceptions {
+enum Exceptions {
 	NetworkIdentityClient = "Failed to find NetworkIdentity with id %d on the client - " +
 		"object either no longer exsits, or is out of interest management range",
 }

@@ -3,7 +3,7 @@ import Nexus, { NexusTypes } from "@Vorlias/NexusNet/Framework";
 import { NexusTesting } from "@Vorlias/NexusNet/Framework/Tests";
 import NexusSerialization from "@Vorlias/NexusNet/Core/Serialization";
 import { NetworkingFlags, RemoteRunContext } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
-import { NexusHashTable__EXPERIMENTAL } from "@Vorlias/NexusNet/Core/NetworkTypes/HashTable";
+import { NexusHashTable } from "@Vorlias/NexusNet/Core/NetworkTypes/HashTable";
 import { BufferWriter } from "@Vorlias/NexusNet/Core/Buffers/BufferWriter";
 import { BufferReader } from "@Vorlias/NexusNet/Core/Buffers/BufferReader";
 import { expressionToAst } from "@Vorlias/NexusNet/Inference";
@@ -73,7 +73,7 @@ export default class TestNetworking extends AirshipBehaviour {
 					Level: number;
 					IsCool: boolean;
 				}
-				const TestHashTableType = NexusHashTable__EXPERIMENTAL<Test>({
+				const TestHashTableType = NexusHashTable<Test>({
 					Name: NexusTypes.String,
 					Class: NexusLiteral("Warrior", "Mage", "Cleric"),
 					Level: NexusTypes.UInt16,

@@ -87,7 +87,7 @@ function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): N
 	};
 }
 
-export function NexusHashTable__EXPERIMENTAL<T extends object>(
+export function NexusHashTable<T extends object>(
 	tbl: TableNetworkType<T>,
 	debugName?: string,
 ): NetworkSerializableType<NexusSerialization.InputInterface<typeof tbl>, HashTable<T>> {
