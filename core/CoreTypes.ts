@@ -1,9 +1,11 @@
 /* eslint-disable roblox-ts/no-array-pairs */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { NexusTypes } from "../Framework";
 import { float32, float64, int16, int32, int8, NetworkBuffers, uint16, uint32, uint8 } from "./Buffers";
 import { NexusHashTable } from "./NetworkTypes/HashTable";
 import NexusSerialization from "./Serialization";
-import { NetIsSerializer } from "./Serialization/Serializer";
+import { MapCheckArrayIn, MapCheckArrayOut, NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
+export { NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
 import {
 	NetworkBuffer,
 	NetworkSerializableType,
@@ -208,92 +210,6 @@ const Undefined: NetworkType<undefined> = {
 	},
 };
 
-function isArrayLike(value: unknown): value is defined[] {
-	return typeIs(value, "table") && (next(value)[0] === undefined || typeIs(next(value)[0], "number"));
-}
-
-/**
- * Creates an array network type with the given inner network type as the array type
- * @param valueType The inner network type
- * @returns An array network type of the given inner type
- */
-export function NexusArray<T extends StaticNetworkType<defined, defined>>(
-	valueType: T,
-): NetworkSerializableType<readonly In<T>[], readonly Out<T>[]> {
-	const valueValidator = valueType.Validation;
-
-	return {
-		Name: valueType.Name + "[]",
-		Validation: {
-			Validate(value: unknown): value is In<T>[] {
-				return isArrayLike(value) && value.every((v) => valueValidator.Validate(v));
-			},
-			ValidateError: "Expected Array<" + valueType.Name + ">",
-		},
-		Encoding: NetworkBuffers.Array(valueType.Encoding) as NetworkBuffer<Out<T>[]>, // 'cause of roblox-ts
-		Serialization: {
-			Serialize(value) {
-				assert(value, "No value");
-
-				return value.map((item: In<T>) => NexusSerialization.Serialize(valueType, item));
-			},
-			Deserialize(value) {
-				return (value as Out<T & unknown>[]).map((item) => NexusSerialization.Deserialize(valueType, item));
-			},
-		},
-	};
-}
-
-type MapCheckArrayIn<T> = NexusSerialization.InputInterface<T>;
-type MapCheckArrayOut<T> = NexusSerialization.OutputInterface<T>;
-export function NexusTuple<const T extends ReadonlyArray<NetworkSerializableType<any, any> | NetworkType<any>>>(
-	...items: T
-): NetworkSerializableType<MapCheckArrayIn<T>, MapCheckArrayOut<T>> {
-	const tupleSize = items.size();
-	const buffer = NetworkBuffers.FixedArray(...items.map((v) => v.Encoding)) as NetworkBuffer<MapCheckArrayOut<T>>;
-
-	return {
-		Name: `[ ${items.map((v) => v.Name).join(", ")} ]`,
-		Validation: {
-			Validate(value): value is MapCheckArrayIn<T> {
-				return isArrayLike(value);
-			},
-			ValidateError: `Expected a tuple of [ ${items.map((v) => v.Name).join(", ")} ]`,
-		},
-		Encoding: buffer,
-		Serialization: {
-			Serialize(value) {
-				const newTuple = [] as Writable<MapCheckArrayOut<T>>;
-
-				for (let i = 0; i < tupleSize; i++) {
-					const valueAt = (value as unknown[])[i];
-
-					const typeLike: NetworkSerializableType<unknown, unknown> | NetworkType<unknown> = items[i];
-					newTuple[i] = NetIsSerializer(typeLike) //
-						? typeLike.Serialization.Serialize(valueAt) //
-						: valueAt;
-				}
-
-				return newTuple;
-			},
-			Deserialize(value) {
-				const newTuple = [] as Writable<MapCheckArrayIn<T>>;
-
-				for (let i = 0; i < tupleSize; i++) {
-					const valueAt = (value as unknown[])[i];
-
-					const typeLike: NetworkSerializableType<unknown, unknown> | NetworkType<unknown> = items[i];
-					newTuple[i] = NetIsSerializer(typeLike) //
-						? typeLike.Serialization.Deserialize(valueAt) //
-						: valueAt;
-				}
-
-				return newTuple;
-			},
-		},
-	};
-}
-
 export function NexusIsOptionalType<TIn, TOut>(
 	value: StaticNetworkType<TIn | undefined, TOut | undefined>,
 ): value is NetworkOptionalType<TIn, TOut> {
@@ -335,164 +251,34 @@ export function NexusOptional<T extends NetworkSerializableType<any, any> | Netw
 	};
 }
 
-export interface NetworkSetType<TIn, TOut> extends NetworkSerializableType<ReadonlySet<TIn>, readonly TOut[]> {}
-export function NexusSet<T extends NetworkSerializableType<any, any> | NetworkType<any>>(
-	valueType: T,
-): NetworkSetType<In<T>, Out<T>> {
-	return {
-		Name: `Set<${valueType.Name}>`,
-		Validation: {
-			ValidateError: (networkType, value) => {
-				return "Expected " + networkType.Name + ", got " + typeOf(value);
-			},
-			Validate(value): value is Set<In<T>> {
-				if (!typeIs(value, "table")) return false;
-				for (const [k, v] of pairs(value)) {
-					if (!valueType.Validation.Validate(k)) return false;
-					if (!typeIs(v, "boolean")) return false;
-				}
-
-				return true;
-			},
-		},
-		Serialization: {
-			Serialize(set) {
-				const newArray = new Array<defined>();
-
-				for (const value of set) {
-					newArray.push(NexusSerialization.Serialize(valueType, value));
-				}
-
-				return newArray as Array<Out<T>>;
-			},
-			Deserialize(array) {
-				const set = new Set<defined>();
-
-				for (const value of array) {
-					set.add(NexusSerialization.Deserialize(valueType, value));
-				}
-
-				return set as Set<In<T>>;
-			},
-		},
-		Encoding: NetworkBuffers.Array(valueType.Encoding),
-	};
-}
-
-export interface NetworkMapType<K, V>
-	extends NetworkSerializableType<ReadonlyMap<In<K>, In<V>>, readonly [Out<K>, Out<V>][]> {}
-export function NexusMap<K extends StaticNetworkType, V extends StaticNetworkType>(
-	keyType: K,
-	valueType: V,
-): NetworkMapType<K, V> {
-	return {
-		Name: `Map<${keyType.Name}, ${valueType.Name}>`,
-		Validation: {
-			ValidateError: (networkType, value) => {
-				return "Expected " + networkType.Name + ", got " + typeOf(value);
-			},
-			Validate(value): value is ReadonlyMap<In<K>, In<V>> {
-				if (!typeIs(value, "table")) return false;
-				for (const [k, v] of pairs(value)) {
-					if (!keyType.Validation.Validate(k)) return false;
-					if (!valueType.Validation.Validate(v)) return false;
-				}
-
-				return true;
-			},
-		},
-		Serialization: {
-			Serialize(map) {
-				const arr = new Array<[Out<K>, Out<V>]>();
-
-				for (const [key, value] of map) {
-					const keyEncoded = NexusSerialization.Serialize(keyType, key);
-					const valueEncoded = NexusSerialization.Serialize(valueType, value);
-					arr.push([keyEncoded, valueEncoded]);
-				}
-
-				return arr;
-			},
-			Deserialize(kvPairs) {
-				const map = new Map<defined, defined>();
-
-				for (const pair of kvPairs) {
-					const [k, v] = pair as [defined, defined];
-
-					map.set(
-						NexusSerialization.Deserialize(keyType, k as Out<K>),
-						NexusSerialization.Deserialize(valueType, v as Out<V>),
-					);
-				}
-
-				return map as Map<In<K>, In<V>>;
-			},
-		},
-		Encoding: {
-			ReadData(reader) {
-				const length = reader.ReadUInt32(); // read length
-				const arr = new Array<[Out<K>, Out<V>]>();
-
-				for (let i = 0; i < length; i++) {
-					const k = keyType.Encoding.ReadData(reader) as Out<K>;
-					const v = valueType.Encoding.ReadData(reader) as Out<V>;
-
-					arr.push([k, v]);
-				}
-
-				return arr;
-			},
-			WriteData(data, writer) {
-				writer.WriteUInt32(data.size()); // write length
-
-				for (const pair of data) {
-					const [k, v] = pair as [defined, defined];
-
-					keyType.Encoding.WriteData(k, writer);
-					valueType.Encoding.WriteData(v, writer);
-				}
-			},
-		},
-	};
-}
-
-type Interface<T> = { [P in keyof T]: NetworkSerializableType<T[P], any> | NetworkType<T[P]> };
-type InTypes<T> = NexusSerialization.InputInterface<T>;
-type OutTypes<T> = NexusSerialization.OutputInterface<T>;
-
-function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T): Array<[string, NetworkBuffer<any>]> {
-	const arr = new Array<[string, NetworkBuffer<any>]>();
-
-	for (const [key, value] of pairs(obj) as IterableFunction<LuaTuple<[string, NetworkType<any>]>>) {
-		arr.push([key, value.Encoding]);
-	}
-
-	return arr.sort((a, b) => hashstring(tostring(a[0])) < hashstring(tostring(b[0])));
-}
-
 export type Serialized<T> = T extends string | boolean | number ? T : { [P in keyof T]: unknown };
 
 type StringEnumLike<T> = { [P in keyof T]: T[P] & string };
 type IntEnumLike<T> = { [P in keyof T]: T[P] & number };
-type ValueOf<T extends object> = { [P in keyof T]: T[P] }[keyof T];
 
+const strEnumCache = new Map<object, NetworkSerializableType<any, int32>>();
 export function NexusStringEnum<T extends object>(
 	enumObject: StringEnumLike<T>,
 ): NetworkSerializableType<T[keyof T], int32> {
+	const cached = strEnumCache.get(enumObject);
+	if (cached) return cached;
+
 	const hashToKey = new Map<number, string>();
 
 	const valueToKey = new Map<string, string>();
 	const keyToHash = new Map<string, number>();
+	const values = new Array<string>();
 
 	for (const [key, value] of pairs<{ [P in string]: string }>(enumObject)) {
 		const keyHash = hashstring(value); // will give us the key
 		hashToKey.set(keyHash, key);
 		keyToHash.set(key, keyHash);
 		valueToKey.set(value, key);
+		values.push(value);
 	}
 
-	return {
-		Name: "enum<string>",
+	const networkType = {
+		Name: values.map((v) => `"${v}"`).join(" | "),
 		Validation: {
 			Validate(value): value is T[keyof T] {
 				return typeIs(value, "string") && valueToKey.has(value);
@@ -517,7 +303,11 @@ export function NexusStringEnum<T extends object>(
 			},
 		},
 		Encoding: NetworkBuffers.Int32,
-	};
+	} satisfies NetworkSerializableType<T[keyof T], int32>;
+
+	table.freeze(networkType);
+	strEnumCache.set(enumObject, networkType);
+	return networkType;
 }
 
 export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = false): NetworkType<T, int32> {
@@ -554,65 +344,6 @@ export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = 
 				} else {
 					return `Expected valid enum value, got ${typeOf(value)}`;
 				}
-			},
-		},
-	};
-}
-
-type InferInType<T> = T extends NetworkType<infer A> ? A : never;
-type InferOutType<T> = T extends NetworkSerializableType<infer _, infer O>
-	? O
-	: T extends NetworkType<infer I>
-	? I
-	: never;
-
-type ToInUnion<T extends ReadonlyArray<StaticNetworkType>> = {
-	[P in keyof T]: InferInType<T[P]>;
-}[number];
-
-type ToOutUnion<T extends ReadonlyArray<StaticNetworkType>> = {
-	[P in keyof T]: InferOutType<T[P]>;
-}[number];
-
-export function NexusUnion<T extends ReadonlyArray<StaticNetworkType>>(
-	...types: T
-): NetworkSerializableType<ToInUnion<T>, [int32, ToOutUnion<T>]> {
-	const validators = types.map((f) => f.Validation);
-	return {
-		Name: types.map((v) => v.Name).join(" | "),
-		Encoding: {
-			WriteData(data, writer) {
-				const [idx, value] = data;
-				writer.WriteInt32(idx);
-				types[idx].Encoding.WriteData(value, writer);
-			},
-			ReadData(reader) {
-				const idx = reader.ReadInt32();
-				const value = types[idx].Encoding.ReadData(reader);
-				return value;
-			},
-		},
-		Validation: {
-			Validate(value): value is ToInUnion<T> {
-				return validators.some((v) => v.Validate(value));
-			},
-		},
-		Serialization: {
-			Serialize(value) {
-				const idx = validators.findIndex((f) => f.Validate(value));
-				if (idx === -1) {
-					throw `Invalid type`;
-				}
-
-				const networkType = types[idx];
-				const serializedData = NexusSerialization.Serialize(networkType, value);
-				return [idx, serializedData];
-			},
-			Deserialize(value) {
-				const [idx, serializedData] = value;
-				const networkType = types[idx];
-				const data = NexusSerialization.Deserialize(networkType, serializedData);
-				return data;
 			},
 		},
 	};
@@ -711,14 +442,13 @@ interface NexusCoreTypeOps {
 	 * A collection of literals - over the network this is represented by an integer of what value it is
 	 */
 	Literal<T extends Array<Literal>>(this: void, ...values: T): NetworkSerializableType<T[number], number>;
+
 	/**
-	 * An array of a type `T[]`
+	 * An array of a type `readonly T[]`
 	 * @param valueType The value type of the array
 	 */
-	Array<T extends StaticNetworkType>(
-		this: void,
-		valueType: T,
-	): NetworkSerializableType<readonly In<T>[], readonly Out<T>[]>;
+	Array<T extends StaticNetworkType>(this: void, valueType: T): NetworkSerializableType<In<T>[], Out<T>[]>;
+
 	/**
 	 * A fixed array of a type `[T, ...]`
 	 * @param valueTypes The value types of the tuple
@@ -744,10 +474,7 @@ interface NexusCoreTypeOps {
 	 * A set of the given value type
 	 * @param valueType The value type
 	 */
-	Set<T extends StaticNetworkType>(
-		this: void,
-		valueType: T,
-	): NetworkSerializableType<ReadonlySet<In<T>>, readonly Out<T>[]>;
+	Set<T extends StaticNetworkType>(this: void, valueType: T): NetworkSerializableType<Set<In<T>>, readonly Out<T>[]>;
 
 	/**
 	 * A map of the given key type to value type
@@ -758,7 +485,7 @@ interface NexusCoreTypeOps {
 		this: void,
 		keyType: K,
 		valueType: V,
-	): NetworkSerializableType<ReadonlyMap<In<K>, In<V>>, readonly [Out<K>, Out<V>][]>;
+	): NetworkSerializableType<Map<In<K>, In<V>>, readonly [Out<K>, Out<V>][]>;
 
 	/**
 	 * An enum with string values
@@ -792,8 +519,8 @@ interface NexusCoreTypeOps {
 	 */
 	Interface: typeof NexusHashTable;
 
-	IntConstrained: (min: int32, max: int32) => NetworkType<int32>;
-	NumberConstrained: (min: float32, max: float32) => NetworkType<int32>;
+	IntRange: (min: int32, max: int32) => NetworkType<int32>;
+	Range: (min: float32, max: float32) => NetworkType<int32>;
 }
 
 export interface NexusCoreTypes extends NexusCoreTypeOps, NexusCorePrimitives {}
@@ -802,8 +529,8 @@ export const NexusCoreTypes: NexusCoreTypes = {
 	String: NexusString,
 	Buffer: NexusRawBuffer,
 
-	NumberConstrained: NexusRange(NexusFloat32),
-	IntConstrained: NexusRange(NexusInt32),
+	Range: NexusRange(NexusFloat32),
+	IntRange: NexusRange(NexusInt32),
 	// CastsToInt: <const T extends int32>() => NexusInt32 as NetworkType<T, int32>,
 
 	Int8: NexusInt(8),
@@ -824,10 +551,12 @@ export const NexusCoreTypes: NexusCoreTypes = {
 	StringEnum: NexusStringEnum,
 	IntEnum: NexusIntEnum,
 
+	Array: NexusArray,
 	Set: NexusSet,
 	Map: NexusMap,
+
 	Literal: NexusLiteral,
-	Array: NexusArray,
+
 	Tuple: NexusTuple,
 	Optional: NexusOptional,
 	Interface: NexusHashTable,

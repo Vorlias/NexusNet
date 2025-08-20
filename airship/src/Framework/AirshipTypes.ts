@@ -337,5 +337,3 @@ export const NexusTypes: AirshipBuiltInTypes = {
 	Quaternion: UnityQuat,
 	// Ray: UnityRay,
 };
-
-NexusTypes.NumberConstrained(0, 100);
