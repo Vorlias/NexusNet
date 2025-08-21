@@ -36,13 +36,13 @@ export const NexusRawBuffer: NetworkType<buffer> = {
 };
 
 /**
- * A network string type
+ * A valid utf8 string type
  */
 export const NexusString: NetworkType<string> = {
 	Name: "string",
 	Validation: {
 		Validate(value): value is string {
-			return typeIs(value, "string");
+			return typeIs(value, "string") && utf8.len(value)[0] !== undefined;
 		},
 		ValidateError: (_, value) => "Expected string, got " + typeOf(value),
 	},
@@ -377,7 +377,7 @@ export function NexusRange<T extends number>(numericType: NetworkType<T>) {
 
 interface NexusCorePrimitives {
 	/**
-	 * A string primitive
+	 * A valid utf8 string
 	 */
 	readonly String: NetworkType<string>;
 

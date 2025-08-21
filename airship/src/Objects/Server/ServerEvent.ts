@@ -14,6 +14,7 @@ import { Player } from "@Easy/Core/Shared/Player/Player";
 import { Airship } from "@Easy/Core/Shared/Airship";
 import { ValidateArguments, ValidateResult } from "@Vorlias/NexusNet/Core/Serialization/Arguments";
 import { Collection, NexusCollectionUtils } from "@Vorlias/NexusNet/Core/Utils/Collections";
+import { NexusSentinel } from "@Vorlias/NexusNet/Framework/Events";
 
 export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 	implements ServerSenderEvent<TArgs>, ServerListenerEvent<TArgs>

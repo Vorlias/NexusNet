@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-empty-object-type */
+import { NetworkEventAuthority } from "@Vorlias/NexusNet/Objects/Internal/NetworkEvent";
 import {
 	ClientCallbackMiddleware,
 	ClientInvokeMiddleware,
@@ -71,6 +72,8 @@ export interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs e
 	readonly Arguments: StaticNetworkType<any>[] | undefined;
 
 	readonly Flags: NetworkingFlags;
+
+	readonly EventContext: NetworkEventAuthority;
 }
 
 export interface FunctionDeclaration<

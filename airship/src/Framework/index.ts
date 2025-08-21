@@ -20,15 +20,14 @@ import type {
 	ServerBuilder,
 	SharedBuilder,
 } from "../Core/Types/NetworkObjectModel";
-import { AnyNetworkDeclaration, DeclarationRemoteKeys } from "../Core/Types/Declarations";
+import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
 import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
 import { NexusInlineClient, NexusInlineServer, NexusInlineShared } from "./Inline";
 import { NexusTypes } from "./AirshipTypes";
 import { CrossServerEventBuilder } from "../Builders/MessagingBuilder";
-import { NetworkPlayer } from "../Core/Types/Dist";
-import { ClientBidirectionalEvent } from "../Core/Types/Client/NetworkObjects";
 import { ServerBidirectionalEvent } from "../Core/Types/Server/NetworkObjects";
+import { NexusSentinel, NexusSentinelEvents } from "./Events";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -170,6 +169,14 @@ namespace Nexus {
 		return NexusInlineShared(name, network, configuration);
 	}
 
+	export function CreateNetworkContext() {
+		let data = {
+			Server: Server,
+			Client: Client,
+		};
+		return data;
+	}
+
 	/**
 	 * Defines an event that messages between servers in the experience
 	 * @returns
@@ -221,8 +228,15 @@ namespace Nexus {
 			});
 		};
 	}
+
+	/**
+	 * Nexus' experimental Sentinel framework, can be used to detect and handle remote abuse as well as other problems, such as for anti-cheat and logging to services.
+	 *
+	 * Note: This only supports the server, as client detection can be changed by a malicious client.
+	 *
+	 * @server
+	 */
+	export const Sentinel = NexusSentinel;
 }
 
 export default Nexus;
-
-const server = Nexus.Server("test", Nexus.Event(NexusTypes.NullableIdentity)).client.Connect((netId) => {});

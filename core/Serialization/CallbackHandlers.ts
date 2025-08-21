@@ -1,3 +1,4 @@
+import { NexusSentinel } from "@Vorlias/NexusNet/Framework/Events";
 import { ClientCallbackMiddleware, ServerCallbackMiddleware } from "../Middleware/Types";
 import { NetworkPlayer } from "../Types/Dist";
 import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
@@ -71,13 +72,22 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 	const enforceArgs = options.EnforceArguments;
 	const networkTypes = options.NetworkTypes;
 	let callback = options.Callback;
+	const useSentinel = NexusSentinel.IsEnabled();
 
 	print("mw count is ", options.CallbackMiddleware.size());
 	for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyServerCallback, undefined!);
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((player: NetworkPlayer, buffer: buffer) => {
-			const data = TransformBufferToArgs(name, networkTypes, buffer);
+			let data: unknown[];
+
+			try {
+				data = TransformBufferToArgs(name, networkTypes, buffer);
+			} catch (e) {
+				if (useSentinel) NexusSentinel.onServerBufferDecodeError.Fire(player, name, networkTypes, e);
+				throw e; // rethrow
+			}
+
 			const transformedArgs = NetDeserializeArguments(networkTypes, data);
 
 			if (enforceArgs) {
@@ -85,21 +95,27 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 				if (result !== ValidateResult.Ok) {
 					switch (result) {
 						case ValidateResult.ArgCountMismatch:
+							if (useSentinel)
+								NexusSentinel.onServerArgumentMismatch.Fire(
+									player,
+									true,
+									name,
+									data.argCount,
+									data.expectedCount,
+								);
 							throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
 						case ValidateResult.ValidationError:
+							if (useSentinel)
+								NexusSentinel.onServerValidationFailure.Fire(
+									player,
+									true,
+									name,
+									networkTypes[data.index],
+									transformedArgs[data.index],
+									data.index,
+								);
 							throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
 					}
-				}
-			}
-
-			// Receiving from client needs validation
-			for (let i = 0; i < networkTypes.size(); i++) {
-				const networkType = networkTypes[i];
-
-				const [valid, err] = NetworkType.Check(networkType, transformedArgs[i]);
-				if (!valid) {
-					warn("[ServerEventCallback] Failed validation at index", `${i}:`, err);
-					return;
 				}
 			}
 
@@ -114,8 +130,25 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 				if (result !== ValidateResult.Ok) {
 					switch (result) {
 						case ValidateResult.ArgCountMismatch:
+							if (useSentinel)
+								NexusSentinel.onServerArgumentMismatch.Fire(
+									player,
+									false,
+									name,
+									data.argCount,
+									data.expectedCount,
+								);
 							throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
 						case ValidateResult.ValidationError:
+							if (useSentinel)
+								NexusSentinel.onServerValidationFailure.Fire(
+									player,
+									false,
+									name,
+									networkTypes[data.index],
+									transformedArgs[data.index],
+									data.index,
+								);
 							throw `[NexusNet] Validation failed at index ${data.index}: ${data.message}`;
 					}
 				}

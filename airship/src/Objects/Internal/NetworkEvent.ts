@@ -5,8 +5,13 @@ import { Signal } from "@Easy/Core/Shared/Util/Signal";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import { Game } from "@Easy/Core/Shared/Game";
 
+export const enum NetworkEventAuthority {
+	ServerAuthority = 1 << 0,
+	ClientAuthority = 1 << 1,
+	Both = ServerAuthority | ClientAuthority,
+}
+
 export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
-	public Name = "ASRemoteEvnet";
 	public readonly onClientEvent = new Signal<[player: Player, ...unknown[]]>();
 	public readonly onServerEvent = new Signal<unknown[]>();
 
@@ -14,6 +19,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	public constructor(
 		name: string,
 		private readonly channel = NetworkChannel.Reliable,
+		private readonly authority = NetworkEventAuthority.Both,
 		public readonly debug = false,
 	) {
 		this.id = GetAsNetEventId(name);
@@ -37,7 +43,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 * @internal
 	 */
 	public FireAllClients(...args: TArgs) {
-		assert(RunCore.IsServer());
+		assert(RunCore.IsServer() && (this.authority & NetworkEventAuthority.ServerAuthority) !== 0);
 		NetworkAPI.fireAllClients(this.id, args, this.channel);
 	}
 
@@ -45,7 +51,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 * @internal
 	 */
 	public FireExcept(ignorePlayer: Player, ...args: TArgs) {
-		assert(RunCore.IsServer());
+		assert(RunCore.IsServer() && (this.authority & NetworkEventAuthority.ServerAuthority) !== 0);
 		NetworkAPI.fireExcept(this.id, ignorePlayer, args, this.channel);
 	}
 
@@ -53,7 +59,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 * @internal
 	 */
 	public FireClient(player: Player, ...args: TArgs) {
-		assert(RunCore.IsServer());
+		assert(RunCore.IsServer() && (this.authority & NetworkEventAuthority.ServerAuthority) !== 0);
 
 		const [success, err] = pcall(() => {
 			NetworkAPI.fireClient(this.id, player, args, this.channel);
@@ -75,7 +81,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 * @internal
 	 */
 	public FireClients(players: Player[], ...args: TArgs) {
-		assert(RunCore.IsServer());
+		assert(RunCore.IsServer() && (this.authority & NetworkEventAuthority.ServerAuthority) !== 0);
 		NetworkAPI.fireClients(this.id, players, args, this.channel);
 	}
 
@@ -83,7 +89,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 * @internal
 	 */
 	public FireServer(...args: TArgs) {
-		assert(RunCore.IsClient());
+		assert(RunCore.IsClient() && (this.authority & NetworkEventAuthority.ClientAuthority) !== 0);
 		NetworkAPI.fireServer(this.id, args, this.channel);
 	}
 
@@ -94,7 +100,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 * @internal
 	 */
 	public OnServerEvent<T extends TArgs>(callback: (...args: T) => void) {
-		assert(RunCore.IsClient());
+		assert(RunCore.IsClient() && (this.authority & NetworkEventAuthority.ClientAuthority) !== 0);
 		return this.onServerEvent.Connect((...args) => {
 			callback(...(args as T));
 		});
@@ -104,7 +110,7 @@ export class NetworkedEvent<TArgs extends unknown[] = unknown[]> {
 	 * @internal
 	 */
 	public OnClientEvent<T extends TArgs>(callback: (player: Player, ...args: T) => void) {
-		assert(RunCore.IsServer());
+		assert(RunCore.IsServer() && (this.authority & NetworkEventAuthority.ServerAuthority) !== 0);
 		return this.onClientEvent.Connect((player, ...args) => {
 			callback(player, ...(args as T));
 		});

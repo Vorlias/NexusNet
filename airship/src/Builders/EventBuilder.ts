@@ -19,9 +19,10 @@ import {
 	ServerCallbackMiddleware,
 	ServerInvokeMiddleware,
 } from "../Core/Middleware/Types";
-// import { NexusTypes } from "../Framework";
+
 import { NexusNetworkBehaviour } from "../Components/NexusNetworkBehaviour";
 import { NexusTypes } from "../Framework/AirshipTypes";
+import { NetworkEventAuthority } from "../Objects/Internal/NetworkEvent";
 
 export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	implements NetworkEventBuilder<TArgs>, SharedBuilder<BidirectionalEventDeclaration<TArgs>>
@@ -136,6 +137,7 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 
 		const declaration: ServerEventDeclaration<TArgs> = {
 			Type: "Event",
+			EventContext: NetworkEventAuthority.ServerAuthority,
 			Flags: flags,
 			RunContext: RemoteRunContext.Server,
 			Arguments: this.arguments,
@@ -159,6 +161,7 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 			Type: "Event",
 			Flags: flags,
 			RunContext: RemoteRunContext.Client,
+			EventContext: NetworkEventAuthority.ClientAuthority,
 			CallbackMiddleware: this.callbackMiddleware,
 			InvokeMiddleware: [],
 			Arguments: this.arguments,
@@ -180,6 +183,7 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 			Type: "Event",
 			Flags: flags,
 			RunContext: RemoteRunContext.Both,
+			EventContext: NetworkEventAuthority.Both,
 			Arguments: this.arguments,
 			Unreliable: this.unreliable,
 		};
