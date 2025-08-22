@@ -24,10 +24,9 @@ import { AnyNetworkDeclaration } from "../Core/Types/Declarations";
 import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
 import { NexusInlineClient, NexusInlineServer, NexusInlineShared } from "./Inline";
-import { NexusTypes } from "./AirshipTypes";
 import { CrossServerEventBuilder } from "../Builders/MessagingBuilder";
 import { ServerBidirectionalEvent } from "../Core/Types/Server/NetworkObjects";
-import { NexusSentinel, NexusSentinelEvents } from "./Events";
+import { NexusSentinel } from "./Events";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -191,42 +190,6 @@ namespace Nexus {
 		const xServerEvent = new CrossServerEventBuilder();
 		xServerEvent.arguments = values as StaticNetworkType[];
 		return xServerEvent;
-	}
-
-	export namespace Macros {
-		/**
-		 * Will replicate messages sent to the server back to other clients except the person who sent it
-		 *
-		 * Example:
-		 * ```ts
-		 * const sendMessage = Nexus.Shared("TestReplicate", Nexus.Event(NexusTypes.String).Bidirectional())
-		 *
-		 * if (Game.IsServer()) {
-		 * 	Nexus.Macros.ServerReplicate(sendMessage.server); // any client calls will now replicate
-		 * }
-		 * ```
-		 *
-		 * Internally it is equivalent to
-		 * ```ts
-		 * event.Connect((player, ...args) => {
-		 * 	event.SendToAllPlayersExcept(player, ...args);
-		 * });
-		 * ```
-		 * @param event The event to repliate to other clients
-		 * @returns The connection for the replicated messages
-		 */
-		export const ServerReplicate = <T extends unknown[]>(
-			event: ServerBidirectionalEvent<T>,
-			validate?: (player: Player, ...args: T) => boolean,
-		) => {
-			return event.Connect((player, ...args) => {
-				if (typeIs(validate, "function") && !validate(player, ...args)) {
-					return;
-				}
-
-				event.SendToAllPlayersExcept(player, ...args);
-			});
-		};
 	}
 
 	/**
