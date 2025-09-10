@@ -586,9 +586,9 @@ export const NexusCoreTypes: NexusCoreTypes = {
 	Set: NexusSet,
 	Map: NexusMap,
 
-	ReadonlyArray: NexusArray,
-	ReadonlySet: NexusSet,
-	ReadonlyMap: NexusMap,
+	ReadonlyArray: NexusArray as unknown as NexusCoreTypes["ReadonlyArray"],
+	ReadonlySet: NexusSet as unknown as NexusCoreTypes["ReadonlySet"],
+	ReadonlyMap: NexusMap as unknown as NexusCoreTypes["ReadonlyMap"],
 
 	Literal: NexusLiteral,
 
