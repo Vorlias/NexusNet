@@ -1,5 +1,5 @@
 import { NexusConfiguration } from "../Core/Configuration";
-import { createCachingMiddleware, CachingOptions, MemoizationType } from "../Core/Middleware/FunctionCaching";
+import { createCachingMiddleware, CachingOptions, CacheType } from "../Core/Middleware/FunctionCaching";
 import { RateLimitOptions } from "../Core/Middleware/RateLimit";
 import { ClientFunctionInvokeMiddleware, ServerFunctionCallbackMiddleware } from "../Core/Middleware/Types";
 import {
@@ -63,8 +63,8 @@ export class AirshipFunctionBuilder<TArgs extends ReadonlyArray<unknown>, TRet>
 	public WithCachedCallback(memoizationOptions: NexusTimeSpan | CachingOptions) {
 		let middleware = NexusTimeSpan.is(memoizationOptions)
 			? createCachingMiddleware({
-					cacheSeconds: memoizationOptions.seconds,
-					memoizationType: MemoizationType.Global,
+					time: memoizationOptions,
+					type: CacheType.Global,
 			  })
 			: createCachingMiddleware(memoizationOptions);
 

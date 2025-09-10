@@ -1,6 +1,7 @@
 import { MapUtil } from "@Easy/Core/Shared/Util/MapUtil";
 import { ClientFunctionInvokeMiddleware, ServerFunctionCallbackMiddleware } from "./Types";
 import { Airship } from "@Easy/Core/Shared/Airship";
+import { NexusTimeSpan } from "../Types/Time";
 
 class MemoizedValue {
 	private lastRequestTime = -math.huge;
@@ -20,23 +21,23 @@ class MemoizedValue {
 	}
 }
 
-export const enum MemoizationType {
+export const enum CacheType {
 	Global,
 	PerPlayer,
 }
 export interface CachingOptions {
-	readonly cacheSeconds: number;
-	readonly memoizationType: MemoizationType;
+	readonly time: NexusTimeSpan;
+	readonly type: CacheType;
 }
 
-export interface MemoizationMiddleware {
+interface NexusFunctionCacheMiddleware {
 	readonly serverCallback: ServerFunctionCallbackMiddleware;
 }
 
-export function createCachingMiddleware(options: CachingOptions): MemoizationMiddleware {
-	const seconds = options.cacheSeconds;
+export function createCachingMiddleware(options: CachingOptions): NexusFunctionCacheMiddleware {
+	const seconds = options.time.seconds;
 
-	if (options.memoizationType === MemoizationType.PerPlayer) {
+	if (options.type === CacheType.PerPlayer) {
 		const playerMemoizer = new Map<string, MemoizedValue>();
 
 		Airship.Players.onPlayerDisconnected.Connect((player) => {

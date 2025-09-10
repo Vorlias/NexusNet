@@ -27,7 +27,7 @@ class RequestCounter {
 	}
 }
 
-interface RateLimitMiddleware<TArgs extends readonly unknown[]> {
+interface NexusRateLimitMiddleware<TArgs extends readonly unknown[]> {
 	serverCallback: ServerEventCallbackMiddleware<TArgs>;
 	clientInvoke: ClientEventInvokeMiddleware<TArgs>;
 }
@@ -39,7 +39,7 @@ export interface RateLimitOptions {
 
 export function createRateLimitMiddleware<TArgs extends readonly unknown[]>(
 	options: RateLimitOptions,
-): RateLimitMiddleware<TArgs> {
+): NexusRateLimitMiddleware<TArgs> {
 	const timeout = options.timeoutSeconds;
 	const requests = options.requestsPerTimeout;
 
