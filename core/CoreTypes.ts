@@ -459,6 +459,15 @@ interface NexusCoreTypeOps {
 	Array<T extends StaticNetworkType>(this: void, valueType: T): NetworkSerializableType<In<T>[], Out<T>[]>;
 
 	/**
+	 * An array of a type `readonly T[]`
+	 * @param valueType The value type of the array
+	 */
+	ReadonlyArray<T extends StaticNetworkType>(
+		this: void,
+		valueType: T,
+	): NetworkSerializableType<readonly In<T>[], readonly Out<T>[]>;
+
+	/**
 	 * A fixed array of a type `[T, ...]`
 	 * @param valueTypes The value types of the tuple
 	 */
@@ -479,6 +488,15 @@ interface NexusCoreTypeOps {
 	Set<T extends StaticNetworkType>(this: void, valueType: T): NetworkSerializableType<Set<In<T>>, readonly Out<T>[]>;
 
 	/**
+	 * A set of the given value type
+	 * @param valueType The value type
+	 */
+	ReadonlySet<T extends StaticNetworkType>(
+		this: void,
+		valueType: T,
+	): NetworkSerializableType<ReadonlySet<In<T>>, readonly Out<T>[]>;
+
+	/**
 	 * A map of the given key type to value type
 	 * @param keyType The key type
 	 * @param valueType The value type
@@ -488,6 +506,17 @@ interface NexusCoreTypeOps {
 		keyType: K,
 		valueType: V,
 	): NetworkSerializableType<Map<In<K>, In<V>>, readonly [Out<K>, Out<V>][]>;
+
+	/**
+	 * A map of the given key type to value type
+	 * @param keyType The key type
+	 * @param valueType The value type
+	 */
+	ReadonlyMap<K extends StaticNetworkType, V extends StaticNetworkType>(
+		this: void,
+		keyType: K,
+		valueType: V,
+	): NetworkSerializableType<ReadonlyMap<In<K>, In<V>>, readonly [Out<K>, Out<V>][]>;
 
 	/**
 	 * An enum with string values
@@ -556,6 +585,10 @@ export const NexusCoreTypes: NexusCoreTypes = {
 	Array: NexusArray,
 	Set: NexusSet,
 	Map: NexusMap,
+
+	ReadonlyArray: NexusArray,
+	ReadonlySet: NexusSet,
+	ReadonlyMap: NexusMap,
 
 	Literal: NexusLiteral,
 
