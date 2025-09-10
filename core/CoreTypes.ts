@@ -1,18 +1,11 @@
 /* eslint-disable roblox-ts/no-array-pairs */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NexusTypes } from "../Framework";
 import { float32, float64, int16, int32, int8, NetworkBuffers, uint16, uint32, uint8 } from "./Buffers";
 import { NexusHashTable } from "./NetworkTypes/HashTable";
 import NexusSerialization from "./Serialization";
 import { MapCheckArrayIn, MapCheckArrayOut, NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
 export { NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
-import {
-	NetworkBuffer,
-	NetworkSerializableType,
-	NetworkSerializer,
-	NetworkType,
-	StaticNetworkType,
-} from "./Types/NetworkTypes";
+import { NetworkBuffer, NetworkSerializableType, NetworkType, StaticNetworkType } from "./Types/NetworkTypes";
 import { hashstring } from "./Utils/hash";
 
 type Out<TType> = NexusSerialization.Output<TType>;
@@ -42,9 +35,17 @@ export const NexusString: NetworkType<string> = {
 	Name: "string",
 	Validation: {
 		Validate(value): value is string {
-			return typeIs(value, "string") && utf8.len(value)[0] !== undefined;
+			if (!typeIs(value, "string")) return false;
+			const [len] = utf8.len(value);
+			return len !== undefined && len !== false;
 		},
-		ValidateError: (_, value) => "Expected string, got " + typeOf(value),
+		ValidateError: (_, value) => {
+			if (typeIs(value, "string")) {
+				return "Got Invalid UTF-8 string";
+			} else {
+				return "Expected string, got " + typeOf(value);
+			}
+		},
 	},
 	Encoding: NetworkBuffers.String,
 };
@@ -310,7 +311,11 @@ export function NexusStringEnum<T extends object>(
 	return networkType;
 }
 
+const intEnumCache = new Map<object, NetworkType<any, int32>>();
 export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = false): NetworkType<T, int32> {
+	const cached = intEnumCache.get(value);
+	if (cached) return cached;
+
 	let validator: (value: number) => boolean;
 
 	if (isFlags) {
@@ -327,7 +332,7 @@ export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = 
 		};
 	}
 
-	return {
+	const intEnumType = {
 		Name: "enum<int32>",
 		Encoding: NetworkBuffers.Int32,
 		Validation: {
@@ -346,7 +351,11 @@ export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = 
 				}
 			},
 		},
-	};
+	} satisfies NetworkType<T, int32>;
+
+	table.freeze(intEnumType);
+	intEnumCache.set(value, intEnumType);
+	return intEnumType;
 }
 
 export function NexusRangeFloat32(min: number, max: number): NetworkType<float32> {
@@ -457,18 +466,11 @@ interface NexusCoreTypeOps {
 		this: void,
 		...valueTypes: T
 	): NetworkSerializableType<MapCheckArrayIn<T>, MapCheckArrayOut<T>>;
+
 	/**
 	 * An optional type (`T | undefined`)
 	 */
 	Optional<T extends StaticNetworkType>(this: void, valueType: T): NetworkOptionalType<In<T>, Out<T>>;
-	// /**
-	//  * An interface that's serialized using a hash table
-	//  */
-	// Interface<T>(
-	// 	this: void,
-	// 	objectInterface: Interface<T>,
-	// 	customLabel?: string,
-	// ): NetworkSerializableType<InTypes<typeof objectInterface>, OutTypes<typeof objectInterface>>;
 
 	/**
 	 * A set of the given value type

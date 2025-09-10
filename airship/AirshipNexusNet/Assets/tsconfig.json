@@ -18,7 +18,12 @@
 		"target": "ESNext",
 		"typeRoots": ["AirshipPackages/@Easy/Core/Shared/Types"],
 		"skipLibCheck": true,
-		"strictPropertyInitialization": false
+		"strictPropertyInitialization": false,
+		"plugins": [
+			{
+				"transform": "nexusnet-transformer",
+			}
+		]
 	},
 	"airship": {
 		"type": "game",

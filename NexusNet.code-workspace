@@ -8,10 +8,6 @@
 			"path": "airship/AirshipNexusNet/Assets",
 			"name": "Airship Project"
 		},
-		//{
-		//	"path": "transformer",
-		//	"name": "Transformer"
-		//},
 		{
 			"path": "tests/roblox",
 			"name": "Roblox Testing"
@@ -19,6 +15,9 @@
 		{
 			"path": "docs",
 			"name": "Documentation"
+		},
+		{
+			"path": "transformer"
 		}
 	],
 	"settings": {

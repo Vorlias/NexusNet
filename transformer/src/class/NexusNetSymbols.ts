@@ -1,13 +1,11 @@
 import ts from "typescript";
 import { DistribInfo } from "../utils/typescript-version";
-import { TransformState } from "./TransformState";
 import { isPathDescendantOf } from "../isPathDescendantOf";
 import path from "path";
 import fs from "fs";
 import assert from "assert";
 import { NexusNetInterface, NexusNetModuleFile, NexusNetNamespace } from "./ModuleFile";
 import { LoggerProvider } from "./logProvider";
-import { CALL_MACROS } from "../macros/call";
 
 const EXCLUDED_NAME_DIR = new Set(["src/", "lib/", "out/"]);
 export const moduleResolutionCache = new Map<string, string | false>();
@@ -32,6 +30,8 @@ export class NexusNetXProvider {
 
 		if (distrib.type === "roblox") {
 			this.moduleDir = this.resolveModuleDir("@rbxts/nexus-net");
+		} else if (distrib.type === "airship") {
+			this.moduleDir = this.resolveAirshipFramework();
 		}
 
 		if (this.moduleDir) {
@@ -39,6 +39,10 @@ export class NexusNetXProvider {
 		} else {
 			logger.warnIfVerbose("Could not find module dir");
 		}
+	}
+
+	private resolveAirshipFramework() {
+		return "AirshipPackages/@Vorlias/NexusNet/Framework";
 	}
 
 	private resolveModuleDir(moduleName: string) {
@@ -58,6 +62,7 @@ export class NexusNetXProvider {
 
 	private isFileInteresting(file: ts.SourceFile) {
 		if (this.moduleDir && isPathDescendantOf(file.fileName, this.moduleDir)) {
+			if (file.fileName.endsWith(".d.ts")) return false;
 			return true;
 		}
 
@@ -112,9 +117,15 @@ export class NexusNetXProvider {
 	finalize() {
 		if (!this.moduleDir) return;
 
-		const file = path.relative(this.program.getCurrentDirectory(), path.join(this.moduleDir!, "Core", "NexusX"));
+		const file = path.relative(this.program.getCurrentDirectory(), path.join(this.moduleDir!, "NexusX"));
 		this.nexusXModule = this.getFile(file);
 		this.nexusXNamespace = this.nexusXModule.getNamespace("NexusX");
-		this.nexusXBuilder = this.nexusXModule.getInterface("XNetworkObjectModelBuilder");
+		console.log(
+			"registered NexusX in",
+			this.nexusXModule.file.fileName,
+			this.typeChecker.symbolToString(this.nexusXNamespace.namespaceSymbol),
+		);
+
+		// this.nexusXBuilder = this.nexusXModule.getInterface("XNetworkObjectModelBuilder");
 	}
 }

@@ -62,6 +62,11 @@ export interface NetworkDeserializer<TInput, TOutput> {
 	Deserialize(this: void, value: TOutput, deserializer?: DeserializationContext): TInput;
 
 	/**
+	 * Return whether or not this value can be deserialized
+	 */
+	IsDeserializable?(this: void, value: TOutput): boolean;
+
+	/**
 	 * Handle errors that might happen with the deserialization process
 	 */
 	OnDeserializeException?(this: void, exception: DeserializationException): boolean | void;

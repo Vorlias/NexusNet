@@ -46,6 +46,9 @@ const ServerIdentity: NetworkSerializableType<NetworkIdentity, uint32> = {
 		Serialize(value) {
 			return value.netId;
 		},
+		IsDeserializable(value) {
+			return NetworkUtil.GetNetworkIdentity(value) !== undefined;
+		},
 		Deserialize(value) {
 			if (Game.IsServer()) {
 				return NetworkUtil.WaitForNetworkIdentity(value);
@@ -82,9 +85,9 @@ const Character: NetworkSerializableType<AirshipCharacter, uint32> = {
 	},
 };
 
-const Player: NetworkSerializableType<AirshipPlayer, string> = {
+const Player: NetworkSerializableType<AirshipPlayer, int32> = {
 	Name: "AirshipPlayer",
-	Encoding: NetworkBuffers.String,
+	Encoding: NetworkBuffers.Int32,
 	Validation: {
 		Validate(value): value is AirshipPlayer {
 			return typeIs(value, "table") && value instanceof AirshipPlayer;
@@ -92,11 +95,14 @@ const Player: NetworkSerializableType<AirshipPlayer, string> = {
 	},
 	Serialization: {
 		Serialize(value) {
-			return value.userId;
+			return value.connectionId;
+		},
+		IsDeserializable(value) {
+			return Airship.Players.FindByConnectionId(value) !== undefined;
 		},
 		Deserialize(value) {
-			const player = Airship.Players.WaitForUserId(value);
-			assert(player, `Could not find player with userId '${value}'`);
+			const player = Airship.Players.FindByConnectionId(value);
+			assert(player, `Could not find player with connection id '${value}'`);
 			return player;
 		},
 	},

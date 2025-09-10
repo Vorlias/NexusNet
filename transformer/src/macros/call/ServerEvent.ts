@@ -4,13 +4,20 @@ import { CallMacro, MacroInfo } from "../macro";
 import ts, { factory } from "typescript";
 
 export const ServerEvent: CallMacro = {
+    id: "serverEvent",
     getSymbol(state: TransformState) {
-        const symbol = state.nexusNet.nexusXBuilder.get("ServerEvent");
+        const symbol = state.nexusNet.nexusXBuilder.get("Event");
         assert(symbol, "Could not find debug macro symbol");
         return symbol;
     },
     transform(state: TransformState, node: ts.CallExpression, { symbol }: MacroInfo) {
-        console.log("hi");
-        return node;
+        return factory.createCallExpression(
+            factory.createPropertyAccessExpression(
+                factory.createIdentifier("Nexus"),
+                factory.createIdentifier("Event"),
+            ),
+            undefined,
+            []
+        )
     },
 };

@@ -164,7 +164,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   guid: 69e72d0c-b517-43dd-ab20-7b51dda1a086
-  hash: a75cc22f3e312b9ed7dc307ab4d426d0
   script: {fileID: -7661782010239260363, guid: 25ded4a2306f0724dbf70e19e4d2b9ba, type: 3}
   scriptPath: Assets/Code/TestNetworking.lua
   forceContext: 0
@@ -205,7 +204,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   guid: 877f8170-8ba9-4d26-9614-683a68891ebb
-  hash: 43ee1411fd78f63f432e27aae0aa39b7
   script: {fileID: 796400153169862170, guid: c4fa48bfb1281a04baca6e795001cd63, type: 3}
   scriptPath: Assets/AirshipPackages/@Easy/Core/Shared/Character/CharacterConfigSetup.lua
   forceContext: 0
@@ -241,24 +239,6 @@ MonoBehaviour:
       serializedValue: 
       serializedObject: {fileID: 2116186187299375306, guid: 912d9eca69aeef24fb912298e044243b, type: 3}
       modified: 1
-    - name: movementSpace
-      type: IntEnum
-      objectType: 
-      items:
-        type: 
-        objectType: 
-        serializedItems: []
-        objectRefs: []
-      refPath: AirshipPackages/@Easy/Core/Shared/Types/Generated.d@Space
-      fileRef: 
-      jsDocs:
-        text: []
-        tags: []
-      decorators: []
-      nullable: 0
-      serializedValue: 1
-      serializedObject: {fileID: 0}
-      modified: 0
     - name: enableJumping
       type: boolean
       objectType: 
@@ -816,6 +796,61 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 241cf930257357542a77bc6d7fb552e4, type: 3}
+--- !u!1 &1147379842
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1147379844}
+  - component: {fileID: 1147379843}
+  m_Layer: 0
+  m_Name: TestFunctions
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1147379843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1147379842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa4feffba88dce746a2607f0ec6233b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  guid: 
+  script: {fileID: 512911755929166665, guid: e70050680e2d1df47a95af0946eee1ca, type: 3}
+  scriptPath: Assets/Code/TestFunctionCaching.lua
+  forceContext: 0
+  metadata:
+    name: 
+    singleton: 0
+    decorators: []
+    properties: []
+    displayIcon: {fileID: 0}
+    displayName: 
+--- !u!4 &1147379844
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1147379842}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.7063904, y: -1.6392069, z: 16.235481}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1309094768
 GameObject:
   m_ObjectHideFlags: 0
@@ -968,7 +1003,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   guid: 7d0d1e6c-50da-4fb6-b40b-c36d18a53ee7
-  hash: 0053abcc7953b86c53729db5521306df
   script: {fileID: 7023490671102335973, guid: 029f997563ceae84fa4f2624407293c5, type: 3}
   scriptPath: Assets/Code/TestNetworkable.lua
   forceContext: 0
@@ -1060,7 +1094,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   guid: 7d0d1e6c-50da-4fb6-b40b-c36d18a53ee7
-  hash: 0053abcc7953b86c53729db5521306df
   script: {fileID: 7023490671102335973, guid: 029f997563ceae84fa4f2624407293c5, type: 3}
   scriptPath: Assets/Code/TestNetworkable.lua
   forceContext: 0
@@ -1316,7 +1349,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   guid: 24be6dfd-c3ca-42af-a31c-e149a8f18c5a
-  hash: 2905ddf9bac09889cd3fd75d09d90cd8
   script: {fileID: 7783096336541887851, guid: 1d19f418d8ad62340ba2a826511554f6, type: 3}
   scriptPath: Assets/Code/CharacterSpawner.lua
   forceContext: 0
@@ -1355,3 +1387,4 @@ SceneRoots:
   - {fileID: 2012354922}
   - {fileID: 1359168840}
   - {fileID: 1398953539}
+  - {fileID: 1147379844}

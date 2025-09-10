@@ -1,8 +1,8 @@
 import { CallMacro } from "../macro";
-import { BuildObjectModel } from "./BuildObjectModel";
-import { ServerEvent } from "./ServerEvent";
+import { ServerEventDeclaration } from "./Events";
 
 export const CALL_MACROS = new Array<CallMacro>(
-    BuildObjectModel,
-    ServerEvent,
+    // BuildObjectModel,
+    // ServerEvent,
+    ServerEventDeclaration,
 );

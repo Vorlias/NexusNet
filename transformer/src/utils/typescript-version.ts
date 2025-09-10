@@ -35,7 +35,7 @@ interface AirshipDistribInfo {
 }
 const PINNED_AIRSHIP_VERISON = new ts.VersionRange("~3.5");
 export function getAirship(): AirshipDistribInfo | undefined {
-	const pkg = getPackageJson(path.join(process.cwd(), "node_modules/@easy-games/unity-ts"));
+	const pkg = getPackageJson(path.join(process.cwd(), "TypeScript~"));
 	if (!pkg) {
 		return undefined;
 	}
@@ -43,10 +43,9 @@ export function getAirship(): AirshipDistribInfo | undefined {
 	return {
 		type: "airship",
 		versionRange: PINNED_AIRSHIP_VERISON,
-		version: new ts.Version(pkg.version),
+		version: new ts.Version("3.5"),
 	};
 }
 
 export type DistribInfo = AirshipDistribInfo | RobloxDistribInfo | { type: "none" };
 
-console.log("cwd is", cwd());

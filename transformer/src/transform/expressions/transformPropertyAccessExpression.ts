@@ -12,8 +12,6 @@ export function transformPropertyAccessExpression(
 		if (macro) {
 			return macro.transform(state, node, { symbol, symbols: [symbol] });
 		}
-        console.warn("no symbol for", node.getText());
-        console.log("symbol id is", symbol.id, symbol.getName())
 	}
 
 	return ts.visitEachChild(node, (node) => transformNode(state, node), state.context);

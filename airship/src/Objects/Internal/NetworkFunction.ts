@@ -16,7 +16,7 @@ export class NetworkedFunction<TArgs extends unknown[] = unknown[], TRet extends
 	private readonly yieldingThreads = new Map<number, thread>();
 
 	private readonly id: number;
-	public constructor(private readonly name: string) {
+	public constructor(private readonly name: string, private readonly timeoutSeconds: number) {
 		this.id = GetAsNetEventId(name);
 
 		this.sender = new NetworkedEvent(name + ":Sender", NetworkChannel.Reliable);
@@ -24,9 +24,21 @@ export class NetworkedFunction<TArgs extends unknown[] = unknown[], TRet extends
 	}
 
 	private listening = false;
-	private Listen() {
+	private Listen(requestId: number) {
 		if (this.listening) return;
-		this.listening = true;
+
+		let startTime = Time.time;
+		let timeout = this.timeoutSeconds;
+
+		// task.spawn(() => {
+		// 	while (this.yieldingThreads.has(requestId) && Time.time < startTime + timeout) {
+		// 		task.wait();
+		// 	}
+
+		// 	if (this.yieldingThreads.has(requestId)) {
+
+		// 	}
+		// });
 
 		this.reciever.OnServerEvent((incomingRequestId, retValue) => {
 			const thread = this.yieldingThreads.get(incomingRequestId);
@@ -40,9 +52,9 @@ export class NetworkedFunction<TArgs extends unknown[] = unknown[], TRet extends
 
 	public FireServer(...args: TArgs) {
 		assert(Game.IsClient());
-		this.Listen();
 
 		const reqId = this.reqId++;
+		this.Listen(reqId);
 
 		const thread = coroutine.running();
 		this.yieldingThreads.set(reqId, thread);

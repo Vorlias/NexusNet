@@ -4,6 +4,7 @@ import { CallMacro, MacroInfo } from "../macro";
 import ts, { factory } from "typescript";
 
 export const BuildObjectModel: CallMacro = {
+	id: "buildObjectModel",
 	getSymbol(state: TransformState) {
 		const symbol = state.nexusNet.nexusXNamespace.get("BuildObjectModel");
 		assert(symbol, "Could not find debug macro symbol");

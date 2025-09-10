@@ -2,21 +2,29 @@ import { NetworkClientEvent, NetworkPlayer, NetworkServerEvent } from "../Types/
 
 type Arguments = ReadonlyArray<unknown>;
 
-export type ServerInvokeMiddleware<C extends Arguments = Arguments, PC extends Arguments = C> = (
+export type ServerEventInvokeMiddleware<C extends Arguments = Arguments, PC extends Arguments = C> = (
 	players: readonly NetworkPlayer[],
 	...args: C
 ) => void | boolean;
 
-export type ServerCallbackMiddleware<C extends Arguments = Arguments, PC extends Arguments = C, Ret = void> = (
+export type ServerEventCallbackMiddleware<C extends Arguments = Arguments, PC extends Arguments = C, Ret = void> = (
 	fire: (player: NetworkPlayer, ...args: C) => Ret,
 	instance: NetworkServerEvent,
 ) => (sender: NetworkPlayer, ...args: PC) => Ret;
 
-export type ClientInvokeMiddleware<C extends Arguments = Arguments, PC extends Arguments = C> = (
+export type ClientEventInvokeMiddleware<C extends Arguments = Arguments, PC extends Arguments = C> = (
 	args: C,
 ) => void | boolean;
 
-export type ClientCallbackMiddleware<C extends Arguments = Arguments, PC extends Arguments = C, Ret = void> = (
+export type ClientEventCallbackMiddleware<C extends Arguments = Arguments, PC extends Arguments = C, Ret = void> = (
 	fire: (...args: C) => Ret,
 	instance: NetworkClientEvent,
 ) => (...args: PC) => Ret;
+
+export type ServerFunctionCallbackMiddleware<C extends Arguments = Arguments, Ret = unknown> = (
+	invoke: (player: NetworkPlayer, ...args: C) => Ret,
+) => (sender: NetworkPlayer, ...args: C) => Ret;
+
+export type ClientFunctionInvokeMiddleware<C extends Arguments = Arguments, PC extends Arguments = C> = (
+	...args: C
+) => void | boolean;

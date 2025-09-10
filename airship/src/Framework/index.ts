@@ -25,8 +25,10 @@ import { AirshipFunctionBuilder } from "../Builders/FunctionBuilder";
 import { NEXUS_VERSION } from "../Core/CoreInfo";
 import { NexusInlineClient, NexusInlineServer, NexusInlineShared } from "./Inline";
 import { CrossServerEventBuilder } from "../Builders/MessagingBuilder";
-import { ServerBidirectionalEvent } from "../Core/Types/Server/NetworkObjects";
 import { NexusSentinel } from "./Events";
+
+export { NexusTimeSpan } from "../Core/Types/Time";
+export { NexusSentinel } from "./Events";
 export { NexusTypes } from "./AirshipTypes";
 
 declare module "../Core/Types/Dist" {
@@ -196,6 +198,8 @@ namespace Nexus {
 	 * Nexus' experimental Sentinel framework, can be used to detect and handle remote abuse as well as other problems, such as for anti-cheat and logging to services.
 	 *
 	 * Note: This only supports the server, as client detection can be changed by a malicious client.
+	 *
+	 * It is recommended you use a server-based component (in a `Server` folder) for handling this so it's not accessible by clients.
 	 *
 	 * @server
 	 */

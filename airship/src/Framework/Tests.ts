@@ -6,7 +6,7 @@ import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { OnUpdate } from "@Easy/Core/Shared/Util/Timer";
 import Nexus, { NexusTypes } from ".";
-import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "../Core/Middleware/Types";
+import { ServerEventCallbackMiddleware, ServerEventInvokeMiddleware } from "../Core/Middleware/Types";
 import { ServerFunction } from "../Objects/Server/ServerFunction";
 
 export namespace NexusTesting {
@@ -41,12 +41,12 @@ export namespace NexusTesting {
 			return result;
 		}
 
-		public InjectInvokeMiddleware(invokeMiddleware: ServerInvokeMiddleware<T>) {
-			this.event["invokeMiddleware"].push(invokeMiddleware as ServerInvokeMiddleware);
+		public InjectInvokeMiddleware(invokeMiddleware: ServerEventInvokeMiddleware<T>) {
+			this.event["invokeMiddleware"].push(invokeMiddleware as ServerEventInvokeMiddleware);
 		}
 
-		public InjectCallbackMiddleware(callbackMiddleware: ServerCallbackMiddleware<T>) {
-			this.event["callbackMiddleware"].push(callbackMiddleware as unknown as ServerCallbackMiddleware);
+		public InjectCallbackMiddleware(callbackMiddleware: ServerEventCallbackMiddleware<T>) {
+			this.event["callbackMiddleware"].push(callbackMiddleware as unknown as ServerEventCallbackMiddleware);
 		}
 
 		public ExpectArgsEqual<T extends ReadonlyArray<unknown>>(value: T, expected: T) {

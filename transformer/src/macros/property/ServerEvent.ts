@@ -4,6 +4,7 @@ import { PropertyMacro } from "../macro";
 import ts from "typescript";
 
 export const ServerEvent: PropertyMacro = {
+    id: "ServerEvent",
     getSymbol(state: TransformState) {
         const symbol = state.nexusNet.nexusXBuilder.get("ServerEvent");
         assert(symbol, "Could not find debug macro symbol");

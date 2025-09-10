@@ -7,6 +7,7 @@ interface MacroInfo {
 }
 
 interface Macro {
+	id: string;
 	_symbols?: ts.Symbol[];
 	getSymbol(state: TransformState): ts.Symbol | ts.Symbol[];
 	transform(state: TransformState, node: ts.Node, macro: MacroInfo): ts.Node | ts.Node[] | undefined;

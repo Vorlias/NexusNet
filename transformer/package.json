@@ -26,12 +26,12 @@
     "execa": "^5.1.1",
     "git-repo-info": "^2.1.1",
     "types-package-json": "^2.0.39",
-    "typescript": "=5.2.2"
+    "typescript": "=5.5.2"
   },
   "devDependencies": {
     "@rbxts/types": "^1.0.428",
     "@types/node": "^14.14.11",
-    "@types/ts-expose-internals": "npm:ts-expose-internals@4.5.4",
+    "@types/ts-expose-internals": "npm:ts-expose-internals@=5.5.2",
     "@typescript-eslint/eslint-plugin": "^4.9.0",
     "@typescript-eslint/parser": "^4.9.0",
     "eslint": "~7.14.0",

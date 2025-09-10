@@ -4,7 +4,7 @@ import { NetworkedEvent } from "../Internal/NetworkEvent";
 import { ClientEventDeclaration, NetworkingFlags } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { NexusEventConnection } from "../NetConnection";
 import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
-import { ClientCallbackMiddleware, ClientInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
+import { ClientEventCallbackMiddleware, ClientEventInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseClientInvokeArgs, ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { CreateClientEventCallback } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 
@@ -14,14 +14,14 @@ export class ClientEvent<T extends Array<unknown> = unknown[]> implements Client
 	private useBuffers = false;
 	private argCountCheck: boolean;
 
-	private callbackMiddleware: ClientCallbackMiddleware[];
-	private invokeMiddleware: ClientInvokeMiddleware[];
+	private callbackMiddleware: ClientEventCallbackMiddleware[];
+	private invokeMiddleware: ClientEventInvokeMiddleware[];
 
 	constructor(private readonly name: string, declaration: ClientEventDeclaration<T>) {
 		this.instance = new NetworkedEvent(name);
 		this.argumentHandlers = declaration.Arguments;
 		this.useBuffers = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
-		this.callbackMiddleware = declaration.CallbackMiddleware as ClientCallbackMiddleware[];
+		this.callbackMiddleware = declaration.CallbackMiddleware as ClientEventCallbackMiddleware[];
 		this.argCountCheck = (declaration.Flags & NetworkingFlags.EnforceArgumentCount) !== 0;
 		this.invokeMiddleware = declaration.InvokeMiddleware;
 		table.freeze(this);

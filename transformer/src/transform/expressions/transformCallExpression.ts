@@ -12,8 +12,6 @@ export function transformCallExpression(state: TransformState, node: ts.CallExpr
 				(node) => transformNode(state, node),
 				state.context,
 			);
-        } else {
-            console.warn("no call macro for symbol", symbol.id);
         }
 	}
 

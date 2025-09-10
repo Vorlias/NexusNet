@@ -1,4 +1,4 @@
-import { ClientInvokeMiddleware, ServerInvokeMiddleware } from "../Middleware/Types";
+import { ClientEventInvokeMiddleware, ServerEventInvokeMiddleware } from "../Middleware/Types";
 import { TransformArgsToBuffer } from "./BufferEncoding";
 import { StaticNetworkType } from "../Types/NetworkTypes";
 import { NetSerializeArguments } from "./Serializer";
@@ -9,7 +9,7 @@ export function ParseClientInvokeArgs<TArgs extends unknown[]>(
 	name: string,
 	useBuffers: boolean,
 	transformers: StaticNetworkType<any>[],
-	invokeMiddleware: ClientInvokeMiddleware[],
+	invokeMiddleware: ClientEventInvokeMiddleware[],
 	args: TArgs,
 	enforceArgCount: boolean,
 ) {
@@ -36,7 +36,7 @@ export function ParseClientInvokeArgs<TArgs extends unknown[]>(
 export function RunServerInvokeMiddleware<TArgs extends unknown[]>(
 	name: string,
 	targets: NetworkPlayer[],
-	invokeMiddleware: ServerInvokeMiddleware[],
+	invokeMiddleware: ServerEventInvokeMiddleware[],
 	args: TArgs,
 ): boolean {
 	for (const middleware of invokeMiddleware) {
@@ -51,7 +51,7 @@ export function ParseServerInvokeArgs<TArgs extends unknown[]>(
 	name: string,
 	useBuffers: boolean,
 	networkTypes: StaticNetworkType<any>[],
-	invokeMiddleware: ServerInvokeMiddleware[],
+	invokeMiddleware: ServerEventInvokeMiddleware[],
 	args: TArgs,
 	enforceArguments: boolean,
 ) {

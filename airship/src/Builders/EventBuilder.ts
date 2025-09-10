@@ -14,15 +14,19 @@ import {
 import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { NexusConfiguration } from "../Core/Configuration";
 import {
-	ClientCallbackMiddleware,
-	ClientInvokeMiddleware,
-	ServerCallbackMiddleware,
-	ServerInvokeMiddleware,
+	ClientEventCallbackMiddleware,
+	ClientEventInvokeMiddleware,
+	ServerEventCallbackMiddleware,
+	ServerEventInvokeMiddleware,
 } from "../Core/Middleware/Types";
 
 import { NexusNetworkBehaviour } from "../Components/NexusNetworkBehaviour";
 import { NexusTypes } from "../Framework/AirshipTypes";
 import { NetworkEventAuthority } from "../Objects/Internal/NetworkEvent";
+import { createRateLimitMiddleware, RateLimitOptions } from "../Core/Middleware/RateLimit";
+import { Player } from "@Easy/Core/Shared/Player/Player";
+import { Game } from "@Easy/Core/Shared/Game";
+import { NexusSentinel } from "../Framework/Events";
 
 export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	implements NetworkEventBuilder<TArgs>, SharedBuilder<BidirectionalEventDeclaration<TArgs>>
@@ -89,15 +93,72 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 		return this as never as AirshipEventBuilder<T>;
 	}
 
+	/**
+	 * Adds a client request rate limiter per minute with the given request cap
+	 * @param requestsPerMinute The maximum requests per minute.
+	 *
+	 * If you want to control the timeframe, use the `RateLimitOptions` overload of this function.
+	 * @deprecated Experimental
+	 */
+	WithClientRateLimit(requestsPerMinute: number): NetworkClientEventBuilder<TArgs>;
+	/**
+	 * Adds a client request rate limiter with the given options
+	 * @param rateLimitOptions The rate limiter options
+	 *
+	 * @deprecated Experimental
+	 */
+	WithClientRateLimit(rateLimitOptions: RateLimitOptions): NetworkClientEventBuilder<TArgs>;
+	WithClientRateLimit(rateLimitOptions: RateLimitOptions | number): NetworkClientEventBuilder<TArgs> {
+		const middleware = createRateLimitMiddleware<TArgs>(
+			typeIs(rateLimitOptions, "number")
+				? {
+						timeoutSeconds: 60,
+						requestsPerTimeout: rateLimitOptions,
+				  }
+				: rateLimitOptions,
+		);
+		this.callbackMiddleware.push(middleware.serverCallback);
+		this.invokeMiddleware.push(middleware.clientInvoke);
+		return this;
+	}
+
+	/**
+	 * Define a predicate that only allows certain players to invoke this event
+	 *
+	 * Example:
+	 * ```ts
+	 * Nexus.Event().WithClientFilter((player) => {
+	 * 		return player.orgRoleName === "Developer"; // allow only developers
+	 * })
+	 * ```
+	 * @param predicate The predicate to filter valid vs invalid players
+	 * @deprecated Experimental
+	 */
+	WithClientFilter(predicate: (player: Player) => boolean): NetworkClientEventBuilder<TArgs> {
+		this.callbackMiddleware.push(((invoke) => {
+			return (player, ...args) => {
+				if (!predicate(player)) {
+					NexusSentinel.onServerPredicateFalse.Fire(player);
+					return;
+				}
+
+				invoke(player, ...args);
+			};
+		}) satisfies ServerEventCallbackMiddleware<TArgs>);
+		this.invokeMiddleware.push(() => predicate(Game.localPlayer));
+
+		return this;
+	}
+
 	WithServerMiddleware(
 		build: (builder: ServerMiddlewareBuilder<TArgs>) => ServerMiddlewareBuilder<TArgs>,
 	): NetworkServerEventBuilder<TArgs> {
 		const builder: ServerMiddlewareBuilder<TArgs> = {
-			OnClientCallback: (callback: ClientCallbackMiddleware<TArgs>) => {
+			OnClientCallback: (callback: ClientEventCallbackMiddleware<TArgs>) => {
 				this.callbackMiddleware.push(callback);
 				return builder as unknown as ServerMiddlewareBuilder<TArgs>;
 			},
-			OnServerInvoke: (callback: ServerInvokeMiddleware<TArgs>) => {
+			OnServerInvoke: (callback: ServerEventInvokeMiddleware<TArgs>) => {
 				this.invokeMiddleware.push(callback);
 				return builder as unknown as ServerMiddlewareBuilder<TArgs>;
 			},
@@ -112,12 +173,12 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	): NetworkClientEventBuilder<TArgs> {
 		const builder: ClientMiddlewareBuilder<TArgs> = {
 			OnServerCallback: <TOut extends ReadonlyArray<unknown> = TArgs>(
-				callback: ServerCallbackMiddleware<TArgs, TOut>,
+				callback: ServerEventCallbackMiddleware<TArgs, TOut>,
 			) => {
 				this.callbackMiddleware.push(callback);
 				return builder as unknown as ClientMiddlewareBuilder<TOut>;
 			},
-			OnClientInvoke: (callback: ClientInvokeMiddleware<TArgs>) => {
+			OnClientInvoke: (callback: ClientEventInvokeMiddleware<TArgs>) => {
 				this.invokeMiddleware.push(callback);
 				return builder as unknown as ClientMiddlewareBuilder<TArgs>;
 			},

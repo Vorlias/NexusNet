@@ -1,5 +1,9 @@
 import { NexusSentinel } from "@Vorlias/NexusNet/Framework/Events";
-import { ClientCallbackMiddleware, ServerCallbackMiddleware } from "../Middleware/Types";
+import {
+	ClientEventCallbackMiddleware,
+	ServerEventCallbackMiddleware,
+	ServerFunctionCallbackMiddleware,
+} from "../Middleware/Types";
 import { NetworkPlayer } from "../Types/Dist";
 import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
 import { ValidateArguments, ValidateResult } from "./Arguments";
@@ -61,7 +65,7 @@ interface ServerEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly EnforceArguments: boolean;
 	readonly NetworkTypes: StaticNetworkType<any>[];
 	readonly Callback: (player: NetworkPlayer, ...args: TArgs) => void;
-	readonly CallbackMiddleware: ServerCallbackMiddleware[];
+	readonly CallbackMiddleware: ServerEventCallbackMiddleware[];
 }
 type AnyServerCallback<T extends readonly unknown[] = readonly unknown[]> = (player: NetworkPlayer, ...args: T) => void;
 export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> = ReadonlyArray<unknown>>(
@@ -106,7 +110,7 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 							throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
 						case ValidateResult.ValidationError:
 							if (useSentinel)
-								NexusSentinel.onServerValidationFailure.Fire(
+								NexusSentinel.onServerValidationError.Fire(
 									player,
 									true,
 									name,
@@ -141,7 +145,7 @@ export function CreateServerEventCallback<TArgs extends ReadonlyArray<unknown> =
 							throw `[NexusNet] Call to ${name} expected ${data.expectedCount} arguments, got ${data.argCount}`;
 						case ValidateResult.ValidationError:
 							if (useSentinel)
-								NexusSentinel.onServerValidationFailure.Fire(
+								NexusSentinel.onServerValidationError.Fire(
 									player,
 									false,
 									name,
@@ -196,7 +200,7 @@ interface ClientEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly EnforceArguments: boolean;
 	readonly NetworkTypes: StaticNetworkType<any>[];
 	readonly Callback: (...args: TArgs) => void;
-	readonly CallbackMiddleware: ClientCallbackMiddleware[];
+	readonly CallbackMiddleware: ClientEventCallbackMiddleware[];
 }
 type AnyClientCallback<T extends readonly unknown[] = readonly unknown[]> = (...args: T) => void;
 export function CreateClientEventCallback<TArgs extends ReadonlyArray<unknown> = ReadonlyArray<unknown>>(
@@ -239,7 +243,7 @@ interface ServerFunctionCallback<TArgs extends ReadonlyArray<unknown>, TRet exte
 	readonly NetworkTypes: StaticNetworkType<any>[];
 	readonly NetworkReturnType: StaticNetworkType<any>;
 	readonly Callback: (player: NetworkPlayer, ...args: TArgs) => TRet;
-	// readonly CallbackMiddleware: ServerCallbackMiddleware[];
+	readonly CallbackMiddleware: ServerFunctionCallbackMiddleware[];
 }
 type AnyServerFunctionCallback<T extends readonly unknown[] = readonly unknown[], TRet extends unknown = unknown> = (
 	player: NetworkPlayer,
@@ -254,7 +258,8 @@ export function CreateServerFunctionCallback<
 	const networkReturnType = options.NetworkReturnType;
 	assert(networkReturnType, "Missing return type");
 
-	let callback = options.Callback;
+	let callback = options.Callback as AnyServerFunctionCallback;
+	for (const mw of options.CallbackMiddleware) callback = mw(callback as AnyServerFunctionCallback);
 
 	if (useBuffers && networkTypes.size() > 0) {
 		return ((player: NetworkPlayer, buffer: buffer) => {
@@ -273,6 +278,7 @@ export function CreateServerFunctionCallback<
 			}
 
 			const result = callback(player, ...(transformedArgs as unknown as TArgs));
+
 			const resultTransformed = NetSerializeArguments([networkReturnType], [result]);
 			const resultBuffer = TransformArgsToBuffer(name, [networkReturnType], resultTransformed);
 			return resultBuffer;

@@ -6,18 +6,21 @@ import { ParseClientInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/Invo
 import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { TransformBufferToArgs } from "@Vorlias/NexusNet/Core/Serialization/BufferEncoding";
 import { NetDeserializeArguments } from "@Vorlias/NexusNet/Core/Serialization/Serializer";
+import { ClientFunctionInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 
 export class ClientFunction<T extends Array<unknown>, R> implements ClientInvokeFunction<T, R> {
 	private instance: NetworkedFunction;
 	private arguments: StaticNetworkType[];
 	private returnType: StaticNetworkType;
 	private useBuffer: boolean;
+	private middleware: ClientFunctionInvokeMiddleware[];
 
 	public constructor(private name: string, declaration: ClientFunctionDeclaration<T, R>) {
-		this.instance = new NetworkedFunction(name);
+		this.instance = new NetworkedFunction(name, declaration.TimeoutSeconds);
 		this.arguments = declaration.Arguments;
 		this.returnType = declaration.Returns;
 		this.useBuffer = (declaration.Flags & NetworkingFlags.UseBufferSerialization) !== 0;
+		this.middleware = declaration.ClientInvokeMiddleware;
 	}
 
 	SendToServer(...args: T): R {

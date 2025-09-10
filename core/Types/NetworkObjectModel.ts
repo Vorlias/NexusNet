@@ -2,10 +2,12 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 import { NetworkEventAuthority } from "@Vorlias/NexusNet/Objects/Internal/NetworkEvent";
 import {
-	ClientCallbackMiddleware,
-	ClientInvokeMiddleware,
-	ServerCallbackMiddleware,
-	ServerInvokeMiddleware,
+	ClientEventCallbackMiddleware,
+	ClientEventInvokeMiddleware,
+	ClientFunctionInvokeMiddleware,
+	ServerEventCallbackMiddleware,
+	ServerEventInvokeMiddleware,
+	ServerFunctionCallbackMiddleware,
 } from "../Middleware/Types";
 import {
 	AnyClientNetworkObject,
@@ -17,6 +19,8 @@ import {
 import { InferClientRemote, InferServerRemote } from "./Inference";
 import { StaticNetworkType, ToNetworkArguments } from "./NetworkTypes";
 import { MergeIdentity, Named } from "./Utility";
+import { NexusTimeSpan } from "./Time";
+import { CachingOptions } from "../Middleware/FunctionCaching";
 
 export type RemoteDeclarations = Record<string, NetworkObjectDeclaration>;
 
@@ -25,8 +29,8 @@ export interface NetworkModelConfiguration {
 	readonly UseBuffers: boolean;
 	readonly Logging: boolean;
 
-	readonly ServerCallbackMiddleware?: ServerCallbackMiddleware[];
-	readonly ClientCallbackMiddleware?: ClientCallbackMiddleware[];
+	readonly ServerCallbackMiddleware?: ServerEventCallbackMiddleware[];
+	readonly ClientCallbackMiddleware?: ClientEventCallbackMiddleware[];
 
 	readonly EnforceArgumentCount?: boolean;
 }
@@ -110,23 +114,28 @@ export interface CrossServerEventDeclaration<_TArgs extends ReadonlyArray<unknow
 
 export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>>
 	extends EventDeclaration<RemoteRunContext.Server, _TArgs> {
-	readonly CallbackMiddleware: ServerCallbackMiddleware[];
-	readonly InvokeMiddleware: ServerInvokeMiddleware[];
+	readonly CallbackMiddleware: ServerEventCallbackMiddleware[];
+	readonly InvokeMiddleware: ServerEventInvokeMiddleware[];
 }
 
 export interface ClientEventDeclaration<_TArgs extends ReadonlyArray<unknown>>
 	extends EventDeclaration<RemoteRunContext.Client, _TArgs> {
-	readonly CallbackMiddleware: ClientCallbackMiddleware[];
-	readonly InvokeMiddleware: ClientInvokeMiddleware[];
+	readonly CallbackMiddleware: ClientEventCallbackMiddleware[];
+	readonly InvokeMiddleware: ClientEventInvokeMiddleware[];
 }
 
 export interface BidirectionalEventDeclaration<_TArgs extends ReadonlyArray<unknown>>
 	extends EventDeclaration<RemoteRunContext.Both, _TArgs> {}
 
 export interface ServerFunctionDeclaration<_TArgs extends ReadonlyArray<unknown>, _TRet>
-	extends FunctionDeclaration<RemoteRunContext.Server, _TArgs, _TRet> {}
+	extends FunctionDeclaration<RemoteRunContext.Server, _TArgs, _TRet> {
+	readonly ServerCallbackMiddleware: ServerFunctionCallbackMiddleware[];
+}
 export interface ClientFunctionDeclaration<_TArgs extends ReadonlyArray<unknown>, _TRet>
-	extends FunctionDeclaration<RemoteRunContext.Client, _TArgs, _TRet> {}
+	extends FunctionDeclaration<RemoteRunContext.Client, _TArgs, _TRet> {
+	readonly ClientInvokeMiddleware: ClientFunctionInvokeMiddleware[];
+	readonly TimeoutSeconds: number;
+}
 
 export type NetworkObjectDeclaration =
 	| ServerEventDeclaration<never>
@@ -153,27 +162,25 @@ export interface ContextNetworkModel<TDeclarations extends RemoteDeclarations> {
 }
 
 interface NetworkObjectBuilder {
-	unreliable: boolean;
 	useBuffer: boolean;
 	arguments: StaticNetworkType[] | undefined;
 
-	AsUnreliable(): this;
 	SetUseBuffer(useBuffer: boolean): this;
 }
 
 export interface ServerMiddleware<TIn extends ReadonlyArray<unknown>, TOut extends ReadonlyArray<unknown>> {
-	readonly ClientCallback: ClientCallbackMiddleware<TIn, TOut> | undefined;
-	readonly ServerInvoke: ServerInvokeMiddleware<TIn, TOut> | undefined;
+	readonly ClientCallback: ClientEventCallbackMiddleware<TIn, TOut> | undefined;
+	readonly ServerInvoke: ServerEventInvokeMiddleware<TIn, TOut> | undefined;
 }
 
 export interface ServerMiddlewareBuilder<TArgs extends ReadonlyArray<unknown>> {
-	OnClientCallback(this: void, callback: ClientCallbackMiddleware<TArgs>): ServerMiddlewareBuilder<TArgs>;
-	OnServerInvoke(this: void, callback: ServerInvokeMiddleware<TArgs>): ServerMiddlewareBuilder<TArgs>;
+	OnClientCallback(this: void, callback: ClientEventCallbackMiddleware<TArgs>): ServerMiddlewareBuilder<TArgs>;
+	OnServerInvoke(this: void, callback: ServerEventInvokeMiddleware<TArgs>): ServerMiddlewareBuilder<TArgs>;
 }
 
 export interface ClientMiddlewareBuilder<TArgs extends ReadonlyArray<unknown>> {
-	OnServerCallback(this: void, callback: ServerCallbackMiddleware<TArgs>): ClientMiddlewareBuilder<TArgs>;
-	OnClientInvoke(this: void, callback: ClientInvokeMiddleware<TArgs>): ClientMiddlewareBuilder<TArgs>;
+	OnServerCallback(this: void, callback: ServerEventCallbackMiddleware<TArgs>): ClientMiddlewareBuilder<TArgs>;
+	OnClientInvoke(this: void, callback: ClientEventInvokeMiddleware<TArgs>): ClientMiddlewareBuilder<TArgs>;
 }
 
 export interface NetworkServerEventBuilder<TArgs extends ReadonlyArray<unknown>>
@@ -211,6 +218,7 @@ export interface NetworkFunctionBuilder<TArgs extends ReadonlyArray<unknown>, TR
 		...values: ToNetworkArguments<T>
 	): NetworkFunctionBuilder<T, TRet>;
 	WhichReturns<R>(returnValue: StaticNetworkType<R>): NetworkFunctionBuilder<TArgs, R>;
+	WithCallTimeout(timeout: NexusTimeSpan): this;
 }
 
 export interface NetworkObjectModelBuilder<TDeclarations extends RemoteDeclarations = defined> {

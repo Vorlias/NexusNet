@@ -29,10 +29,10 @@ import { ServerFunction } from "../Objects/Server/ServerFunction";
 import { ClientFunction } from "../Objects/Client/ClientFunction";
 import { ServerMessagingEvent } from "../Objects/Server/ServerMessagingEvent";
 import {
-	ClientCallbackMiddleware,
-	ClientInvokeMiddleware,
-	ServerCallbackMiddleware,
-	ServerInvokeMiddleware,
+	ClientEventCallbackMiddleware,
+	ClientEventInvokeMiddleware,
+	ServerEventCallbackMiddleware,
+	ServerEventInvokeMiddleware,
 } from "../Core/Middleware/Types";
 
 type Scoped<K extends string, T extends RemoteDeclarations> = { [P in keyof T as `${K}/${P & string}`]: T[P] };
@@ -136,11 +136,11 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 
 	ApplyServerMiddleware(build: (builder: ServerMiddlewareBuilder<unknown[]>) => ServerMiddlewareBuilder<unknown[]>) {
 		const builder: ServerMiddlewareBuilder<unknown[]> = {
-			OnClientCallback: (callback: ClientCallbackMiddleware) => {
+			OnClientCallback: (callback: ClientEventCallbackMiddleware) => {
 				//this.callbackMiddleware.push(callback);
 				return builder as unknown as ServerMiddlewareBuilder<unknown[]>;
 			},
-			OnServerInvoke: (callback: ServerInvokeMiddleware) => {
+			OnServerInvoke: (callback: ServerEventInvokeMiddleware) => {
 				//this.invokeMiddleware.push(callback);
 				return builder as unknown as ServerMiddlewareBuilder<unknown[]>;
 			},
@@ -151,11 +151,11 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 
 	ApplyClientMiddleware(build: (builder: ClientMiddlewareBuilder<unknown[]>) => ClientMiddlewareBuilder<unknown[]>) {
 		const builder: ClientMiddlewareBuilder<unknown[]> = {
-			OnServerCallback: (callback: ServerCallbackMiddleware) => {
+			OnServerCallback: (callback: ServerEventCallbackMiddleware) => {
 				//this.callbackMiddleware.push(callback);
 				return builder as unknown as ClientMiddlewareBuilder<unknown[]>;
 			},
-			OnClientInvoke: (callback: ClientInvokeMiddleware<unknown[]>) => {
+			OnClientInvoke: (callback: ClientEventInvokeMiddleware<unknown[]>) => {
 				//this.invokeMiddleware.push(callback);
 				return builder as unknown as ClientMiddlewareBuilder<unknown[]>;
 			},

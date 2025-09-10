@@ -8,13 +8,12 @@ import {
 } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 import { NexusEventConnection } from "../NetConnection";
 import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
-import { ServerCallbackMiddleware, ServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
+import { ServerEventCallbackMiddleware, ServerEventInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseServerInvokeArgs, RunServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import { Airship } from "@Easy/Core/Shared/Airship";
 import { ValidateArguments, ValidateResult } from "@Vorlias/NexusNet/Core/Serialization/Arguments";
 import { Collection, NexusCollectionUtils } from "@Vorlias/NexusNet/Core/Utils/Collections";
-import { NexusSentinel } from "@Vorlias/NexusNet/Framework/Events";
 
 export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 	implements ServerSenderEvent<TArgs>, ServerListenerEvent<TArgs>
@@ -26,8 +25,8 @@ export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 	private debugging: boolean;
 	private argCountCheck: boolean;
 
-	private invokeMiddleware: ServerInvokeMiddleware[];
-	private callbackMiddleware: ServerCallbackMiddleware[];
+	private invokeMiddleware: ServerEventInvokeMiddleware[];
+	private callbackMiddleware: ServerEventCallbackMiddleware[];
 
 	constructor(private readonly name: string, declaration: ServerEventDeclaration<TArgs>) {
 		this.instance = new NetworkedEvent(name);

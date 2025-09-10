@@ -73,7 +73,7 @@ export class NexusNetModuleFile {
 		private name: string,
 	) {
 		const fileSymbol = typeChecker.getSymbolAtLocation(file);
-		assert(fileSymbol);
+		assert(fileSymbol, `Cannot find symbol at location ${file.fileName}`);
 		this.fileSymbol = fileSymbol;
 		this.register();
 	}
@@ -109,13 +109,13 @@ export class NexusNetModuleFile {
 
 	getNamespace(name: string) {
 		const ns = this.namespaces.get(name);
-		assert(ns);
+		assert(ns, `Could not find namespace '${name}' in ${this.file.fileName}`);
 		return ns;
 	}
 
 	getInterface(name: string) {
 		const ns = this.interfaces.get(name);
-		assert(ns);
+		assert(ns, `Could not find interface '${name}' in ${this.file.fileName}`);
 		return ns;
 	}
 }
