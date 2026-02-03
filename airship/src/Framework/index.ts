@@ -2,12 +2,7 @@ import type { Player } from "@Easy/Core/Shared/Player/Player";
 import type { NexusEventConnection } from "../Objects/NetConnection";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
 import { ClientEvent } from "../Objects/Client/ClientEvent";
-import type {
-	NetworkSerializableType,
-	NetworkType,
-	StaticNetworkType,
-	ToNetworkArguments,
-} from "../Core/Types/NetworkTypes";
+import type { NetworkSerializableType, NetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { AirshipNetworkObjectModelBuilder } from "../Builders/ObjectModelBuilder";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
 import { InferClientRemote, InferNOMDeclarations, InferServerRemote } from "../Core/Types/Inference";
@@ -30,6 +25,17 @@ import { NexusSentinel } from "./Events";
 export { NexusTimeSpan } from "../Core/Types/Time";
 export { NexusSentinel } from "./Events";
 export { NexusTypes } from "./AirshipTypes";
+export {
+	int8,
+	int16,
+	int32,
+	uint8,
+	uint16,
+	uint32,
+	float32,
+	float64,
+	NetworkBuffers as NexusBuffers,
+} from "../Core/Buffers";
 
 declare module "../Core/Types/Dist" {
 	export interface ModuleTypes {
@@ -64,8 +70,8 @@ namespace Nexus {
 	 */
 	export type ToClientObject<T extends AnyNetworkDeclaration> = InferClientRemote<T>;
 
-	export type ToValueTypes<T extends readonly StaticNetworkType[]> = { [P in keyof T]: ToValueType<T[P]> };
-	export type ToValueType<T extends StaticNetworkType> = T extends NetworkSerializableType<infer A, infer _>
+	export type ToValueTypes<T extends readonly NetworkType.Any[]> = { [P in keyof T]: ToValueType<T[P]> };
+	export type ToValueType<T extends NetworkType.Any> = T extends NetworkSerializableType<infer A, infer _>
 		? A
 		: T extends NetworkType<infer A>
 		? A
@@ -102,7 +108,7 @@ namespace Nexus {
 	 */
 	export function Function<T extends ReadonlyArray<unknown>, TRet>(
 		args: ToNetworkArguments<T>,
-		returns: StaticNetworkType<TRet>,
+		returns: NetworkType.OfType<TRet>,
 	): AirshipFunctionBuilder<T, TRet> {
 		return new AirshipFunctionBuilder(returns).WithArguments(...args);
 	}
@@ -190,7 +196,7 @@ namespace Nexus {
 		...values: ToNetworkArguments<T>
 	): CrossServerEventBuilder<[]> {
 		const xServerEvent = new CrossServerEventBuilder();
-		xServerEvent.arguments = values as StaticNetworkType[];
+		xServerEvent.arguments = values as NetworkType.Any[];
 		return xServerEvent;
 	}
 
@@ -204,6 +210,28 @@ namespace Nexus {
 	 * @server
 	 */
 	export const Sentinel = NexusSentinel;
+
+	/**
+	 * Represents any type in Nexus
+	 */
+	export type AnyType = NetworkType.Any;
+
+	/**
+	 * Represents a serializable type in Nexus
+	 * - `TInput` is the input type (when deserialized)
+	 * - `TOutput` is the output type (when serialized)
+	 */
+	export type SerializableType<TInput, TOutput> = NetworkType.Serialized<TInput, TOutput>;
+
+	/**
+	 * Represents a type in Nexus that is encoded differently when using buffers
+	 */
+	export type CustomBufferType<TType, TBuffer> = NetworkType<TType, TBuffer>;
+
+	/**
+	 * A basic type in Nexus
+	 */
+	export type Type<TType> = NetworkType<TType>;
 }
 
 export default Nexus;

@@ -1,6 +1,6 @@
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import { float32, float64, int16, int32, int8, uint16, uint32, uint8 } from "../Core/Buffers";
-import { NetworkType, StaticNetworkType } from "../Core/Types/NetworkTypes";
+import { NetworkType } from "../Core/Types/NetworkTypes";
 import { NexusTypes } from "../Framework";
 import Character from "@Easy/Core/Shared/Character/Character";
 import Inventory from "@Easy/Core/Shared/Inventory/Inventory";
@@ -66,7 +66,7 @@ const STRING_INFERENCE = {
 	Vector4: NexusTypes.Vector4,
 
 	Quaternion: NexusTypes.Quaternion,
-} satisfies { [P in keyof CoreTypeInference]: StaticNetworkType<CoreTypeInference[P]> };
+} satisfies { [P in keyof CoreTypeInference]: NetworkType.OfType<CoreTypeInference[P]> };
 
 type StringTypes = keyof CoreTypeInference;
 

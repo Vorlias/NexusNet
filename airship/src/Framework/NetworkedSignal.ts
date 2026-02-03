@@ -1,10 +1,3 @@
-import { Signal, SignalCallback } from "@Easy/Core/Shared/Util/Signal";
-import Nexus, { NexusTypes } from ".";
-import { StaticNetworkType } from "../Core/Types/NetworkTypes";
-import { Game } from "@Easy/Core/Shared/Game";
-import { ServerEventDeclaration } from "../Core/Types/NetworkObjectModel";
-import { NexusEventConnection } from "../Objects/NetConnection";
-
 // export class ServerReplicatedSignal<T extends readonly StaticNetworkType[]> {
 // 	public networkedSignal: Nexus.InlineContext<ServerEventDeclaration<T>>;
 // 	public signal = new Signal<[...Nexus.ToValueTypes<T>]>();

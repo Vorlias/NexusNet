@@ -1,6 +1,6 @@
+import Nexus from "@Vorlias/NexusNet";
 import { luahashstring } from "@Vorlias/NexusNet/Core/Utils/hash";
 import { getPlatform } from "@Vorlias/NexusNet/Core/Utils/platform";
-import Nexus from "@Vorlias/NexusNet/Framework";
 
 export default class TestHashes extends AirshipBehaviour {
 	override Start(): void {

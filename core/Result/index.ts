@@ -1,5 +1,5 @@
 import NexusSerialization from "../Serialization";
-import { NetworkSerializableType, NetworkSerializer, NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
+import { NetworkSerializableType, NetworkType } from "../Types/NetworkTypes";
 
 interface Ok<T> {
 	readonly ok: true;
@@ -32,8 +32,8 @@ function IsResult(value: unknown): value is NexusResult<defined, defined> {
 }
 
 function NetType<T extends defined, E extends defined>(
-	valueType: StaticNetworkType<T>,
-	errorType: StaticNetworkType<E>,
+	valueType: NetworkType.OfType<T>,
+	errorType: NetworkType.OfType<E>,
 ): NetworkSerializableType<NexusResult<T, E>, [true, T] | [false, E]> {
 	return {
 		Name: `Result<${valueType.Name}, ${errorType.Name}>`,

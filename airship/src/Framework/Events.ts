@@ -1,6 +1,6 @@
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import { Signal } from "@Easy/Core/Shared/Util/Signal";
-import { StaticNetworkType } from "../Core/Types/NetworkTypes";
+import { NetworkType } from "../Core/Types/NetworkTypes";
 import { Bin } from "@Easy/Core/Shared/Util/Bin";
 import { Game } from "@Easy/Core/Shared/Game";
 import { RateLimitOptions } from "../Core/Middleware/RateLimit";
@@ -34,11 +34,11 @@ export namespace NexusSentinel {
 			readonly id: string;
 			readonly argIndex: number;
 			readonly value: unknown;
-			readonly networkType: StaticNetworkType;
+			readonly networkType: NetworkType.Any;
 		}
 
 		export interface BufferDecodeError extends ServerError<ErrorType.BufferDecode> {
-			readonly networkTypes: StaticNetworkType[];
+			readonly networkTypes: NetworkType.Any[];
 			readonly error: unknown;
 		}
 
@@ -48,8 +48,8 @@ export namespace NexusSentinel {
 
 	export type ObservableEvent = Events.ValidationError | Events.BufferDecodeError;
 
-	type BufferDecodeErrorEvent = [player: Player, name: string, networkTypes: StaticNetworkType[], err: unknown];
-	type DeserializationErrorEvent = [player: Player, name: string, networkType: StaticNetworkType, inputArg: unknown];
+	type BufferDecodeErrorEvent = [player: Player, name: string, networkTypes: NetworkType.Any[], err: unknown];
+	type DeserializationErrorEvent = [player: Player, name: string, networkType: NetworkType.Any, inputArg: unknown];
 	type ArgumentMismatchEvent = [
 		player: Player,
 		fromBuffer: boolean,
@@ -61,7 +61,7 @@ export namespace NexusSentinel {
 		player: Player,
 		fromBuffer: boolean,
 		id: string,
-		networkType: StaticNetworkType,
+		networkType: NetworkType.Any,
 		arg: unknown,
 		index: number,
 	];

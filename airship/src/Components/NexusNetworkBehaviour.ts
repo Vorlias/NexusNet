@@ -44,7 +44,7 @@ export abstract class NexusNetworkBehaviour extends AirshipBehaviour {
 	protected Awake(): void {
 		const constructor = getmetatable(this) as typeof NexusNetworkBehaviour;
 		const rpcs = constructor.$RPC;
-		const id = (this.networkIdentity ??= this.gameObject.GetAirshipComponentInParent<NetworkIdentity>()!);
+		const id = (this.networkIdentity ??= this.gameObject.GetComponentInParent<NetworkIdentity>()!);
 
 		// Server-based listeners
 		if (Game.IsServer()) {

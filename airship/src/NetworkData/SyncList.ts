@@ -1,6 +1,6 @@
 import { Game } from "@Easy/Core/Shared/Game";
 import { ClientEventDeclaration, ServerEventDeclaration } from "../Core/Types/NetworkObjectModel";
-import { StaticNetworkType } from "../Core/Types/NetworkTypes";
+import { NetworkType } from "../Core/Types/NetworkTypes";
 import Nexus, { NexusTypes } from "../Framework";
 import { NexusSyncable } from "./Sync";
 
@@ -9,8 +9,8 @@ type InlineServerEvent<T extends readonly unknown[]> = Nexus.InlineContext<Serve
 export class NexusSyncList<T extends defined> extends NexusSyncable<T[]> {
 	protected serverDeltaChange: InlineServerEvent<[nid: NetworkIdentity, deltaChanges: [index: number, value: T]]>;
 
-	constructor(networkType: StaticNetworkType<T>) {
-		super(NexusTypes.Array(networkType) as StaticNetworkType<T[]>);
+	constructor(networkType: NetworkType.OfType<T>) {
+		super(NexusTypes.Array(networkType) as NetworkType.OfType<T[]>);
 	}
 
 	public BindIdentity(identity: NetworkIdentity, id: string): void {

@@ -7,7 +7,7 @@ import {
 	ParseServerCallbackArgs,
 } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 import { NexusEventConnection } from "../NetConnection";
-import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { NetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { ServerEventCallbackMiddleware, ServerEventInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseServerInvokeArgs, RunServerInvokeMiddleware } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { Player } from "@Easy/Core/Shared/Player/Player";
@@ -20,7 +20,7 @@ export class ServerEvent<TArgs extends Array<unknown> = unknown[]>
 {
 	private instance: NetworkedEvent;
 
-	private argumentHandlers?: StaticNetworkType<any>[];
+	private argumentHandlers?: NetworkType.Any[];
 	private useBuffers: boolean;
 	private debugging: boolean;
 	private argCountCheck: boolean;

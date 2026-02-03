@@ -1,9 +1,9 @@
 import Nexus, { NexusTypes } from ".";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
-import { StaticNetworkType } from "../Core/Types/NetworkTypes";
+import { NetworkType } from "../Core/Types/NetworkTypes";
 
 export namespace NexusX {
-	export function RegisterType<T>(serializer: StaticNetworkType<T>) {
+	export function RegisterType<T>(serializer: NetworkType.OfType<T>) {
 		throw `This macro requires the NexusX transformer to work!`;
 	}
 
@@ -13,4 +13,6 @@ export namespace NexusX {
 
 	export const Framework = Nexus;
 	export const Types = NexusTypes;
+
+	export const UserTypes: Record<string | number, NetworkType.Any> = {};
 }

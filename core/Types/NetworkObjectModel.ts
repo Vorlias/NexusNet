@@ -17,7 +17,7 @@ import {
 	FilterServerDeclarations,
 } from "./Declarations";
 import { InferClientRemote, InferServerRemote } from "./Inference";
-import { StaticNetworkType, ToNetworkArguments } from "./NetworkTypes";
+import { NetworkType, ToNetworkArguments } from "./NetworkTypes";
 import { MergeIdentity, Named } from "./Utility";
 import { NexusTimeSpan } from "./Time";
 import { CachingOptions } from "../Middleware/FunctionCaching";
@@ -73,7 +73,7 @@ export interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs e
 	readonly RunContext: TRunContext;
 
 	readonly Unreliable: boolean;
-	readonly Arguments: StaticNetworkType<any>[] | undefined;
+	readonly Arguments: NetworkType.Any[] | undefined;
 
 	readonly Flags: NetworkingFlags;
 
@@ -91,8 +91,8 @@ export interface FunctionDeclaration<
 	// readonly Debugging: boolean;
 	readonly Flags: NetworkingFlags;
 
-	readonly Arguments: StaticNetworkType[];
-	readonly Returns: StaticNetworkType;
+	readonly Arguments: NetworkType.Any[];
+	readonly Returns: NetworkType.Any;
 }
 
 export const enum NetworkingFlags {
@@ -108,7 +108,7 @@ export const enum NetworkingFlags {
 
 export interface CrossServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> {
 	readonly Type: "Messaging";
-	readonly Arguments: StaticNetworkType[];
+	readonly Arguments: NetworkType.Any[];
 	readonly UseBuffer: boolean;
 }
 
@@ -163,7 +163,7 @@ export interface ContextNetworkModel<TDeclarations extends RemoteDeclarations> {
 
 interface NetworkObjectBuilder {
 	useBuffer: boolean;
-	arguments: StaticNetworkType[] | undefined;
+	arguments: NetworkType.Any[] | undefined;
 
 	SetUseBuffer(useBuffer: boolean): this;
 }
@@ -217,7 +217,7 @@ export interface NetworkFunctionBuilder<TArgs extends ReadonlyArray<unknown>, TR
 	WithArguments<T extends ReadonlyArray<unknown> = TArgs>(
 		...values: ToNetworkArguments<T>
 	): NetworkFunctionBuilder<T, TRet>;
-	WhichReturns<R>(returnValue: StaticNetworkType<R>): NetworkFunctionBuilder<TArgs, R>;
+	WhichReturns<R>(returnValue: NetworkType.OfType<R>): NetworkFunctionBuilder<TArgs, R>;
 	WithCallTimeout(timeout: NexusTimeSpan): this;
 }
 

@@ -1,6 +1,6 @@
 import { NetworkBuffers } from "../Buffers";
 import NexusSerialization from "../Serialization";
-import { NetworkBuffer, NetworkSerializableType, NetworkType, StaticNetworkType } from "./NetworkTypes";
+import { NetworkBuffer, NetworkSerializableType, NetworkType } from "./NetworkTypes";
 
 type Out<TType> = NexusSerialization.Output<TType>;
 type In<TType> = NexusSerialization.Input<TType>;
@@ -50,7 +50,7 @@ export function NexusSet<T extends NetworkSerializableType<any, any> | NetworkTy
 }
 
 export interface NetworkMapType<K, V> extends NetworkSerializableType<Map<In<K>, In<V>>, readonly [Out<K>, Out<V>][]> {}
-export function NexusMap<K extends StaticNetworkType, V extends StaticNetworkType>(
+export function NexusMap<K extends NetworkType.Any, V extends NetworkType.Any>(
 	keyType: K,
 	valueType: V,
 ): NetworkMapType<K, V> {
@@ -134,7 +134,7 @@ function isArrayLike(value: unknown): value is defined[] {
  * @param valueType The inner network type
  * @returns An array network type of the given inner type
  */
-export function NexusArray<T extends StaticNetworkType<defined, defined>>(
+export function NexusArray<T extends NetworkType.OfType<defined, defined>>(
 	valueType: T,
 ): NetworkSerializableType<In<T>[], Out<T>[]> {
 	const valueValidator = valueType.Validation;

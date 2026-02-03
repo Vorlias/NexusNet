@@ -3,14 +3,14 @@ import { Connection, NetworkPlayer } from "@Vorlias/NexusNet/Core/Types/Dist";
 import { NetworkedEvent } from "../Internal/NetworkEvent";
 import { ClientEventDeclaration, NetworkingFlags } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { NexusEventConnection } from "../NetConnection";
-import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { NetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { ClientEventCallbackMiddleware, ClientEventInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 import { ParseClientInvokeArgs, ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { CreateClientEventCallback } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 
 export class ClientEvent<T extends Array<unknown> = unknown[]> implements ClientSenderEvent<T>, ClientListenerEvent<T> {
 	private instance: NetworkedEvent;
-	private argumentHandlers?: StaticNetworkType<any>[];
+	private argumentHandlers?: NetworkType.Any[];
 	private useBuffers = false;
 	private argCountCheck: boolean;
 

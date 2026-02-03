@@ -1,6 +1,6 @@
 import { ClientEventInvokeMiddleware, ServerEventInvokeMiddleware } from "../Middleware/Types";
 import { TransformArgsToBuffer } from "./BufferEncoding";
-import { StaticNetworkType } from "../Types/NetworkTypes";
+import { NetworkType } from "../Types/NetworkTypes";
 import { NetSerializeArguments } from "./Serializer";
 import { NetworkPlayer } from "../Types/Dist";
 import { ValidateResult, ValidateArguments } from "./Arguments";
@@ -8,7 +8,7 @@ import { ValidateResult, ValidateArguments } from "./Arguments";
 export function ParseClientInvokeArgs<TArgs extends unknown[]>(
 	name: string,
 	useBuffers: boolean,
-	transformers: StaticNetworkType<any>[],
+	transformers: NetworkType.Any[],
 	invokeMiddleware: ClientEventInvokeMiddleware[],
 	args: TArgs,
 	enforceArgCount: boolean,
@@ -50,7 +50,7 @@ export function RunServerInvokeMiddleware<TArgs extends unknown[]>(
 export function ParseServerInvokeArgs<TArgs extends unknown[]>(
 	name: string,
 	useBuffers: boolean,
-	networkTypes: StaticNetworkType<any>[],
+	networkTypes: NetworkType.Any[],
 	invokeMiddleware: ServerEventInvokeMiddleware[],
 	args: TArgs,
 	enforceArguments: boolean,

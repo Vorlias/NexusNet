@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { int32, NetworkBuffers } from "../Buffers";
 import { BufferReader } from "../Buffers/BufferReader";
 import { BufferWriter } from "../Buffers/BufferWriter";
 import NexusSerialization, { Input, Output } from "../Serialization";
@@ -30,7 +29,7 @@ export interface NetworkValidator<TValue, TEncode = TValue> {
 	Validate(this: void, value: unknown): value is TValue;
 }
 
-type NetworkTypeErrorFn<T extends StaticNetworkType = StaticNetworkType> = (networkType: T, value: unknown) => string;
+type NetworkTypeErrorFn<T extends NetworkType.Any = NetworkType.Any> = (networkType: T, value: unknown) => string;
 export interface NetworkType<TValue, TEncode = TValue> {
 	/**
 	 * The name of the type
@@ -81,6 +80,10 @@ export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TI
 }
 
 export namespace NetworkType {
+	export type Serialized<TInput, TOutput> = NetworkSerializableType<TInput, TOutput>;
+	export type Any = NetworkType<any> | NetworkSerializableType<any, any>;
+	export type OfType<T, U = any> = NetworkType<T, U> | NetworkSerializableType<T, U>;
+
 	export function Check<T, TEncode>(
 		networkType: NetworkType<T, TEncode>,
 		value: unknown,
@@ -105,19 +108,19 @@ export namespace NetworkType {
 	type InferSerializer<T> = T extends NetworkSerializableType<infer _TInput, infer _TOutput>
 		? T["Serialization"]
 		: undefined;
-	type InferSerializers<T extends ReadonlyArray<StaticNetworkType>> = {
+	type InferSerializers<T extends ReadonlyArray<NetworkType.Any>> = {
 		[P in keyof T]: InferSerializer<T[P]>;
 	};
 
-	type InferBuffers<T extends ReadonlyArray<StaticNetworkType>> = {
+	type InferBuffers<T extends ReadonlyArray<NetworkType.Any>> = {
 		[P in keyof T]: T[P]["Encoding"];
 	};
 
-	type InferValidators<T extends ReadonlyArray<StaticNetworkType>> = {
+	type InferValidators<T extends ReadonlyArray<NetworkType.Any>> = {
 		[P in keyof T]: NetworkValidator<Input<T[P]>, Output<T[P]>>;
 	};
 
-	export function TypesToSerializers<T extends ReadonlyArray<StaticNetworkType>>(...values: T): InferSerializers<T> {
+	export function TypesToSerializers<T extends ReadonlyArray<NetworkType.Any>>(...values: T): InferSerializers<T> {
 		const serializers = new Array<NetworkSerializer<any, any>>(values.size());
 
 		for (let i = 0; i < values.size(); i++) {
@@ -130,7 +133,7 @@ export namespace NetworkType {
 		return serializers as InferSerializers<T>;
 	}
 
-	export function TypesToBuffers<T extends ReadonlyArray<StaticNetworkType>>(...values: T): InferBuffers<T> {
+	export function TypesToBuffers<T extends ReadonlyArray<NetworkType.Any>>(...values: T): InferBuffers<T> {
 		const buffers = new Array<NetworkBuffer<any>>(values.size());
 
 		for (let i = 0; i < values.size(); i++) {
@@ -141,7 +144,7 @@ export namespace NetworkType {
 		return buffers as InferBuffers<T>;
 	}
 
-	export function GetValidators<T extends ReadonlyArray<StaticNetworkType>>(...values: T): InferValidators<T> {
+	export function GetValidators<T extends ReadonlyArray<NetworkType.Any>>(...values: T): InferValidators<T> {
 		const validators = new Array<NetworkValidator<any, any>>(values.size());
 
 		for (let i = 0; i < values.size(); i++) {
@@ -153,5 +156,7 @@ export namespace NetworkType {
 	}
 }
 
+/** @deprecated Use `Nexus.AnyType` or `Nexus.OfType<T>` */
 export type StaticNetworkType<T = any, U = any> = NetworkType<T, U> | NetworkSerializableType<T, U>;
-export type ToNetworkArguments<T> = { [K in keyof T]: StaticNetworkType<T[K]> };
+
+export type ToNetworkArguments<T> = { [K in keyof T]: NetworkType.OfType<T[K]> };

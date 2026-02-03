@@ -3,12 +3,12 @@ import {
 	NetworkModelConfiguration,
 	ServerBuilder,
 } from "../Core/Types/NetworkObjectModel";
-import { StaticNetworkType } from "../Core/Types/NetworkTypes";
+import { NetworkType } from "../Core/Types/NetworkTypes";
 
 export class CrossServerEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	implements ServerBuilder<CrossServerEventDeclaration<TArgs>>
 {
-	arguments: StaticNetworkType[] = [];
+	arguments: NetworkType.Any[] = [];
 
 	OnServer(configuration: NetworkModelConfiguration): CrossServerEventDeclaration<TArgs> {
 		const declaration: CrossServerEventDeclaration<TArgs> = {

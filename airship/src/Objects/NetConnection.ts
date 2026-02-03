@@ -1,5 +1,8 @@
 import { NetworkedEvent } from "./Internal/NetworkEvent";
 
+export interface NexusEventConnection {
+	(): void;
+}
 export class NexusEventConnection {
 	private connected = true;
 
@@ -19,3 +22,8 @@ export class NexusEventConnection {
 		this.connected = false;
 	}
 }
+
+const nexusEvent = getmetatable(NexusEventConnection) as LuaMetatable<NexusEventConnection>;
+nexusEvent.__call = (thisObj) => {
+	thisObj.Destroy();
+};

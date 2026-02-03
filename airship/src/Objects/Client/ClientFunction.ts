@@ -3,15 +3,15 @@ import { ClientInvokeFunction } from "@Vorlias/NexusNet/Core/Types/Client/Networ
 import { ClientFunctionDeclaration, NetworkingFlags } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { NetworkedFunction } from "../Internal/NetworkFunction";
 import { ParseClientInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
-import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { NetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { TransformBufferToArgs } from "@Vorlias/NexusNet/Core/Serialization/BufferEncoding";
 import { NetDeserializeArguments } from "@Vorlias/NexusNet/Core/Serialization/Serializer";
 import { ClientFunctionInvokeMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 
 export class ClientFunction<T extends Array<unknown>, R> implements ClientInvokeFunction<T, R> {
 	private instance: NetworkedFunction;
-	private arguments: StaticNetworkType[];
-	private returnType: StaticNetworkType;
+	private arguments: NetworkType.Any[];
+	private returnType: NetworkType.Any;
 	private useBuffer: boolean;
 	private middleware: ClientFunctionInvokeMiddleware[];
 

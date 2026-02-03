@@ -5,7 +5,7 @@ import {
 	ServerFunctionCallbackMiddleware,
 } from "../Middleware/Types";
 import { NetworkPlayer } from "../Types/Dist";
-import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
+import { NetworkType } from "../Types/NetworkTypes";
 import { ValidateArguments, ValidateResult } from "./Arguments";
 import { TransformArgsToBuffer, TransformBufferToArgs } from "./BufferEncoding";
 import {
@@ -19,7 +19,7 @@ import {
 export function ParseServerCallbackArgs<TArgs extends unknown[]>(
 	name: string,
 	useBuffers: boolean,
-	transformers: StaticNetworkType<any>[],
+	transformers: NetworkType.Any[],
 	args: TArgs,
 	argCheck: boolean,
 ) {
@@ -63,7 +63,7 @@ export function ParseServerCallbackArgs<TArgs extends unknown[]>(
 interface ServerEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly UseBuffers: boolean;
 	readonly EnforceArguments: boolean;
-	readonly NetworkTypes: StaticNetworkType<any>[];
+	readonly NetworkTypes: NetworkType.Any[];
 	readonly Callback: (player: NetworkPlayer, ...args: TArgs) => void;
 	readonly CallbackMiddleware: ServerEventCallbackMiddleware[];
 }
@@ -198,7 +198,7 @@ function onDeserializationError(result: DeserializeError) {
 interface ClientEventCallback<TArgs extends ReadonlyArray<unknown>> {
 	readonly UseBuffers: boolean;
 	readonly EnforceArguments: boolean;
-	readonly NetworkTypes: StaticNetworkType<any>[];
+	readonly NetworkTypes: NetworkType.Any[];
 	readonly Callback: (...args: TArgs) => void;
 	readonly CallbackMiddleware: ClientEventCallbackMiddleware[];
 }
@@ -240,8 +240,8 @@ export function CreateClientEventCallback<TArgs extends ReadonlyArray<unknown> =
 
 interface ServerFunctionCallback<TArgs extends ReadonlyArray<unknown>, TRet extends unknown> {
 	readonly UseBuffers: boolean;
-	readonly NetworkTypes: StaticNetworkType<any>[];
-	readonly NetworkReturnType: StaticNetworkType<any>;
+	readonly NetworkTypes: NetworkType.Any[];
+	readonly NetworkReturnType: NetworkType.Any;
 	readonly Callback: (player: NetworkPlayer, ...args: TArgs) => TRet;
 	readonly CallbackMiddleware: ServerFunctionCallbackMiddleware[];
 }

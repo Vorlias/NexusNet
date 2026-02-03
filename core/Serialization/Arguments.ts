@@ -1,5 +1,5 @@
 import { NexusIsOptionalType } from "../CoreTypes";
-import { StaticNetworkType } from "../Types/NetworkTypes";
+import { NetworkType } from "../Types/NetworkTypes";
 
 export const enum ValidateResult {
 	Ok,
@@ -18,7 +18,7 @@ interface ArgumentValidationError {
 
 export function ValidateArguments(
 	args: unknown[],
-	networkTypes: StaticNetworkType[],
+	networkTypes: NetworkType.Any[],
 	skipValidation = false,
 ): LuaTuple<
 	| [ValidateResult.Ok, undefined]

@@ -12,6 +12,98 @@ export type uint32 = number & { readonly __nominal_u32?: never };
 export type float32 = number & { readonly __nominal_f32?: never };
 export type float64 = number & { readonly __nominal_f64?: never };
 
+export type utf8_string = string & { readonly __nominal_utf8?: never };
+
+function isInt(value: unknown): value is int8 | int16 | int32 | uint8 | uint16 | uint32 {
+	return typeIs(value, "number") && value % 1 === 0;
+}
+
+export namespace utf8_string {
+	export function is(value: unknown): value is utf8_string {
+		if (!typeIs(value, "string")) return false;
+		const [len] = utf8.len(value);
+		return len !== undefined && len !== false;
+	}
+
+	export function to_string(value: string | number | boolean): utf8_string {
+		if (utf8_string.is(value)) {
+			return value;
+		} else if (typeIs(value, "number")) {
+			return string.format("%f", value);
+		} else if (typeIs(value, "boolean")) {
+			return value ? "true" : "false";
+		} else {
+			throw `Invalid UTF-8 string provided`;
+		}
+	}
+}
+
+export namespace int8 {
+	export const MIN = -127;
+	export const MAX = 127;
+
+	export function is(value: unknown): value is int8 {
+		return isInt(value) && value >= MIN && value <= MAX;
+	}
+}
+
+export namespace uint8 {
+	export const MIN = 0;
+	export const MAX = 255;
+
+	export function is(value: unknown): value is uint8 {
+		return isInt(value) && value >= MIN && value <= MAX;
+	}
+}
+
+export namespace int16 {
+	export const MIN = -32_767;
+	export const MAX = 32_767;
+
+	export function is(value: unknown): value is int16 {
+		return isInt(value) && value >= MIN && value <= MAX;
+	}
+}
+
+export namespace uint16 {
+	export const MIN = -0;
+	export const MAX = 65_535;
+
+	export function is(value: unknown): value is uint16 {
+		return isInt(value) && value >= MIN && value <= MAX;
+	}
+}
+
+export namespace int32 {
+	export const MIN = -2147483647;
+	export const MAX = 2147483647;
+
+	export function is(value: unknown): value is int32 {
+		return isInt(value) && value >= MIN && value <= MAX;
+	}
+}
+
+export namespace uint32 {
+	export const MIN = -0;
+	export const MAX = 4294967295;
+
+	export function is(value: unknown): value is uint32 {
+		return isInt(value) && value >= MIN && value <= MAX;
+	}
+}
+
+export const INT_UNSIGNED = {
+	8: uint8,
+	16: uint16,
+	32: uint32,
+};
+
+export const INT_SIGNED = {
+	8: int8,
+	16: int16,
+	32: int32,
+};
+
 export const NeverBuffer = {
 	$never: true,
 	WriteData() {
@@ -35,6 +127,17 @@ export const NetworkBuffers = {
 			return reader.ReadString();
 		},
 	} as NetworkBuffer<string>,
+	UTF8String: {
+		WriteData(data, writer) {
+			assert(utf8_string.is(data), "Expected UTF-8 string");
+			writer.WriteString(data);
+		},
+		ReadData(reader) {
+			const value = reader.ReadString();
+			assert(utf8_string.is(value), "Expected UTF-8 string");
+			return value;
+		},
+	} as NetworkBuffer<utf8_string>,
 	Int8: {
 		WriteData(data, writer) {
 			writer.WriteInt8(data);

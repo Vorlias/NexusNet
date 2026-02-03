@@ -2,7 +2,6 @@ import { Game } from "@Easy/Core/Shared/Game";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
 import { NexusNetworkBehaviour } from "@Vorlias/NexusNet/Components/NexusNetworkBehaviour";
 import { Command } from "@Vorlias/NexusNet/Components/ServerRpc";
-import { SyncArray } from "@Vorlias/NexusNet/DataTypes/SyncArray";
 import { NexusTypes } from "@Vorlias/NexusNet/Framework";
 import { NexusSyncState } from "@Vorlias/NexusNet/NetworkData/SyncState";
 

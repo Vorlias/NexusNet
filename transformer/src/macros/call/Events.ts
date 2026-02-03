@@ -3,7 +3,7 @@ import ts, { factory } from "typescript";
 import { TransformState } from "../../class/TransformState";
 import { CallMacro, MacroInfo } from "../macro";
 
-export const ServerEventDeclaration: CallMacro = {
+export const EventMacro: CallMacro = {
 	id: "serverEvent",
 	getSymbol(state: TransformState) {
 		const symbol = state.nexusNet.nexusXNamespace.get("Event");

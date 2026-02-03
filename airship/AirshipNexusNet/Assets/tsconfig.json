@@ -19,11 +19,11 @@
 		"typeRoots": ["AirshipPackages/@Easy/Core/Shared/Types"],
 		"skipLibCheck": true,
 		"strictPropertyInitialization": false,
-		"plugins": [
-			{
-				"transform": "nexusnet-transformer",
-			}
-		]
+		// "plugins": [
+		// 	{
+		// 		"transform": "nexusnet-transformer",
+		// 	}
+		// ]
 	},
 	"airship": {
 		"type": "game",

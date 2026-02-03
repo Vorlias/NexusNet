@@ -3,14 +3,14 @@ import { NetworkingFlags, ServerFunctionDeclaration } from "@Vorlias/NexusNet/Co
 import { ServerListenerFunction } from "@Vorlias/NexusNet/Core/Types/Server/NetworkObjects";
 import { NetworkedFunction } from "../Internal/NetworkFunction";
 import { CreateServerFunctionCallback } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
-import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { NetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
 import { ServerFunctionCallbackMiddleware } from "@Vorlias/NexusNet/Core/Middleware/Types";
 
 export class ServerFunction<T extends Array<unknown>, R> implements ServerListenerFunction<T, R> {
 	private instance: NetworkedFunction;
-	private arguments: StaticNetworkType[];
-	private returnType: StaticNetworkType;
+	private arguments: NetworkType.Any[];
+	private returnType: NetworkType.Any;
 	private useBuffer: boolean;
 	private callbackMiddleware: ServerFunctionCallbackMiddleware[];
 

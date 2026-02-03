@@ -1,5 +1,5 @@
 import { Bin } from "@Easy/Core/Shared/Util/Bin";
-import { NetworkSerializableType, NetworkType, StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { NetworkSerializableType, NetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import Nexus, { NexusTypes } from "@Vorlias/NexusNet/Framework";
 import { ClientEventDeclaration, ServerEventDeclaration } from "@Vorlias/NexusNet/Core/Types/NetworkObjectModel";
 import { Signal } from "@Easy/Core/Shared/Util/Signal";
@@ -24,7 +24,7 @@ export abstract class NexusSyncable<T extends object> {
 
 	public readonly stateChanged = new Signal<[next: T, prev: T]>();
 
-	public constructor(protected readonly networkType: StaticNetworkType<T>) {}
+	public constructor(protected readonly networkType: NetworkType.OfType<T>) {}
 
 	/**
 	 * Observes the state of the state

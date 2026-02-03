@@ -56,7 +56,7 @@ export class AirshipNetworkObjectModelBuilder<TDeclarations extends RemoteDeclar
 	AsScope(configuration?: Partial<NetworkModelConfiguration>): ScopeObjectModelDeclaration<TDeclarations> {
 		const scoped = {
 			Type: "Scope",
-			Declarations: table.freeze({ ...this.declarations }),
+			Declarations: table.freeze({ ...this.declarations }) as TDeclarations,
 			Configuration: table.freeze({ ...this.configuration, ...configuration }),
 		} satisfies ScopeObjectModelDeclaration<TDeclarations>;
 

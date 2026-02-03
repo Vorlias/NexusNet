@@ -1,6 +1,6 @@
 import { ServerEventDeclaration } from "../Core/Types/NetworkObjectModel";
 import { ServerEvent } from "../Objects/Server/ServerEvent";
-import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import { NetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { Player } from "@Easy/Core/Shared/Player/Player";
 import ObjectUtils from "@Easy/Core/Shared/Util/ObjectUtils";
 import inspect from "@Easy/Core/Shared/Util/Inspect";
@@ -96,7 +96,7 @@ export namespace NexusTesting {
 		public Function<T extends Array<unknown>, R>(
 			buffered: boolean,
 			args: ToNetworkArguments<T>,
-			returns: StaticNetworkType<R>,
+			returns: NetworkType.OfType<R>,
 		) {
 			const declaration = Nexus.Function(args, returns);
 

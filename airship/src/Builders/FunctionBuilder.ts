@@ -9,19 +9,19 @@ import {
 	RemoteRunContext,
 	ServerFunctionDeclaration,
 } from "../Core/Types/NetworkObjectModel";
-import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import { NetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { NexusTimeSpan } from "../Core/Types/Time";
 
 export class AirshipFunctionBuilder<TArgs extends ReadonlyArray<unknown>, TRet>
 	implements NetworkFunctionBuilder<TArgs, TRet>
 {
 	useBuffer = false;
-	arguments: StaticNetworkType[] = [];
+	arguments: NetworkType.Any[] = [];
 	serverMiddleware: ServerFunctionCallbackMiddleware[] = [];
 	clientMiddleware: ClientFunctionInvokeMiddleware[] = [];
 	timeout = NexusTimeSpan.seconds(10);
 
-	constructor(public returns: StaticNetworkType) {}
+	constructor(public returns: NetworkType.Any) {}
 
 	SetUseBuffer(useBuffer: boolean): this {
 		this.useBuffer = useBuffer;
@@ -31,7 +31,7 @@ export class AirshipFunctionBuilder<TArgs extends ReadonlyArray<unknown>, TRet>
 	public WithArguments<T extends ReadonlyArray<unknown> = TArgs>(
 		...values: ToNetworkArguments<T>
 	): AirshipFunctionBuilder<T, TRet> {
-		this.arguments = values as StaticNetworkType<TArgs>[];
+		this.arguments = values as NetworkType.OfType<TArgs>[];
 		return this;
 	}
 
@@ -79,7 +79,7 @@ export class AirshipFunctionBuilder<TArgs extends ReadonlyArray<unknown>, TRet>
 		return this;
 	}
 
-	WhichReturns<R>(returnValue: StaticNetworkType<R>): AirshipFunctionBuilder<TArgs, R> {
+	WhichReturns<R>(returnValue: NetworkType.OfType<R>): AirshipFunctionBuilder<TArgs, R> {
 		this.returns = returnValue;
 		return this;
 	}

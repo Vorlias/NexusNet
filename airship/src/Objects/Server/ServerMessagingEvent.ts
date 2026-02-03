@@ -6,7 +6,7 @@ import { Platform } from "@Easy/Core/Shared/Airship";
 import { Game } from "@Easy/Core/Shared/Game";
 import { Signal } from "@Easy/Core/Shared/Util/Signal";
 import { ParseServerInvokeArgs } from "@Vorlias/NexusNet/Core/Serialization/InvokeHandlers";
-import { StaticNetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
+import { NetworkType } from "@Vorlias/NexusNet/Core/Types/NetworkTypes";
 import { TransformArgsToBuffer, TransformBufferToArgs } from "@Vorlias/NexusNet/Core/Serialization/BufferEncoding";
 import { ParseServerCallbackArgs } from "@Vorlias/NexusNet/Core/Serialization/CallbackHandlers";
 
@@ -23,7 +23,7 @@ export function isServerBroadcastMessage(value: unknown): value is ServerBroadca
 export class ServerMessagingEvent<TArgs extends unknown[]> implements ServerBroadcaster<TArgs> {
 	private readonly topic: string;
 	private readonly onMockBroadcast = new Signal<[data: ServerBroadcastMessage]>();
-	private arguments: StaticNetworkType[];
+	private arguments: NetworkType.Any[];
 	private useBuffer: boolean;
 
 	public constructor(name: string, declaration: CrossServerEventDeclaration<TArgs>) {

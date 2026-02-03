@@ -1,11 +1,24 @@
 /* eslint-disable roblox-ts/no-array-pairs */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { float32, float64, int16, int32, int8, NetworkBuffers, uint16, uint32, uint8 } from "./Buffers";
+import {
+	float32,
+	float64,
+	int16,
+	int32,
+	int8,
+	INT_SIGNED,
+	INT_UNSIGNED,
+	NetworkBuffers,
+	uint16,
+	uint32,
+	uint8,
+	utf8_string,
+} from "./Buffers";
 import { NexusHashTable } from "./NetworkTypes/HashTable";
 import NexusSerialization from "./Serialization";
 import { MapCheckArrayIn, MapCheckArrayOut, NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
 export { NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
-import { NetworkBuffer, NetworkSerializableType, NetworkType, StaticNetworkType } from "./Types/NetworkTypes";
+import { NetworkBuffer, NetworkSerializableType, NetworkType, NetworkValidator } from "./Types/NetworkTypes";
 import { hashstring } from "./Utils/hash";
 
 type Out<TType> = NexusSerialization.Output<TType>;
@@ -31,13 +44,11 @@ export const NexusRawBuffer: NetworkType<buffer> = {
 /**
  * A valid utf8 string type
  */
-export const NexusString: NetworkType<string> = {
+export const NexusUTF8String: NetworkType<utf8_string> = {
 	Name: "string",
 	Validation: {
-		Validate(value): value is string {
-			if (!typeIs(value, "string")) return false;
-			const [len] = utf8.len(value);
-			return len !== undefined && len !== false;
+		Validate(value): value is utf8_string {
+			return utf8_string.is(value);
 		},
 		ValidateError: (_, value) => {
 			if (typeIs(value, "string")) {
@@ -47,7 +58,7 @@ export const NexusString: NetworkType<string> = {
 			}
 		},
 	},
-	Encoding: NetworkBuffers.String,
+	Encoding: NetworkBuffers.UTF8String,
 };
 
 type Literal = string | number | boolean;
@@ -92,9 +103,10 @@ const intEncoders = {
 };
 const NexusInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 	const encoder = intEncoders[bits];
+	const intType = INT_SIGNED[bits];
 
-	const UPPER_BOUND = 2 ** (bits - 1) - 1;
-	const LOWER_BOUND = -(2 ** (bits - 1));
+	const UPPER_BOUND = intType.MIN; //2 ** (bits - 1) - 1;
+	const LOWER_BOUND = intType.MAX; //  -(2 ** (bits - 1));
 
 	const name = `Int${bits}`;
 	return {
@@ -126,6 +138,96 @@ export const NexusInt8 = NexusInt(8);
 export const NexusInt16 = NexusInt(16);
 export const NexusInt32 = NexusInt(32);
 
+type InferIntType<Bits extends IntegerBits, TUnsigned extends boolean> = TUnsigned extends true
+	? Bits extends 8
+		? uint8
+		: Bits extends 16
+		? uint16
+		: Bits extends 32
+		? uint32
+		: never
+	: Bits extends 8
+	? int8
+	: Bits extends 16
+	? int16
+	: Bits extends 32
+	? int32
+	: never;
+
+// class NetworkInt<Bits extends IntegerBits, TUnsigned extends boolean>
+// 	implements NetworkType<InferIntType<Bits, TUnsigned>>
+// {
+// 	Name: string;
+// 	Encoding: NetworkBuffer<InferIntType<Bits, TUnsigned>>;
+// 	Validation: NetworkValidator<InferIntType<Bits, TUnsigned>, InferIntType<Bits, TUnsigned>>;
+
+// 	public constructor(bits: Bits, unsigned: TUnsigned) {
+// 		const name = unsigned ? `UInt${bits}` : `Int${bits}`;
+
+// 		const encoder = unsigned ? unsignedEncoders[bits] : intEncoders;
+// 		const intType = unsigned ? INT_UNSIGNED[bits] : INT_SIGNED[bits];
+// 		const UPPER_BOUND = intType.MAX; // 2 ** bits - 1;
+
+// 		this.Validation = {
+// 			Validate(value): value is InferIntType<Bits, TUnsigned> {
+// 				if (!typeIs(value, "number")) return false;
+// 				if (value % 1 !== 0) {
+// 					warn(`[${name}] Number is not a ${bits}-bit unsigned integer`);
+// 					return false;
+// 				}
+
+// 				if (value > UPPER_BOUND) {
+// 					warn(`[${name}] Number exceeds the maximum ${bits}-bit unsigned integer and may overflow`);
+// 				} else if (value < 0) {
+// 					warn(`[${name}] Number exceeds the minimum ${bits}-bit unsigned integer and may underflow`);
+// 				}
+
+// 				return true;
+// 			},
+// 			ValidateError: (value) => "Expected UInt" + bits + ", got " + typeOf(value) + " " + value,
+// 		};
+
+// 		this.Encoding = encoder as NetworkBuffer<InferIntType<Bits, TUnsigned>>;
+// 		this.Name = name;
+// 	}
+
+// 	public Range(min: InferIntType<Bits, TUnsigned>, max: InferIntType<Bits, TUnsigned>) {
+// 		const clone = table.clone(this);
+// 		this.Validation.Validate = (value): value is InferIntType<Bits, TUnsigned> => {
+// 			if (this.Validation.Validate(value)) {
+// 				return value >= min && value <= max;
+// 			} else {
+// 				return false;
+// 			}
+// 		};
+// 		return clone;
+// 	}
+
+// 	public Min(min: InferIntType<Bits, TUnsigned>) {
+// 		const clone = table.clone(this);
+// 		this.Validation.Validate = (value): value is InferIntType<Bits, TUnsigned> => {
+// 			if (this.Validation.Validate(value)) {
+// 				return value >= min;
+// 			} else {
+// 				return false;
+// 			}
+// 		};
+// 		return clone;
+// 	}
+
+// 	public Max(max: InferIntType<Bits, TUnsigned>) {
+// 		const clone = table.clone(this);
+// 		this.Validation.Validate = (value): value is InferIntType<Bits, TUnsigned> => {
+// 			if (this.Validation.Validate(value)) {
+// 				return value <= max;
+// 			} else {
+// 				return false;
+// 			}
+// 		};
+// 		return clone;
+// 	}
+// }
+
 const unsignedEncoders = {
 	[8]: NetworkBuffers.UInt8,
 	[16]: NetworkBuffers.UInt16,
@@ -133,7 +235,9 @@ const unsignedEncoders = {
 };
 const NexusUInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 	const encoder = unsignedEncoders[bits];
-	const UPPER_BOUND = 2 ** bits - 1;
+
+	const intType = INT_UNSIGNED[bits];
+	const UPPER_BOUND = intType.MAX; // 2 ** bits - 1;
 
 	const name = `UInt${bits}`;
 	return {
@@ -212,7 +316,7 @@ const Undefined: NetworkType<undefined> = {
 };
 
 export function NexusIsOptionalType<TIn, TOut>(
-	value: StaticNetworkType<TIn | undefined, TOut | undefined>,
+	value: NetworkType.OfType<TIn | undefined, TOut | undefined>,
 ): value is NetworkOptionalType<TIn, TOut> {
 	return "Optional" in value;
 }
@@ -388,7 +492,7 @@ interface NexusCorePrimitives {
 	/**
 	 * A valid utf8 string
 	 */
-	readonly String: NetworkType<string>;
+	readonly String: NetworkType<utf8_string>;
 
 	/**
 	 * A 8-bit signed integer
@@ -456,13 +560,13 @@ interface NexusCoreTypeOps {
 	 * An array of a type `readonly T[]`
 	 * @param valueType The value type of the array
 	 */
-	Array<T extends StaticNetworkType>(this: void, valueType: T): NetworkSerializableType<In<T>[], Out<T>[]>;
+	Array<T extends NetworkType.Any>(this: void, valueType: T): NetworkSerializableType<In<T>[], Out<T>[]>;
 
 	/**
 	 * An array of a type `readonly T[]`
 	 * @param valueType The value type of the array
 	 */
-	ReadonlyArray<T extends StaticNetworkType>(
+	ReadonlyArray<T extends NetworkType.Any>(
 		this: void,
 		valueType: T,
 	): NetworkSerializableType<readonly In<T>[], readonly Out<T>[]>;
@@ -471,7 +575,7 @@ interface NexusCoreTypeOps {
 	 * A fixed array of a type `[T, ...]`
 	 * @param valueTypes The value types of the tuple
 	 */
-	Tuple<T extends ReadonlyArray<StaticNetworkType>>(
+	Tuple<T extends ReadonlyArray<NetworkType.Any>>(
 		this: void,
 		...valueTypes: T
 	): NetworkSerializableType<MapCheckArrayIn<T>, MapCheckArrayOut<T>>;
@@ -479,19 +583,19 @@ interface NexusCoreTypeOps {
 	/**
 	 * An optional type (`T | undefined`)
 	 */
-	Optional<T extends StaticNetworkType>(this: void, valueType: T): NetworkOptionalType<In<T>, Out<T>>;
+	Optional<T extends NetworkType.Any>(this: void, valueType: T): NetworkOptionalType<In<T>, Out<T>>;
 
 	/**
 	 * A set of the given value type
 	 * @param valueType The value type
 	 */
-	Set<T extends StaticNetworkType>(this: void, valueType: T): NetworkSerializableType<Set<In<T>>, readonly Out<T>[]>;
+	Set<T extends NetworkType.Any>(this: void, valueType: T): NetworkSerializableType<Set<In<T>>, readonly Out<T>[]>;
 
 	/**
 	 * A set of the given value type
 	 * @param valueType The value type
 	 */
-	ReadonlySet<T extends StaticNetworkType>(
+	ReadonlySet<T extends NetworkType.Any>(
 		this: void,
 		valueType: T,
 	): NetworkSerializableType<ReadonlySet<In<T>>, readonly Out<T>[]>;
@@ -501,7 +605,7 @@ interface NexusCoreTypeOps {
 	 * @param keyType The key type
 	 * @param valueType The value type
 	 */
-	Map<K extends StaticNetworkType, V extends StaticNetworkType>(
+	Map<K extends NetworkType.Any, V extends NetworkType.Any>(
 		this: void,
 		keyType: K,
 		valueType: V,
@@ -512,7 +616,7 @@ interface NexusCoreTypeOps {
 	 * @param keyType The key type
 	 * @param valueType The value type
 	 */
-	ReadonlyMap<K extends StaticNetworkType, V extends StaticNetworkType>(
+	ReadonlyMap<K extends NetworkType.Any, V extends NetworkType.Any>(
 		this: void,
 		keyType: K,
 		valueType: V,
@@ -557,7 +661,7 @@ interface NexusCoreTypeOps {
 export interface NexusCoreTypes extends NexusCoreTypeOps, NexusCorePrimitives {}
 
 export const NexusCoreTypes: NexusCoreTypes = {
-	String: NexusString,
+	String: NexusUTF8String,
 	Buffer: NexusRawBuffer,
 
 	Range: NexusRange(NexusFloat32),

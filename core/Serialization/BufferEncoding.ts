@@ -1,7 +1,7 @@
 import { NeverBuffer } from "../Buffers";
 import { BufferReader } from "../Buffers/BufferReader";
 import { BufferWriter } from "../Buffers/BufferWriter";
-import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
+import { NetworkType } from "../Types/NetworkTypes";
 
 /**
  * Transforms arguments from the buffer to an array of arguments using the given transformers
@@ -9,7 +9,7 @@ import { NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
  * @param buffer The buffer to transform
  * @returns The argument array
  */
-export function TransformBufferToArgs(name: string, transformers: StaticNetworkType[], buffer: buffer) {
+export function TransformBufferToArgs(name: string, transformers: NetworkType.Any[], buffer: buffer) {
 	const encoders = NetworkType.TypesToBuffers(...transformers);
 
 	const args = table.create(transformers.size());
@@ -34,7 +34,7 @@ export function TransformBufferToArgs(name: string, transformers: StaticNetworkT
  * @param args The arugments to transform
  * @returns The argument buffer
  */
-export function TransformArgsToBuffer(name: string, transformers: StaticNetworkType[], args: unknown[]): buffer {
+export function TransformArgsToBuffer(name: string, transformers: NetworkType.Any[], args: unknown[]): buffer {
 	const encoders = NetworkType.TypesToBuffers(...transformers);
 
 	const writer = new BufferWriter(64);

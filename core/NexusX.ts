@@ -5,11 +5,11 @@ import {
 	ServerFunctionDeclaration,
 	ContextNetworkModel,
 } from "./Types/NetworkObjectModel";
-import { StaticNetworkType, ToNetworkArguments } from "./Types/NetworkTypes";
+import { NetworkType, ToNetworkArguments } from "./Types/NetworkTypes";
 import { MergeIdentity, Identity, Named } from "./Types/Utility";
 
 export interface XNetworkObjectModelBuilder<TDecl extends RemoteDeclarations> {
-	AddStaticType<TType>(handler: StaticNetworkType<TType>): this;
+	AddStaticType<TType>(handler: NetworkType.OfType<TType>): this;
 	AddStaticTypes<TTypes extends unknown[]>(...handlers: ToNetworkArguments<TTypes>): this;
 
 	ServerEvent<N extends string, T extends ReadonlyArray<unknown>>(): XNetworkObjectModelBuilder<

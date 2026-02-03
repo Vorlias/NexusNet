@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NetworkSerializableType, NetworkType, StaticNetworkType } from "../Types/NetworkTypes";
+import { NetworkSerializableType, NetworkType } from "../Types/NetworkTypes";
 
 namespace NexusSerialization {
 	export type Input<T> = T extends NetworkSerializableType<infer A, infer _>
@@ -17,7 +17,7 @@ namespace NexusSerialization {
 	export type InputInterface<T> = { [P in keyof T]: Input<T[P]> };
 	export type OutputInterface<T> = { [P in keyof T]: Output<T[P]> };
 
-	export function IsSerializableType<T>(value: StaticNetworkType<T>): value is NetworkSerializableType<T, unknown> {
+	export function IsSerializableType<T>(value: NetworkType.OfType<T>): value is NetworkSerializableType<T, unknown> {
 		return "Serialization" in value && typeIs(value.Serialization, "table");
 	}
 

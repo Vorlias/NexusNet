@@ -1,8 +1,10 @@
 import { CallMacro } from "../macro";
-import { ServerEventDeclaration } from "./Events";
+import { RegisterType } from "./CreateType";
+import { EventMacro } from "./Events";
 
 export const CALL_MACROS = new Array<CallMacro>(
     // BuildObjectModel,
     // ServerEvent,
-    ServerEventDeclaration,
+    EventMacro,
+    RegisterType,
 );

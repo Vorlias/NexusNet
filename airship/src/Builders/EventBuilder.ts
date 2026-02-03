@@ -11,7 +11,7 @@ import {
 	SharedBuilder,
 	BidirectionalEventDeclaration,
 } from "../Core/Types/NetworkObjectModel";
-import { StaticNetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
+import { NetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { NexusConfiguration } from "../Core/Configuration";
 import {
 	ClientEventCallbackMiddleware,
@@ -35,7 +35,7 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	useBuffer = false;
 	echo = false;
 
-	arguments: StaticNetworkType[] | undefined;
+	arguments: NetworkType.Any[] | undefined;
 	private callbackMiddleware: Callback[] = [];
 	private invokeMiddleware: Callback[] = [];
 
@@ -89,7 +89,7 @@ export class AirshipEventBuilder<TArgs extends ReadonlyArray<unknown>>
 	public WithArguments<T extends ReadonlyArray<unknown> = TArgs>(
 		...values: ToNetworkArguments<T>
 	): AirshipEventBuilder<T> {
-		this.arguments = values as StaticNetworkType<TArgs>[];
+		this.arguments = values as NetworkType.OfType<TArgs>[];
 		return this as never as AirshipEventBuilder<T>;
 	}
 

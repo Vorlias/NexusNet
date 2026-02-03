@@ -1,10 +1,5 @@
 import { Game } from "@Easy/Core/Shared/Game";
-import {
-	NetworkSerializableType,
-	NetworkType,
-	StaticNetworkType,
-	ToNetworkArguments,
-} from "../Core/Types/NetworkTypes";
+import { NetworkSerializableType, NetworkType, ToNetworkArguments } from "../Core/Types/NetworkTypes";
 import { AirshipEventBuilder } from "../Builders/EventBuilder";
 import Nexus, { NexusTypes } from "../Framework";
 import { NexusClientRpc, NexusNetworkBehaviour, NexusServerRpc } from "./NexusNetworkBehaviour";
@@ -58,7 +53,7 @@ export function CommandWithOptions<T extends ReadonlyArray<unknown>>(
 		if (Game.IsClient()) {
 			const serverEvent = inlined.client;
 			descriptor.value = (object, ...args) => {
-				const networkIdentity = object.gameObject.GetAirshipComponent<NetworkIdentity>();
+				const networkIdentity = object.gameObject.GetComponent<NetworkIdentity>();
 				assert(networkIdentity, "No NetworkIdentity on object");
 				return serverEvent.SendToServer(networkIdentity, ...(args as unknown as [...T]));
 			};
@@ -96,7 +91,7 @@ const command = {
 } as Command;
 setmetatable(command, {
 	__call: (obj, ...args) => {
-		const res = CommandWithOptions({}, args as StaticNetworkType[]);
+		const res = CommandWithOptions({}, args as NetworkType.Any[]);
 		return res;
 	},
 });

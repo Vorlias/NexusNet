@@ -5,14 +5,13 @@ import {
 	NetworkSerializer,
 	NetworkType,
 	NetworkTypeSerialization,
-	StaticNetworkType,
 } from "../Types/NetworkTypes";
 
-export function NetIsSerializer<T>(value: StaticNetworkType<T>): value is NetworkSerializableType<T, unknown> {
+export function NetIsSerializer<T>(value: NetworkType.OfType<T, any>): value is NetworkSerializableType<T, unknown> {
 	return "Serializer" in value && typeIs(value.Serialization, "table");
 }
 
-export function NetSerializeArguments(networkTypes: StaticNetworkType<any>[] | undefined, args: unknown[]): unknown[] {
+export function NetSerializeArguments(networkTypes: NetworkType.Any[] | undefined, args: unknown[]): unknown[] {
 	if (networkTypes === undefined) return args;
 	const serializers = NetworkType.TypesToSerializers(...networkTypes);
 
@@ -26,10 +25,7 @@ export function NetSerializeArguments(networkTypes: StaticNetworkType<any>[] | u
 	return newArgs;
 }
 
-export function NetDeserializeArguments(
-	networkTypes: StaticNetworkType<any>[] | undefined,
-	args: unknown[],
-): unknown[] {
+export function NetDeserializeArguments(networkTypes: NetworkType.Any[] | undefined, args: unknown[]): unknown[] {
 	if (networkTypes === undefined) return args;
 	const serializers = NetworkType.TypesToSerializers(...networkTypes);
 
@@ -68,7 +64,7 @@ export interface DeserializationException {
 	/**
 	 * The network type that failed to deserialize
 	 */
-	readonly networkType: StaticNetworkType;
+	readonly networkType: NetworkType.Any;
 	/**
 	 * The serializer
 	 */
@@ -80,7 +76,7 @@ export type DeserializeError =
 	| DeserializationException;
 
 export function NetDeserializeArgumentsWithExceptionHandler(
-	networkTypes: StaticNetworkType<any>[] | undefined,
+	networkTypes: NetworkType.Any[] | undefined,
 	args: unknown[],
 ): DeserializeResultTuple {
 	if (networkTypes === undefined) {

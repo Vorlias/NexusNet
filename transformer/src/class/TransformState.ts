@@ -58,6 +58,8 @@ export class TransformState {
 	public pushImport() {}
 
 	private inferTypeFromTypeNode(typeNode: ts.TypeNode): ts.Expression {
+		const type = this.typeChecker.getTypeAtLocation(typeNode);
+
 		if (typeNode.kind === ts.SyntaxKind.StringKeyword) {
 			return createLiteralNexusTypeExpression("String");
 		} else if (typeNode.kind === ts.SyntaxKind.NumberKeyword) {
@@ -84,6 +86,8 @@ export class TransformState {
 						return createLiteralNexusTypeExpression("Float32");
 					case "float64":
 						return createLiteralNexusTypeExpression("Float64");
+					case "NetworkIdentity":
+						return createLiteralNexusTypeExpression("Identity");
 				}
 			}
 		}

@@ -60,7 +60,7 @@ export function NetworkBehaviour() {
 		const networkAwake = (object: AirshipBehaviour) => {
 			print("object is", object.gameObject.name);
 
-			const networkId = object.gameObject.GetAirshipComponent<NetworkIdentity>();
+			const networkId = object.gameObject.GetComponent<NetworkIdentity>();
 			print("networkIdentity is", networkId);
 			assert(networkId, "Missing NetworkIdentity");
 			identities.set(object, networkId);
