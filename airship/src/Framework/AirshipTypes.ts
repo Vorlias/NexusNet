@@ -9,6 +9,24 @@ import Inventory from "@Easy/Core/Shared/Inventory/Inventory";
 import { Team } from "@Easy/Core/Shared/Team/Team";
 import { Game } from "@Easy/Core/Shared/Game";
 
+const NexusGuid: NetworkSerializableType<Guid, string> = {
+	Name: "Guid",
+	Validation: {
+		Validate(value): value is Guid {
+			return true;
+		},
+	},
+	Serialization: {
+		Serialize(value) {
+			return value.ToString();
+		},
+		Deserialize(value) {
+			return Guid.Parse(value);
+		},
+	},
+	Encoding: NetworkBuffers.String,
+};
+
 const NullableIdentity: NetworkSerializableType<NetworkIdentity | undefined, uint32> = {
 	Name: "Nullable<NetworkIdentity>",
 	Encoding: NetworkBuffers.UInt32,
@@ -324,7 +342,8 @@ interface AirshipBuiltInTypes extends NexusCoreTypes {
 	Vector4: typeof UnityVector4;
 
 	Quaternion: typeof UnityQuat;
-	// Ray: typeof UnityRay;
+
+	Guid: typeof NexusGuid;
 }
 export const NexusTypes: AirshipBuiltInTypes = {
 	...NexusCoreTypes,
@@ -334,6 +353,8 @@ export const NexusTypes: AirshipBuiltInTypes = {
 	Player,
 	Inventory: AirshipInventory,
 	Team: AirshipTeam,
+
+	Guid: NexusGuid,
 
 	Color: UnityColor,
 	Vector3: UnityVector3,

@@ -1,7 +1,5 @@
-import { NexusTypes } from "@Vorlias/NexusNet/Framework";
 import { NetworkSerializableType, NetworkType } from "../Types/NetworkTypes";
 import NexusSerialization from "../Serialization";
-import { NexusResult } from "../Result";
 import { int32 } from "../Buffers";
 
 type UnionFromIn<T extends NetworkType.Any[]> = { [P in keyof T]: NexusSerialization.Input<T[P]> }[number];
@@ -11,12 +9,20 @@ type UnionFromOut<T extends NetworkType.Any[]> = {
 	[P in keyof T]: [type: ParseInt<P>, value: NexusSerialization.Output<T[P]>];
 }[number];
 
-export function NexusUnion<const T extends NetworkType.Any[]>(
-	...variants: T
-): NetworkSerializableType<UnionFromIn<T>, UnionFromOut<T>> {
+export interface NetworkUnionType<T extends NetworkType.Any[]> extends NetworkSerializableType<
+	UnionFromIn<T>,
+	UnionFromOut<T>
+> {
+	$Type: "Union";
+	Variants: T;
+}
+
+export function NexusUnion<const T extends NetworkType.Any[]>(...variants: T): NetworkUnionType<T> {
 	const validators = variants.map((v) => v.Validation);
 
 	return {
+		$Type: "Union",
+		Variants: variants,
 		Name: variants.map((v) => v.Name).join(" | "),
 		Serialization: {
 			Serialize(value) {

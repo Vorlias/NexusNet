@@ -18,13 +18,13 @@ function getHashSortedKeys<T extends { [P in string]: NetworkType<any> }>(obj: T
 	return arr.sort((a, b) => hashstring(tostring(a[0])) < hashstring(tostring(b[0])));
 }
 
-interface HashTable<T extends object> extends Array<T[keyof T]> {
+interface HashTable<T extends object> extends ArrayLike<T[keyof T]> {
 	readonly __nominal_hashSymbol?: unique symbol;
 }
-type TableNetworkType<T> = { [P in keyof T]: NetworkSerializableType<T[P], any> | NetworkType<T[P]> };
+export type MapNetworkTypeInterface<T> = { [P in keyof T]: NetworkSerializableType<T[P], any> | NetworkType<T[P]> };
 function CreateHashTableSerializer<T extends object>(
-	struct: TableNetworkType<T>,
-): NetworkTypeSerialization<NexusSerialization.InputInterface<TableNetworkType<T>>, HashTable<T>> {
+	struct: MapNetworkTypeInterface<T>,
+): NetworkTypeSerialization<NexusSerialization.InputInterface<MapNetworkTypeInterface<T>>, HashTable<T>> {
 	const ordinal = getHashSortedKeys(struct);
 
 	return {
@@ -45,8 +45,8 @@ function CreateHashTableSerializer<T extends object>(
 
 			return data as HashTable<T>;
 		},
-		Deserialize(data: Array<T[keyof T]>): NexusSerialization.InputInterface<TableNetworkType<T>> {
-			const object = {} as NexusSerialization.InputInterface<TableNetworkType<T>>;
+		Deserialize(data: Array<T[keyof T]>): NexusSerialization.InputInterface<MapNetworkTypeInterface<T>> {
+			const object = {} as NexusSerialization.InputInterface<MapNetworkTypeInterface<T>>;
 
 			// Assign properties back from the serializer
 			for (let i = 0; i < ordinal.size(); i++) {
@@ -62,7 +62,7 @@ function CreateHashTableSerializer<T extends object>(
 	};
 }
 
-function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): NetworkBuffer<HashTable<T>> {
+function CreateHashTableBuffer<T extends object>(struct: MapNetworkTypeInterface<T>): NetworkBuffer<HashTable<T>> {
 	const ordinal = getHashSortedKeys(struct);
 
 	return {
@@ -75,7 +75,7 @@ function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): N
 			}
 		},
 		ReadData(reader) {
-			const data = [] as HashTable<T>;
+			const data = [] as Writable<HashTable<T>>;
 
 			for (let i = 0; i < ordinal.size(); i++) {
 				const [, encoder] = ordinal[i];
@@ -87,14 +87,24 @@ function CreateHashTableBuffer<T extends object>(struct: TableNetworkType<T>): N
 	};
 }
 
+export interface NetworkHashTableType<TInput extends object> extends NetworkSerializableType<
+	NexusSerialization.InputInterface<MapNetworkTypeInterface<TInput>>,
+	HashTable<TInput>
+> {
+	$Type: "HashTable";
+	Properties: Readonly<MapNetworkTypeInterface<TInput>>;
+}
+
 export function NexusHashTable<T extends object>(
-	tbl: TableNetworkType<T>,
+	tbl: MapNetworkTypeInterface<T>,
 	debugName?: string,
-): NetworkSerializableType<NexusSerialization.InputInterface<typeof tbl>, HashTable<T>> {
+): NetworkHashTableType<T> {
 	const buffer = CreateHashTableBuffer<T>(tbl);
 	const serializer = CreateHashTableSerializer<T>(tbl);
 
 	return {
+		$Type: "HashTable",
+		Properties: tbl,
 		Name: debugName ?? "HashTable",
 		Validation: {
 			Validate(obj): obj is NexusSerialization.InputInterface<typeof tbl> {

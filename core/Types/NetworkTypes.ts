@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { BufferReader } from "../Buffers/BufferReader";
 import { BufferWriter } from "../Buffers/BufferWriter";
+import { NetworkEnumType } from "../CoreTypes";
+import { NetworkHashTableType } from "../NetworkTypes/HashTable";
+import { NetworkUnionType } from "../NetworkTypes/Union";
+import { NetworkVariantType } from "../NetworkTypes/Variant";
 import NexusSerialization, { Input, Output } from "../Serialization";
 import { DeserializationException } from "../Serialization/Serializer";
 
@@ -72,8 +76,7 @@ export interface NetworkDeserializer<TInput, TOutput> {
 }
 
 export interface NetworkTypeSerialization<TInput, TOutput>
-	extends NetworkSerializer<TInput, TOutput>,
-		NetworkDeserializer<TInput, TOutput> {}
+	extends NetworkSerializer<TInput, TOutput>, NetworkDeserializer<TInput, TOutput> {}
 
 export interface NetworkSerializableType<TInput, TOutput> extends NetworkType<TInput, TOutput> {
 	Serialization: NetworkTypeSerialization<TInput, TOutput>;
@@ -83,6 +86,17 @@ export namespace NetworkType {
 	export type Serialized<TInput, TOutput> = NetworkSerializableType<TInput, TOutput>;
 	export type Any = NetworkType<any> | NetworkSerializableType<any, any>;
 	export type OfType<T, U = any> = NetworkType<T, U> | NetworkSerializableType<T, U>;
+	export type Variant<T> = NetworkVariantType<T>;
+	export type Interface<T extends object> = NetworkHashTableType<T>;
+	export type Literal<T extends defined> = NetworkSerializableType<T, number>;
+	export type Union<T extends Any[]> = NetworkUnionType<T>;
+	export type Enum<T> = NetworkEnumType<T>;
+
+	/**
+	 *
+	 */
+	export type Static<T extends NetworkSerializableType<any, any> | NetworkType<any, any>> =
+		NexusSerialization.Input<T>;
 
 	export function Check<T, TEncode>(
 		networkType: NetworkType<T, TEncode>,
@@ -96,7 +110,7 @@ export namespace NetworkType {
 			} else {
 				const errMsg = typeIs(validator.ValidateError, "function")
 					? validator.ValidateError(networkType, value)
-					: validator.ValidateError ?? `Expected ${networkType.Name}`;
+					: (validator.ValidateError ?? `Expected ${networkType.Name}`);
 
 				return $tuple<[false, string]>(false, errMsg);
 			}
@@ -105,9 +119,8 @@ export namespace NetworkType {
 		}
 	}
 
-	type InferSerializer<T> = T extends NetworkSerializableType<infer _TInput, infer _TOutput>
-		? T["Serialization"]
-		: undefined;
+	type InferSerializer<T> =
+		T extends NetworkSerializableType<infer _TInput, infer _TOutput> ? T["Serialization"] : undefined;
 	type InferSerializers<T extends ReadonlyArray<NetworkType.Any>> = {
 		[P in keyof T]: InferSerializer<T[P]>;
 	};

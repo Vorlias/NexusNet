@@ -14,11 +14,12 @@ import {
 	uint8,
 	utf8_string,
 } from "./Buffers";
-import { NexusHashTable } from "./NetworkTypes/HashTable";
+import { MapNetworkTypeInterface, NexusHashTable } from "./NetworkTypes/HashTable";
+import { NexusVariant } from "./NetworkTypes/Variant";
 import NexusSerialization from "./Serialization";
 import { MapCheckArrayIn, MapCheckArrayOut, NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
 export { NexusArray, NexusSet, NexusMap, NexusTuple } from "./Types/CollectionTypes";
-import { NetworkBuffer, NetworkSerializableType, NetworkType, NetworkValidator } from "./Types/NetworkTypes";
+import { NetworkSerializableType, NetworkType } from "./Types/NetworkTypes";
 import { hashstring } from "./Utils/hash";
 
 type Out<TType> = NexusSerialization.Output<TType>;
@@ -120,9 +121,13 @@ const NexusInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 				}
 
 				if (value > UPPER_BOUND) {
-					warn(`[${name}] Number exceeds the maximum ${bits}-bit integer and may overflow`);
+					warn(
+						`[${name}] ${value} exceeds the maximum ${bits}-bit integer (${UPPER_BOUND}) and may overflow`,
+					);
 				} else if (value < LOWER_BOUND) {
-					warn(`[${name}] Number exceeds the minimum ${bits}-bit integer and may underflow`);
+					warn(
+						`[${name}] ${value} exceeds the minimum ${bits}-bit integer (${LOWER_BOUND}) and may underflow`,
+					);
 				}
 
 				return true;
@@ -142,91 +147,17 @@ type InferIntType<Bits extends IntegerBits, TUnsigned extends boolean> = TUnsign
 	? Bits extends 8
 		? uint8
 		: Bits extends 16
-		? uint16
-		: Bits extends 32
-		? uint32
-		: never
+			? uint16
+			: Bits extends 32
+				? uint32
+				: never
 	: Bits extends 8
-	? int8
-	: Bits extends 16
-	? int16
-	: Bits extends 32
-	? int32
-	: never;
-
-// class NetworkInt<Bits extends IntegerBits, TUnsigned extends boolean>
-// 	implements NetworkType<InferIntType<Bits, TUnsigned>>
-// {
-// 	Name: string;
-// 	Encoding: NetworkBuffer<InferIntType<Bits, TUnsigned>>;
-// 	Validation: NetworkValidator<InferIntType<Bits, TUnsigned>, InferIntType<Bits, TUnsigned>>;
-
-// 	public constructor(bits: Bits, unsigned: TUnsigned) {
-// 		const name = unsigned ? `UInt${bits}` : `Int${bits}`;
-
-// 		const encoder = unsigned ? unsignedEncoders[bits] : intEncoders;
-// 		const intType = unsigned ? INT_UNSIGNED[bits] : INT_SIGNED[bits];
-// 		const UPPER_BOUND = intType.MAX; // 2 ** bits - 1;
-
-// 		this.Validation = {
-// 			Validate(value): value is InferIntType<Bits, TUnsigned> {
-// 				if (!typeIs(value, "number")) return false;
-// 				if (value % 1 !== 0) {
-// 					warn(`[${name}] Number is not a ${bits}-bit unsigned integer`);
-// 					return false;
-// 				}
-
-// 				if (value > UPPER_BOUND) {
-// 					warn(`[${name}] Number exceeds the maximum ${bits}-bit unsigned integer and may overflow`);
-// 				} else if (value < 0) {
-// 					warn(`[${name}] Number exceeds the minimum ${bits}-bit unsigned integer and may underflow`);
-// 				}
-
-// 				return true;
-// 			},
-// 			ValidateError: (value) => "Expected UInt" + bits + ", got " + typeOf(value) + " " + value,
-// 		};
-
-// 		this.Encoding = encoder as NetworkBuffer<InferIntType<Bits, TUnsigned>>;
-// 		this.Name = name;
-// 	}
-
-// 	public Range(min: InferIntType<Bits, TUnsigned>, max: InferIntType<Bits, TUnsigned>) {
-// 		const clone = table.clone(this);
-// 		this.Validation.Validate = (value): value is InferIntType<Bits, TUnsigned> => {
-// 			if (this.Validation.Validate(value)) {
-// 				return value >= min && value <= max;
-// 			} else {
-// 				return false;
-// 			}
-// 		};
-// 		return clone;
-// 	}
-
-// 	public Min(min: InferIntType<Bits, TUnsigned>) {
-// 		const clone = table.clone(this);
-// 		this.Validation.Validate = (value): value is InferIntType<Bits, TUnsigned> => {
-// 			if (this.Validation.Validate(value)) {
-// 				return value >= min;
-// 			} else {
-// 				return false;
-// 			}
-// 		};
-// 		return clone;
-// 	}
-
-// 	public Max(max: InferIntType<Bits, TUnsigned>) {
-// 		const clone = table.clone(this);
-// 		this.Validation.Validate = (value): value is InferIntType<Bits, TUnsigned> => {
-// 			if (this.Validation.Validate(value)) {
-// 				return value <= max;
-// 			} else {
-// 				return false;
-// 			}
-// 		};
-// 		return clone;
-// 	}
-// }
+		? int8
+		: Bits extends 16
+			? int16
+			: Bits extends 32
+				? int32
+				: never;
 
 const unsignedEncoders = {
 	[8]: NetworkBuffers.UInt8,
@@ -251,9 +182,11 @@ const NexusUInt: (bits?: IntegerBits) => NetworkType<number> = (bits = 32) => {
 				}
 
 				if (value > UPPER_BOUND) {
-					warn(`[${name}] Number exceeds the maximum ${bits}-bit unsigned integer and may overflow`);
+					warn(
+						`[${name}] ${value} exceeds the maximum ${bits}-bit unsigned integer (${UPPER_BOUND}) and may overflow`,
+					);
 				} else if (value < 0) {
-					warn(`[${name}] Number exceeds the minimum ${bits}-bit unsigned integer and may underflow`);
+					warn(`[${name}] ${value} exceeds the minimum ${bits}-bit unsigned integer (0) and may underflow`);
 				}
 
 				return true;
@@ -323,6 +256,7 @@ export function NexusIsOptionalType<TIn, TOut>(
 
 export interface NetworkOptionalType<TIn, TOut> extends NetworkSerializableType<TIn | undefined, TOut | undefined> {
 	Optional: true;
+	$Type: "Optional";
 }
 /**
  * Creates an optional network type with the given inner type as the optional value
@@ -333,6 +267,7 @@ export function NexusOptional<T extends NetworkSerializableType<any, any> | Netw
 	typeLike: T,
 ): NetworkOptionalType<In<T>, Out<T>> {
 	return {
+		$Type: "Optional",
 		Optional: true,
 		Name: "" + typeLike.Name + "?",
 		Validation: {
@@ -358,8 +293,8 @@ export function NexusOptional<T extends NetworkSerializableType<any, any> | Netw
 
 export type Serialized<T> = T extends string | boolean | number ? T : { [P in keyof T]: unknown };
 
-type StringEnumLike<T> = { [P in keyof T]: T[P] & string };
-type IntEnumLike<T> = { [P in keyof T]: T[P] & number };
+type StringEnumLike<T> = { readonly [P in keyof T]: T[P] & string };
+type IntEnumLike<T> = { readonly [P in keyof T]: T[P] & number };
 
 const strEnumCache = new Map<object, NetworkSerializableType<any, int32>>();
 export function NexusStringEnum<T extends object>(
@@ -414,6 +349,8 @@ export function NexusStringEnum<T extends object>(
 	strEnumCache.set(enumObject, networkType);
 	return networkType;
 }
+
+export interface NetworkEnumType<T> extends NetworkType<T, int32> {}
 
 const intEnumCache = new Map<object, NetworkType<any, int32>>();
 export function NexusIntEnum<const T>(value: IntEnumLike<T>, isFlags: boolean = false): NetworkType<T, int32> {
@@ -554,7 +491,7 @@ interface NexusCoreTypeOps {
 	/**
 	 * A collection of literals - over the network this is represented by an integer of what value it is
 	 */
-	Literal<T extends Array<Literal>>(this: void, ...values: T): NetworkSerializableType<T[number], number>;
+	Literal<T extends Array<Literal>>(this: void, ...values: T): NetworkType.Literal<T[number]>;
 
 	/**
 	 * An array of a type `readonly T[]`
@@ -627,35 +564,37 @@ interface NexusCoreTypeOps {
 	 *
 	 * - Serializes to the string hash of the item
 	 */
-	StringEnum<const T extends object>(
-		this: void,
-		enumObject: StringEnumLike<T>,
-	): NetworkSerializableType<T[keyof T], int32>;
+	StringEnum<const T extends object>(this: void, $enum: StringEnumLike<T>): NetworkEnumType<T[keyof T]>;
 
 	/**
 	 * An enum with integer values
 	 */
-	IntEnum<const T>(this: void, value: IntEnumLike<T>): NetworkType<IntEnumLike<T>[keyof T], int32>;
+	IntEnum<const T>(this: void, $enum: IntEnumLike<T>): NetworkEnumType<IntEnumLike<T>[keyof T]>;
 
 	/**
 	 * An enum with integer values
 	 * @param isFlagEnum Whether or not this is a flag integer enum
 	 */
-	IntEnum<const T>(
-		this: void,
-		value: IntEnumLike<T>,
-		isFlagEnum: boolean,
-	): NetworkType<IntEnumLike<T>[keyof T], int32>;
+	IntEnum<const T>(this: void, $enum: IntEnumLike<T>, isFlagEnum: boolean): NetworkEnumType<IntEnumLike<T>[keyof T]>;
 
 	/**
 	 * An object that's serialized using a hash table
 	 *
 	 * #### *NOTE:* This should be use for NETWORKING **only**!
 	 */
-	Interface: typeof NexusHashTable;
+	Interface<const T extends object>(
+		this: void,
+		test: MapNetworkTypeInterface<T>,
+		debugName?: string,
+	): NetworkType.Interface<T>; //typeof NexusHashTable;
 
 	IntRange: (min: int32, max: int32) => NetworkType<int32>;
 	Range: (min: float32, max: float32) => NetworkType<int32>;
+
+	/**
+	 * Creates a variant type (using a key/value data-type)
+	 */
+	Variant: typeof NexusVariant;
 }
 
 export interface NexusCoreTypes extends NexusCoreTypeOps, NexusCorePrimitives {}
@@ -663,6 +602,8 @@ export interface NexusCoreTypes extends NexusCoreTypeOps, NexusCorePrimitives {}
 export const NexusCoreTypes: NexusCoreTypes = {
 	String: NexusUTF8String,
 	Buffer: NexusRawBuffer,
+
+	Variant: NexusVariant,
 
 	Range: NexusRange(NexusFloat32),
 	IntRange: NexusRange(NexusInt32),
