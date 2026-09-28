@@ -1,3 +1,4 @@
+import { NexusCrossServerEventBuilder } from "./Builders/CrossServerEventBuilder";
 import { NexusEventBuilder } from "./Builders/EventBuilder";
 import { NetworkObjectModelBuilder } from "./Builders/ModelBuilder";
 import { NexusInlineClient, NexusInlineServer } from "./Inline";
@@ -29,6 +30,10 @@ export namespace Nexus {
 		}
 
 		return builder;
+	}
+
+	export function CrossServerEvent(): NexusCrossServerEventBuilder<[]> {
+		return new NexusCrossServerEventBuilder();
 	}
 
 	/** Creates a server remote singleton */

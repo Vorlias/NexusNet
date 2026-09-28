@@ -15,12 +15,7 @@ import {
 	NexusBool,
 } from "./PrimitiveTypes";
 import { NexusColor3, NexusInstanceHandleOf, NexusPlayer, NexusUserType, NexusVector } from "./RobloxTypes";
-
-export type Identity<T> = T extends object
-	? {} & {
-			[P in keyof T]: T[P];
-		}
-	: T;
+import { Identity } from "./Utility";
 
 export interface NetworkType<T, E = T> {
 	readonly Encoding: NetworkEncoder<E>;

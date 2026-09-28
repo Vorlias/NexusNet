@@ -1,6 +1,10 @@
+import { NexusClientEvent } from "../Client/ClientEvent";
 import { ClientListenerEvent, ClientSenderEvent } from "../Client/ClientNetworkTypes";
+import { NexusServerEvent } from "../Server/ServerEvent";
+import { ServerMessagingEvent } from "../Server/ServerMessagingEvent";
 import { ServerListenerEvent, ServerSenderEvent } from "../Server/ServerNetworkTypes";
 import { NetworkType } from "../Types/NetworkType";
+import { Identity } from "../Types/Utility";
 
 export enum RemoteRunContext {
 	Server,
@@ -16,6 +20,10 @@ export const enum ConfigFlags {
 
 export const enum NetworkingFlags {
 	None = 0,
+	/** @internal @deprecated Pass all arguments as values rather than via a buffer */
+	ArgumentsByValue = 1 << 0,
+	/** @internal @deprecated Treat the remote as a type-only remote, no checks */
+	RbxNet3BackwardsCompat = 1 << 1,
 }
 
 const runService = game.GetService("RunService");
@@ -30,6 +38,29 @@ export namespace NOM {
 
 	export function hasConfigFlag(flags: ConfigFlags | undefined, flag: ConfigFlags) {
 		return flags !== undefined && (flags & flag) !== 0;
+	}
+
+	export function CreateNamespace(): NOM.NamespaceDeclaration<{}> {
+		return {
+			Type: "Namespace",
+			Declarations: {},
+		};
+	}
+
+	export function PushNamespace(
+		namespace: NOM.NamespaceDeclaration<NOM.DeclarationRecord>,
+		name: string,
+	): NOM.NamespaceDeclaration<NOM.DeclarationRecord> | undefined {
+		const decl = namespace.Declarations[name];
+
+		if (decl === undefined) {
+			const newNamespace = CreateNamespace();
+			namespace.Declarations[name] = decl;
+			print("create scoped", name);
+			return newNamespace;
+		} else if (decl.Type === "Namespace") {
+			return decl;
+		}
 	}
 
 	export interface EventConfig extends Config {
@@ -48,6 +79,16 @@ export namespace NOM {
 		readonly Config: EventConfig;
 	}
 
+	export interface CrossServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> {
+		readonly Type: "Messaging";
+		readonly Arguments: NetworkType.Any[];
+	}
+
+	export interface NamespaceDeclaration<_TDeclarations extends DeclarationRecord> {
+		readonly Type: "Namespace";
+		readonly Declarations: _TDeclarations;
+	}
+
 	export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> extends EventDeclaration<
 		RemoteRunContext.Server,
 		_TArgs
@@ -58,7 +99,11 @@ export namespace NOM {
 		_TArgs
 	> {}
 
-	export type Declaration = ServerEventDeclaration<any> | ClientEventDeclaration<any>;
+	export type Declaration =
+		| ServerEventDeclaration<any>
+		| ClientEventDeclaration<any>
+		| CrossServerEventDeclaration<any>
+		| NamespaceDeclaration<any>;
 
 	export type DeclarationRecord = { [P in string]: Declaration };
 
@@ -74,11 +119,21 @@ export namespace NOM {
 	export type InferClient<T> = T extends ClientBuilder<infer O> ? O : never;
 
 	export type FilterServerDeclarations<T extends DeclarationRecord> = {
-		[K in ExtractKeys<T, EventDeclaration<any, any>>]: T[K];
+		[
+			K in ExtractKeys<
+				T,
+				| ServerEventDeclaration<any>
+				| ClientEventDeclaration<any>
+				| CrossServerEventDeclaration<any>
+				| NamespaceDeclaration<any>
+			>
+		]: T[K];
 	};
 
 	export type FilterClientDeclarations<T extends DeclarationRecord> = {
-		[K in ExtractKeys<T, EventDeclaration<any, any>>]: T[K];
+		[
+			K in ExtractKeys<T, ServerEventDeclaration<any> | ClientEventDeclaration<any> | NamespaceDeclaration<any>>
+		]: T[K];
 	};
 
 	export type InferServerRemote<T> =
@@ -86,7 +141,9 @@ export namespace NOM {
 			? ServerSenderEvent<A>
 			: T extends ClientEventDeclaration<infer A>
 				? ServerListenerEvent<A>
-				: never;
+				: T extends CrossServerEventDeclaration<infer A>
+					? ServerMessagingEvent<A>
+					: never;
 
 	export type InferClientRemote<T> =
 		T extends ClientEventDeclaration<infer A>
@@ -95,11 +152,16 @@ export namespace NOM {
 				? ClientListenerEvent<A>
 				: never;
 
-	type ServerContext<T> = { [P in keyof T]: InferServerRemote<T[P]> };
-	type ClientContext<T> = { [P in keyof T]: InferClientRemote<T[P]> };
+	type RemoveNever<T> = { [P in keyof T as T[P] extends never ? never : P]: T[P] };
+	export type ServerContext<T> = RemoveNever<{
+		[P in keyof T]: T[P] extends NamespaceDeclaration<infer N> ? ServerContext<N> : InferServerRemote<T[P]>;
+	}>;
+	export type ClientContext<T> = RemoveNever<{
+		[P in keyof T]: T[P] extends NamespaceDeclaration<infer N> ? ClientContext<N> : InferClientRemote<T[P]>;
+	}>;
 
 	export interface Model<T extends DeclarationRecord> {
-		readonly Server: ServerContext<T>;
-		readonly Client: ClientContext<T>;
+		readonly Server: Identity<ServerContext<T>>;
+		readonly Client: Identity<ClientContext<T>>;
 	}
 }
