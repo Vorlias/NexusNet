@@ -1,4 +1,9 @@
-# Nexus Net
+<div align="center">
+  <img src="./icon.png">
+  <h1>NEXUS</h1>
+  <p>Networking for Roblox, powered by the <a href="https://vorlias.nz/spec/nom">Network Object Model</a></p>
+</div>
+
 Aka "_RbxNet v4.0_" - this is a continuation of https://github.com/roblox-aurora/rbx-net/issues/91, which ended up as https://github.com/Vorlias/NexusNetLegacy and now is a pure Roblox library as Airship was discontinued. 
 
 It's still yet to be determined if I will add some sort of backwards compat. for this library. for RbxNet v3.0.

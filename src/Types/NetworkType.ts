@@ -14,7 +14,7 @@ import {
 	NexusUInt32,
 	NexusBool,
 } from "./PrimitiveTypes";
-import { NexusColor3, NexusPlayer, NexusUserType, NexusVector } from "./RobloxTypes";
+import { NexusColor3, NexusInstanceHandleOf, NexusPlayer, NexusUserType, NexusVector } from "./RobloxTypes";
 
 export type Identity<T> = T extends object
 	? {} & {
@@ -29,7 +29,7 @@ export interface NetworkType<T, E = T> {
 
 export const enum NetworkTypeFlags {
 	None = 0,
-	Serializable = 1 << 0,
+	NoBufferEncoding = 1 << 0,
 }
 
 export namespace NetworkType {
@@ -40,7 +40,7 @@ export namespace NetworkType {
 
 	export type ToTypeArray<T> = { -readonly [P in keyof T]: OfType<T[P]> };
 
-	export interface Serializable<TIn, TOut> extends NetworkType<TIn, TOut> {
+	export interface Serializable<TIn, TOut, TEnc = TOut> extends NetworkType<TIn, TEnc> {
 		readonly Serializer: NetworkTypeSerialization<TIn, TOut>;
 	}
 
@@ -75,6 +75,7 @@ export namespace NetworkType {
 	export const User = NexusUserType;
 	export const Color3 = NexusColor3;
 	export const Vector3 = NexusVector;
+	export const InstanceOf = NexusInstanceHandleOf;
 
 	// Modifier type declarations
 	export const Nullable = NexusNullable;

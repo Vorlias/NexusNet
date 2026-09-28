@@ -1,5 +1,6 @@
 import { NexusEventBuilder } from "./Builders/EventBuilder";
 import { NetworkObjectModelBuilder } from "./Builders/ModelBuilder";
+import { NOM } from "./NetworkObjectModel";
 import { NetworkType } from "./Types/NetworkType";
 
 export { NetworkType as NexusType } from "./Types/NetworkType";
@@ -7,8 +8,14 @@ export { NexusServerEvent } from "./Server/ServerEvent";
 export { NexusClientEvent } from "./Client/ClientEvent";
 
 export namespace Nexus {
-	export function BuildObjectModel() {
-		return new NetworkObjectModelBuilder<{}>();
+	export function BuildObjectModel(config?: NOM.Config) {
+		const model = new NetworkObjectModelBuilder<{}>();
+
+		if (config) {
+			model.configuration = config;
+		}
+
+		return model;
 	}
 
 	export function Event(): NexusEventBuilder<[]>;

@@ -8,12 +8,26 @@ export enum RemoteRunContext {
 	Both,
 }
 
+export const enum ConfigFlags {
+	None = 0,
+	VerboseDebugging = 1 << 0,
+}
+
 export const enum NetworkingFlags {
 	None = 0,
 }
 
 export namespace NOM {
-	export interface Config {}
+	export interface Config {
+		readonly Flags?: ConfigFlags;
+	}
+
+	export interface EventConfig extends Config {
+		/**
+		 * Compress the event stream - only use this if it's something large like voxel data
+		 */
+		readonly Compression?: CastsToEnum<Enum.CompressionAlgorithm>;
+	}
 
 	export interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>> {
 		readonly Type: "Event";
@@ -21,6 +35,7 @@ export namespace NOM {
 		readonly Unreliable: boolean;
 		readonly Arguments: NetworkType.ToTypeArray<_TArgs> | undefined;
 		readonly Flags: NetworkingFlags;
+		readonly Config: EventConfig;
 	}
 
 	export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> extends EventDeclaration<

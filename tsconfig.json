@@ -9,6 +9,7 @@
 		"module": "commonjs",
 		"moduleResolution": "Node",
 		"noLib": true,
+		"stripInternal": true,
 		"resolveJsonModule": true,
 		"experimentalDecorators": true,
 		"forceConsistentCasingInFileNames": true,

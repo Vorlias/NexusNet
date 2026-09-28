@@ -10,12 +10,13 @@ export type MergeIdentity<T, U> = Identity<T & U>;
 const runService = game.GetService("RunService");
 export class NetworkObjectModelBuilder<TDeclarations extends NOM.DeclarationRecord> {
 	public declarations = {} as TDeclarations;
+	public configuration = {} as NOM.Config;
 
 	AddServer<TName extends string, TDecl extends NOM.Declaration>(
 		id: TName,
 		declaration: NOM.ServerBuilder<TDecl>,
 	): NetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TDecl>>, TDeclarations>> {
-		const definition = declaration.OnServer({});
+		const definition = declaration.OnServer(this.configuration);
 		this.declarations = {
 			...this.declarations,
 			[id]: definition,
@@ -27,7 +28,7 @@ export class NetworkObjectModelBuilder<TDeclarations extends NOM.DeclarationReco
 		id: TName,
 		declaration: NOM.ClientBuilder<TDecl>,
 	): NetworkObjectModelBuilder<MergeIdentity<Identity<Named<TName, TDecl>>, TDeclarations>> {
-		const definition = declaration.OnClient({});
+		const definition = declaration.OnClient(this.configuration);
 		this.declarations = {
 			...this.declarations,
 			[id]: definition,
