@@ -30,6 +30,7 @@ export function CreateServerEventCallback<T extends ReadonlyArray<unknown>>(
 }
 
 const RunService = game.GetService("RunService");
+
 export class NexusServerEvent<T extends Array<unknown>> implements ServerSenderEvent<T>, ServerListenerEvent<T> {
 	private readonly instance!: RemoteEvent;
 	private readonly declaration: NOM.ServerEventDeclaration<T>;
@@ -37,20 +38,22 @@ export class NexusServerEvent<T extends Array<unknown>> implements ServerSenderE
 
 	private readonly arguments: NetworkType.ToTypeArray<T>;
 
-	private verbose: boolean;
-
 	public constructor(name: string, declaration: NOM.ServerEventDeclaration<T>) {
-		assert(RunService.IsServer());
 		this.declaration = declaration;
 
-		this.instance = new Instance("RemoteEvent");
-		this.instance.Name = string.format("%.X", GetRbxNetEventId(name));
+		name = NOM.hasConfigFlag(declaration.Config.Flags, ConfigFlags.RuntimeHashNames)
+			? string.format("%.X", GetRbxNetEventId(name))
+			: name;
+
+		this.instance = RunService.IsServer()
+			? new Instance("RemoteEvent")
+			: (RemotesFolder.WaitForChild(name) as RemoteEvent);
+		assert(this.instance.IsA("RemoteEvent"));
+		this.instance.Name = name;
 		this.instance.Parent = RemotesFolder;
 		this.arguments = declaration.Arguments as NetworkType.ToTypeArray<T>;
 
 		this.compression = declaration.Config.Compression;
-		this.verbose =
-			declaration.Config.Flags !== undefined && (declaration.Config.Flags & ConfigFlags.VerboseDebugging) !== 0;
 
 		table.freeze(this);
 	}

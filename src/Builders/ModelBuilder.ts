@@ -10,7 +10,7 @@ export type MergeIdentity<T, U> = Identity<T & U>;
 const runService = game.GetService("RunService");
 export class NetworkObjectModelBuilder<TDeclarations extends NOM.DeclarationRecord> {
 	public declarations = {} as TDeclarations;
-	public configuration = {} as NOM.Config;
+	public configuration = { ...NOM.ConfigDefaults };
 
 	AddServer<TName extends string, TDecl extends NOM.Declaration>(
 		id: TName,

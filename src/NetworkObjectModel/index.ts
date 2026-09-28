@@ -11,15 +11,25 @@ export enum RemoteRunContext {
 export const enum ConfigFlags {
 	None = 0,
 	VerboseDebugging = 1 << 0,
+	RuntimeHashNames = 1 << 1,
 }
 
 export const enum NetworkingFlags {
 	None = 0,
 }
 
+const runService = game.GetService("RunService");
 export namespace NOM {
 	export interface Config {
 		readonly Flags?: ConfigFlags;
+	}
+
+	export const ConfigDefaults: Config = {
+		Flags: runService.IsStudio() ? ConfigFlags.RuntimeHashNames : 0,
+	};
+
+	export function hasConfigFlag(flags: ConfigFlags | undefined, flag: ConfigFlags) {
+		return flags !== undefined && (flags & flag) !== 0;
 	}
 
 	export interface EventConfig extends Config {

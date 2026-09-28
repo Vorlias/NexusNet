@@ -143,8 +143,10 @@ const ColorEncode: NetworkEncoder<Color3> = {
 };
 
 /** @internal Used for special cases like instances */
-export const NexusNeverEncoder: NetworkEncoder<void> = {
-	ReadData(reader) {},
+export const NexusNeverEncoder: NetworkEncoder<never> = {
+	ReadData(reader) {
+		throw `The reader should not be invoked on this type, was it marked with the NoBufferEncoding flag?`;
+	},
 	WriteData(data, writer) {},
 };
 

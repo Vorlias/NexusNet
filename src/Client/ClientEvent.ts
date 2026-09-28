@@ -6,7 +6,7 @@ import {
 } from "../Buffers/Transform";
 import { RemotesFolder } from "../Internal";
 import { GetRbxNetEventId } from "../Internal/InternalId";
-import { NOM } from "../NetworkObjectModel";
+import { ConfigFlags, NOM } from "../NetworkObjectModel";
 import { NetworkType } from "../Types/NetworkType";
 import { ClientListenerEvent, ClientSenderEvent } from "./ClientNetworkTypes";
 
@@ -29,14 +29,16 @@ const RunService = game.GetService("RunService");
 export class NexusClientEvent<T extends ReadonlyArray<unknown>>
 	implements ClientSenderEvent<T>, ClientListenerEvent<T>
 {
-	public instance: RemoteEvent<Callback>;
+	private instance: RemoteEvent<Callback>;
 	private readonly arguments: NetworkType.ToTypeArray<T>;
 	private compression?: CastsToEnum<Enum.CompressionAlgorithm>;
 
 	public constructor(name: string, declaration: NOM.ClientEventDeclaration<T>) {
-		assert(RunService.IsClient());
-		const id = string.format("%.X", GetRbxNetEventId(name));
-		const object = RemotesFolder.WaitForChild(id);
+		name = NOM.hasConfigFlag(declaration.Config.Flags, ConfigFlags.RuntimeHashNames)
+			? string.format("%.X", GetRbxNetEventId(name))
+			: name;
+
+		const object = RemotesFolder.WaitForChild(name);
 		assert(object.IsA("RemoteEvent"));
 		this.instance = object;
 		this.arguments = declaration.Arguments as NetworkType.ToTypeArray<T>;

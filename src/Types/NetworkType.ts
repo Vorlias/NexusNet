@@ -29,6 +29,7 @@ export interface NetworkType<T, E = T> {
 
 export const enum NetworkTypeFlags {
 	None = 0,
+	/** @internal */
 	NoBufferEncoding = 1 << 0,
 }
 
