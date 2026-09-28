@@ -1,14 +1,9 @@
 import { TransformFromBuffer, TransformToBuffer } from "../Buffers/Transform";
 import { RemotesFolder } from "../Internal";
 import { GetRbxNetEventId } from "../Internal/InternalId";
+import { NOM } from "../NetworkObjectModel";
 import { NetworkType } from "../Types/NetworkType";
 import { ClientListenerEvent, ClientSenderEvent } from "./ClientNetworkTypes";
-
-export interface ClientEventDeclaration<T> {
-    readonly Type: "Event";
-    readonly Context: "Client";
-    readonly Arguments: NetworkType.ToTypeArray<T> | undefined,
-}
 
 function CreateClientEventCallback<T extends ReadonlyArray<unknown>>(
     argl: NetworkType.ToTypeArray<T>,
@@ -26,7 +21,7 @@ export class NexusClientEvent<T extends ReadonlyArray<unknown>> implements Clien
     private instance: RemoteEvent<Callback>;
     private readonly arguments: NetworkType.ToTypeArray<T>;
 
-    public constructor(name: string, declaration: ClientEventDeclaration<T>) {
+    public constructor(name: string, declaration: NOM.ClientEventDeclaration<T>) {
         assert(RunService.IsClient());
         const id = string.format("%.X", GetRbxNetEventId(name));
         const object = RemotesFolder.WaitForChild(id);

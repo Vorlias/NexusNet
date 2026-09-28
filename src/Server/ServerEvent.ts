@@ -3,14 +3,9 @@ import { BufferWriter } from "../Buffers/BufferWriter";
 import { TransformFromBuffer, TransformToBuffer } from "../Buffers/Transform";
 import { RemotesFolder } from "../Internal";
 import { GetRbxNetEventId } from "../Internal/InternalId";
+import { NOM } from "../NetworkObjectModel";
 import { NetworkType } from "../Types/NetworkType";
 import { ServerListenerEvent, ServerSenderEvent } from "./ServerNetworkTypes";
-
-export interface ServerEventDeclaration<T> {
-    readonly Type: "Event";
-    readonly Context: "Server";
-    readonly Arguments: NetworkType.ToTypeArray<T> | undefined,
-}
 
 
 function CreateServerEventCallback<T extends ReadonlyArray<unknown>>(
@@ -26,11 +21,11 @@ function CreateServerEventCallback<T extends ReadonlyArray<unknown>>(
 const RunService = game.GetService("RunService");
 export class NexusServerEvent<T extends Array<unknown>> implements ServerSenderEvent<T>, ServerListenerEvent<T> {
     private readonly instance!: RemoteEvent;
-    private readonly declaration: ServerEventDeclaration<T>;
+    private readonly declaration: NOM.ServerEventDeclaration<T>;
 
     private readonly arguments: NetworkType.ToTypeArray<T>;
 
-    public constructor(name: string, declaration: ServerEventDeclaration<T>) {
+    public constructor(name: string, declaration: NOM.ServerEventDeclaration<T>) {
         assert(RunService.IsServer())
         this.declaration = declaration;
 
