@@ -16,7 +16,8 @@
   "types": "out/index.d.ts",
   "files": [
     "out",
-    "!**/*.tsbuildinfo"
+    "!**/*.tsbuildinfo",
+    "default.project.json"
   ],
   "publishConfig": {
     "access": "public"
