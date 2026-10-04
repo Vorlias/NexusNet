@@ -66,6 +66,11 @@ export namespace NetworkType {
 	export const UInt16 = NexusUInt16;
 	export const UInt8 = NexusUInt8;
 
+	export const Float = NexusSingle;
+	export const Double = NexusDouble;
+
+	export const Boolean = NexusBool;
+
 	// Type Declarations
 	export const Player = NexusPlayer;
 	export const User = NexusUserType;
