@@ -7,9 +7,9 @@ import { NetworkType } from "../Types/NetworkType";
 import { Identity } from "../Types/Utility";
 
 export enum RemoteRunContext {
-	Server,
-	Client,
-	Both,
+	Server = "S",
+	Client = "C",
+	Both = "SC",
 }
 
 export const enum ConfigFlags {
