@@ -56,7 +56,7 @@ export function TransformToNetworkArguments(
 	args: unknown[],
 	types: NetworkType.Unknown[],
 	compression: CastsToEnum<Enum.CompressionAlgorithm> | undefined,
-): [buffer, defined[] | undefined] {
+): LuaTuple<[buffer, defined[] | undefined]> {
 	const buf = TransformToBuffer(args, types, compression);
 	const dt = new Array<defined>();
 
@@ -68,9 +68,9 @@ export function TransformToNetworkArguments(
 	}
 
 	if (dt.size() > 0) {
-		return [buf, dt];
+		return $tuple(buf, dt);
 	} else {
-		return [buf, undefined];
+		return $tuple(buf, undefined);
 	}
 }
 

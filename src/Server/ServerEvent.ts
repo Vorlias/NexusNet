@@ -32,7 +32,7 @@ export function CreateServerEventCallback<T extends ReadonlyArray<unknown>>(
 const RunService = game.GetService("RunService");
 
 export class NexusServerEvent<T extends Array<unknown>> implements ServerSenderEvent<T>, ServerListenerEvent<T> {
-	private readonly instance!: RemoteEvent;
+	private readonly instance!: RemoteEvent<(buffer: buffer, xData: defined[] | undefined) => void>;
 	private readonly declaration: NOM.ServerEventDeclaration<T>;
 	private readonly compression?: CastsToEnum<Enum.CompressionAlgorithm>;
 

@@ -29,7 +29,7 @@ const RunService = game.GetService("RunService");
 export class NexusClientEvent<T extends ReadonlyArray<unknown>>
 	implements ClientSenderEvent<T>, ClientListenerEvent<T>
 {
-	private instance: RemoteEvent<Callback>;
+	private instance: RemoteEvent<(buffer: buffer, xData: defined[] | undefined) => void>;
 	private readonly arguments: NetworkType.ToTypeArray<T>;
 	private compression?: CastsToEnum<Enum.CompressionAlgorithm>;
 
