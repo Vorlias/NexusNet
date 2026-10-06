@@ -1,5 +1,5 @@
 import { NetworkSerialization, NetworkTypeSerialization } from "../Serialization";
-import { NexusArray, NexusMap, NexusSet } from "./CollectionTypes";
+import { NexusArray, NexusMap, NexusSet, NexusFixedArray } from "./CollectionTypes";
 import { NexusNullable } from "./ModifierTypes";
 import { float64, NetworkEncoder, NetworkEncoding } from "./NetworkEncoding";
 import {
@@ -83,4 +83,5 @@ export namespace NetworkType {
 	export const Array = NexusArray;
 	export const Set = NexusSet;
 	export const Map = NexusMap;
+	export const FixedArray = NexusFixedArray;
 }
