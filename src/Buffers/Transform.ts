@@ -14,7 +14,7 @@ export function TransformFromBuffer(
 		buf = encodingService.DecompressBuffer(buf, compression);
 	}
 
-	const reader = new BufferReader(buf);
+	const reader = BufferReader.fromBuffer(buf);
 	const argList = new Array<unknown>(argumentTypes.size());
 
 	for (let i = 0; i < argumentTypes.size(); i++) {
@@ -34,7 +34,7 @@ export function TransformToBuffer(
 	compression: CastsToEnum<Enum.CompressionAlgorithm> | undefined,
 ): buffer {
 	assert(data.size() === argumentTypes.size());
-	const writer = new BufferWriter(4);
+	const writer = BufferWriter.withInitialByteSize(4);
 
 	for (let i = 0; i < argumentTypes.size(); i++) {
 		const argType = argumentTypes[i];

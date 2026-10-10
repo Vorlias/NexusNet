@@ -1,73 +1,91 @@
+const encodingService = game.GetService("EncodingService");
+
 export class BufferReader {
-    private buffer: buffer;
-    private cursor = 0;
-    private size: number;
+	private buffer: buffer;
+	private cursor = 0;
+	private size: number;
 
-    public constructor(b: string | buffer) {
-        this.buffer = typeIs(b, "string") ? buffer.fromstring(b) : b;
-        this.size = buffer.len(this.buffer);
-    }
+	private constructor(b: string | buffer) {
+		this.buffer = typeIs(b, "string") ? buffer.fromstring(b) : b;
+		this.size = buffer.len(this.buffer);
+	}
 
-    public GetBuffer() {
-        return this.buffer;
-    }
+	public static fromString(str: string) {
+		return new BufferReader(str);
+	}
 
-    public ReadInt8() {
-        const n = buffer.readi8(this.buffer, this.cursor);
-        this.cursor += 1;
-        return n;
-    }
+	public static fromBuffer(b: buffer) {
+		return new BufferReader(b);
+	}
 
-    public ReadUInt8() {
-        const n = buffer.readu8(this.buffer, this.cursor);
-        this.cursor += 1;
-        return n;
-    }
+	public static fromCompressedBuffer(b: buffer) {
+		const size = encodingService.GetDecompressedBufferSize(b, Enum.CompressionAlgorithm.Zstd);
+		if (size === undefined) return this.fromBuffer(b);
 
-    public ReadInt16() {
-        const n = buffer.readi16(this.buffer, this.cursor);
-        this.cursor += 2;
-        return n;
-    }
+		const buf = encodingService.DecompressBuffer(b, Enum.CompressionAlgorithm.Zstd);
+		return new BufferReader(buf);
+	}
 
-    public ReadUInt16() {
-        const n = buffer.readu16(this.buffer, this.cursor);
-        this.cursor += 2;
-        return n;
-    }
+	public GetBuffer() {
+		return this.buffer;
+	}
 
-    public ReadInt32() {
-        const n = buffer.readi32(this.buffer, this.cursor);
-        this.cursor += 4;
-        return n;
-    }
+	public ReadInt8() {
+		const n = buffer.readi8(this.buffer, this.cursor);
+		this.cursor += 1;
+		return n;
+	}
 
-    public ReadUInt32() {
-        const n = buffer.readu32(this.buffer, this.cursor);
-        this.cursor += 4;
-        return n;
-    }
+	public ReadUInt8() {
+		const n = buffer.readu8(this.buffer, this.cursor);
+		this.cursor += 1;
+		return n;
+	}
 
-    public ReadFloat32() {
-        const n = buffer.readf32(this.buffer, this.cursor);
-        this.cursor += 4;
-        return n;
-    }
+	public ReadInt16() {
+		const n = buffer.readi16(this.buffer, this.cursor);
+		this.cursor += 2;
+		return n;
+	}
 
-    public ReadFloat64() {
-        const n = buffer.readf64(this.buffer, this.cursor);
-        this.cursor += 8;
-        return n;
-    }
+	public ReadUInt16() {
+		const n = buffer.readu16(this.buffer, this.cursor);
+		this.cursor += 2;
+		return n;
+	}
 
-    public ReadString() {
-        const strLen = this.ReadUInt32();
-        const s = buffer.readstring(this.buffer, this.cursor, strLen);
-        this.cursor += strLen;
-        return s;
-    }
+	public ReadInt32() {
+		const n = buffer.readi32(this.buffer, this.cursor);
+		this.cursor += 4;
+		return n;
+	}
 
-    public ReadBoolean() {
-        return this.ReadUInt8() !== 0;
-    }
+	public ReadUInt32() {
+		const n = buffer.readu32(this.buffer, this.cursor);
+		this.cursor += 4;
+		return n;
+	}
+
+	public ReadFloat32() {
+		const n = buffer.readf32(this.buffer, this.cursor);
+		this.cursor += 4;
+		return n;
+	}
+
+	public ReadFloat64() {
+		const n = buffer.readf64(this.buffer, this.cursor);
+		this.cursor += 8;
+		return n;
+	}
+
+	public ReadString() {
+		const strLen = this.ReadUInt32();
+		const s = buffer.readstring(this.buffer, this.cursor, strLen);
+		this.cursor += strLen;
+		return s;
+	}
+
+	public ReadBoolean() {
+		return this.ReadUInt8() !== 0;
+	}
 }

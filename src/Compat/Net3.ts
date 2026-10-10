@@ -38,65 +38,77 @@ export namespace Net {
 				Client: new ClientCompatContextWrapper(declarations),
 			};
 		}
-	}
 
-	export const CreateDefinitions = Definitions.Create;
+		/**
+		 * @deprecated
+		 * @version RbxNet-3.0
+		 */
+		export function Namespace<T extends NOM.DeclarationRecord>() {
+			throw `TODO`;
+		}
 
-	/**
-	 * @deprecated
-	 * @version RbxNet-3.0
-	 */
-	export function Namespace<T extends NOM.DeclarationRecord>() {
-		throw `TODO`;
-	}
+		/**
+		 * @version RbxNet-3.x
+		 * @deprecated Insecure type-only event - specify arguments for static typing
+		 */
+		export function ServerToClientEvent<
+			ServerArgs extends ReadonlyArray<unknown> = [],
+		>(): NOM.ServerEventDeclaration<ServerArgs>;
+		/**
+		 * @version RbxNet-3.x-compat
+		 */
+		export function ServerToClientEvent<ServerArgs extends ReadonlyArray<unknown>>(
+			...types: NetworkType.ToTypeArray<ServerArgs>
+		): NOM.ServerEventDeclaration<ServerArgs>;
+		export function ServerToClientEvent<ServerArgs extends ReadonlyArray<unknown>>(
+			...types: NetworkType.ToTypeArray<ServerArgs>
+		): NOM.ServerEventDeclaration<ServerArgs> {
+			// const builder = new NexusEventBuilder();
+			// if (types.size() === 0) {
+			// 	// likely type only
+			// 	const data = builder.OnServer(LegacyDefaults) as Writable<NOM.ServerEventDeclaration<any>>;
+			// 	data.Flags |= NetworkingFlags.RbxNet3BackwardsCompat | NetworkingFlags.ArgumentsByValue;
+			// 	return data;
+			// } else {
+			// 	builder.arguments = types;
+			// 	return builder.OnServer(LegacyDefaults) as NOM.ServerEventDeclaration<any>;
+			// }
 
-	/**
-	 * @version RbxNet-3.x
-	 * @deprecated Insecure type-only event - specify arguments for static typing
-	 */
-	export function ServerToClientEvent<
-		ServerArgs extends ReadonlyArray<unknown>,
-	>(): NOM.ServerEventDeclaration<ServerArgs>;
-	/**
-	 * @version RbxNet-3.x-compat
-	 */
-	export function ServerToClientEvent<ServerArgs extends ReadonlyArray<unknown>>(
-		...types: NetworkType.ToTypeArray<ServerArgs>
-	): NOM.ServerEventDeclaration<ServerArgs>;
-	export function ServerToClientEvent<ServerArgs extends ReadonlyArray<unknown>>(
-		...types: NetworkType.ToTypeArray<ServerArgs>
-	): NOM.ServerEventDeclaration<ServerArgs> {
-		const builder = new NexusEventBuilder();
-		if (types.size() === 0) {
-			// likely type only
-			const data = builder.OnServer(LegacyDefaults) as Writable<NOM.ServerEventDeclaration<any>>;
-			data.Flags |= NetworkingFlags.RbxNet3BackwardsCompat | NetworkingFlags.ArgumentsByValue;
-			return data;
-		} else {
-			builder.arguments = types;
-			return builder.OnServer(LegacyDefaults) as NOM.ServerEventDeclaration<any>;
+			throw `TODO`;
+		}
+
+		/**
+		 * @version RbxNet-3.0
+		 * @deprecated Insecure type-only event - specify arguments for static typing
+		 */
+		export function ClientToServerEvent<
+			const ServerArgs extends ReadonlyArray<unknown> = [],
+		>(): NOM.ClientEventDeclaration<ServerArgs>;
+		/**
+		 * @version RbxNet-3.0
+		 */
+		export function ClientToServerEvent<const ServerArgs extends ReadonlyArray<unknown>>(
+			...types: NetworkType.ToTypeArray<ServerArgs>
+		): NOM.ClientEventDeclaration<ServerArgs>;
+		export function ClientToServerEvent<const ServerArgs extends ReadonlyArray<unknown>>(
+			...types: NetworkType.ToTypeArray<ServerArgs>
+		): NOM.ClientEventDeclaration<ServerArgs> {
+			// const builder = new NexusEventBuilder();
+			// if (types.size() === 0) {
+			// 	const data = builder.OnClient(LegacyDefaults) as Writable<NOM.ClientEventDeclaration<any>>;
+			// 	data.Flags |= NetworkingFlags.RbxNet3BackwardsCompat | NetworkingFlags.ArgumentsByValue;
+			// 	return data;
+			// } else {
+			// 	builder.arguments = types;
+			// 	return builder.OnClient(LegacyDefaults) as NOM.ClientEventDeclaration<any>;
+			// }
+			throw `TODO`;
 		}
 	}
 
-	/**
-	 * @version RbxNet-3.0
-	 * @deprecated Insecure type-only event - specify arguments for static typing
-	 */
-	export function ClientToServerEvent<
-		const ServerArgs extends ReadonlyArray<unknown>,
-	>(): NOM.ClientEventDeclaration<ServerArgs>;
-	/**
-	 * @version RbxNet-3.0
-	 */
-	export function ClientToServerEvent<const ServerArgs extends ReadonlyArray<unknown>>(
-		...types: NetworkType.ToTypeArray<ServerArgs>
-	): NOM.ClientEventDeclaration<ServerArgs>;
-	export function ClientToServerEvent<const ServerArgs extends ReadonlyArray<unknown>>(
-		...types: NetworkType.ToTypeArray<ServerArgs>
-	): NOM.ClientEventDeclaration<ServerArgs> {
-		const builder = new NexusEventBuilder();
-		const data = builder.OnClient(LegacyDefaults) as Writable<NOM.ClientEventDeclaration<any>>;
-		data.Flags |= NetworkingFlags.RbxNet3BackwardsCompat | NetworkingFlags.ArgumentsByValue;
-		return data;
-	}
+	export const CreateDefinitions = Definitions.Create;
 }
+
+Net.CreateDefinitions({
+	X: Net.Definitions.ServerToClientEvent<[name: string]>(),
+});
