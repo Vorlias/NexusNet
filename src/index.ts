@@ -5,7 +5,6 @@ import { NetworkObjectModelBuilder } from "./Builders/ModelBuilder";
 import { NexusInlineClient, NexusInlineServer } from "./Inline";
 import { NOM } from "./NetworkObjectModel";
 import { NetworkType } from "./Types/NetworkType";
-import { NexusString } from "./Types/PrimitiveTypes";
 
 export { NetworkType as NexusType } from "./Types/NetworkType";
 export { NexusServerEvent } from "./Server/ServerEvent";

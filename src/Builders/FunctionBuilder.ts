@@ -1,4 +1,4 @@
-import { NOM } from "../NetworkObjectModel";
+import { NOM, RemoteRunContext } from "../NetworkObjectModel";
 import { NetworkType } from "../Types/NetworkType";
 
 // export interface ClientFunctionBuilder<R extends unknown, T extends readonly unknown[]> extends NOM.ClientBuilder<
@@ -14,12 +14,20 @@ export class NexusFunctionBuilder<
 > implements ServerFunctionBuilder<TRet, TArgs> {
 	public arguments: NetworkType.Any[] = [];
 	public returns: NetworkType.Any;
+	public configuration: Writable<NOM.FunctionConfig> = {};
 
 	public constructor(returns: NetworkType.OfType<TRet>) {
 		this.returns = returns;
 	}
 
 	OnServer(configuration: NOM.Config): NOM.ServerFunctionDeclaration<TArgs, TRet> {
-		throw `TODO`;
+		return {
+			Type: "Function",
+			Arguments: this.arguments,
+			Returns: this.returns,
+			Flags: 0,
+			RunContext: RemoteRunContext.Server,
+			Config: table.freeze({ ...configuration, ...this.configuration }),
+		};
 	}
 }
