@@ -5,7 +5,7 @@ import { ConfigFlags, NOM } from "../NetworkObjectModel";
 import { NetworkType } from "../Types/NetworkType";
 import { ClientInvokeFunction } from "./ClientNetworkTypes";
 
-export class ClientSyncFunction<TArgs extends unknown[], TRet extends unknown> implements ClientInvokeFunction<
+export class NexusClientSyncFunction<TArgs extends unknown[], TRet extends unknown> implements ClientInvokeFunction<
 	TArgs,
 	TRet
 > {

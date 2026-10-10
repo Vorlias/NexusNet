@@ -1,7 +1,9 @@
 import { NOM } from ".";
 import { NexusClientEvent } from "../Client/ClientEvent";
+import { NexusClientSyncFunction } from "../Client/ClientSyncFunction";
 import { NexusServerEvent } from "../Server/ServerEvent";
 import { ServerMessagingEvent } from "../Server/ServerMessagingEvent";
+import { NexusServerSyncFunction } from "../Server/ServerSyncFunction";
 
 /** @internal */
 export namespace NOMFactory {
@@ -9,12 +11,19 @@ export namespace NOMFactory {
 	export function CreateServerObject<N extends string, D extends NOM.Declaration>(
 		name: N,
 		declaration: D,
-	): NexusServerEvent<any> | ServerMessagingEvent<any> | NOM.ServerContext<NOM.DeclarationRecord> {
+	):
+		| NexusServerEvent<any>
+		| NexusServerSyncFunction<any, any>
+		| ServerMessagingEvent<any>
+		| NOM.ServerContext<NOM.DeclarationRecord> {
 		if (declaration.Type === "Event") {
 			return new NexusServerEvent(name, declaration as NOM.ServerEventDeclaration<never>);
 		} else if (declaration.Type === "Messaging") {
 			const evt = new ServerMessagingEvent(name, declaration);
 			return evt;
+		} else if (declaration.Type === "Function") {
+			const fn = new NexusServerSyncFunction(name, declaration);
+			return fn;
 		} else if (declaration.Type === "Namespace") {
 			const record = {} as Record<string, defined>;
 			const inner = declaration.Declarations;
@@ -33,9 +42,12 @@ export namespace NOMFactory {
 	export function CreateClientObject<N extends string, D extends NOM.Declaration>(
 		name: N,
 		declaration: D,
-	): NexusClientEvent<any> | NOM.ClientContext<NOM.DeclarationRecord> {
+	): NexusClientEvent<any> | NexusClientSyncFunction<any, any> | NOM.ClientContext<NOM.DeclarationRecord> {
 		if (declaration.Type === "Event") {
 			return new NexusClientEvent(name, declaration as NOM.ClientEventDeclaration<never>);
+		} else if (declaration.Type === "Function") {
+			const fn = new NexusClientSyncFunction(name, declaration);
+			return fn;
 		} else if (declaration.Type === "Namespace") {
 			const record = {} as Record<string, defined>;
 			const inner = declaration.Declarations;

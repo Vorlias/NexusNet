@@ -24,7 +24,7 @@ export function CreateServerFunctionCallback<T extends ReadonlyArray<unknown>, R
 }
 
 const RunService = game.GetService("RunService");
-export class ServerSyncFunction<TArgs extends unknown[], TRet extends unknown[]> implements ServerListenerFunction<
+export class NexusServerSyncFunction<TArgs extends unknown[], TRet extends unknown[]> implements ServerListenerFunction<
 	TArgs,
 	TRet
 > {
