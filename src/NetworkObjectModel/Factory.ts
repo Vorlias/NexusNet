@@ -17,7 +17,7 @@ export namespace NOMFactory {
 		| ServerMessagingEvent<any>
 		| NOM.ServerContext<NOM.DeclarationRecord> {
 		if (declaration.Type === "Event") {
-			return new NexusServerEvent(name, declaration as NOM.ServerEventDeclaration<never>);
+			return new NexusServerEvent(name, declaration as NOM.ServerEventDeclaration<any>);
 		} else if (declaration.Type === "Messaging") {
 			const evt = new ServerMessagingEvent(name, declaration);
 			return evt;
@@ -44,7 +44,7 @@ export namespace NOMFactory {
 		declaration: D,
 	): NexusClientEvent<any> | NexusClientSyncFunction<any, any> | NOM.ClientContext<NOM.DeclarationRecord> {
 		if (declaration.Type === "Event") {
-			return new NexusClientEvent(name, declaration as NOM.ClientEventDeclaration<never>);
+			return new NexusClientEvent(name, declaration as NOM.ClientEventDeclaration<any>);
 		} else if (declaration.Type === "Function") {
 			const fn = new NexusClientSyncFunction(name, declaration);
 			return fn;

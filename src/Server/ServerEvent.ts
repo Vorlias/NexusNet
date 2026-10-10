@@ -8,6 +8,7 @@ import {
 } from "../Buffers/Transform";
 import { RemotesFolder } from "../Internal";
 import { GetRbxNetEventId } from "../Internal/InternalId";
+import { ServerEventCallbackMiddleware } from "../Middleware";
 import { ConfigFlags, NOM } from "../NetworkObjectModel";
 import { NetworkSerialization } from "../Serialization";
 import { NetworkType, NetworkTypeFlags } from "../Types/NetworkType";
@@ -36,7 +37,8 @@ export class NexusServerEvent<T extends Array<unknown>> implements ServerSenderE
 	private readonly declaration: NOM.ServerEventDeclaration<T>;
 	private readonly compression?: CastsToEnum<Enum.CompressionAlgorithm>;
 
-	private readonly arguments: NetworkType.ToTypeArray<T>;
+	public readonly arguments: NetworkType.ToTypeArray<T>;
+	public readonly middleware: ServerEventCallbackMiddleware<T>[];
 
 	public constructor(name: string, declaration: NOM.ServerEventDeclaration<T>) {
 		this.declaration = declaration;
@@ -52,6 +54,7 @@ export class NexusServerEvent<T extends Array<unknown>> implements ServerSenderE
 		this.instance.Name = name;
 		this.instance.Parent = RemotesFolder;
 		this.arguments = declaration.Arguments as NetworkType.ToTypeArray<T>;
+		this.middleware = declaration.ServerMiddleware;
 
 		this.compression = declaration.Config.Compression;
 

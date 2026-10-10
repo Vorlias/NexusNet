@@ -1,5 +1,6 @@
 import { NexusClientEvent } from "../Client/ClientEvent";
 import { ClientInvokeFunction, ClientListenerEvent, ClientSenderEvent } from "../Client/ClientNetworkTypes";
+import { ClientEventCallbackMiddleware, ServerEventCallbackMiddleware } from "../Middleware";
 import { NexusServerEvent } from "../Server/ServerEvent";
 import { ServerMessagingEvent } from "../Server/ServerMessagingEvent";
 import { ServerListenerEvent, ServerListenerFunction, ServerSenderEvent } from "../Server/ServerNetworkTypes";
@@ -94,12 +95,16 @@ export namespace NOM {
 	export interface ServerEventDeclaration<_TArgs extends ReadonlyArray<unknown>> extends EventDeclaration<
 		RemoteRunContext.Server,
 		_TArgs
-	> {}
+	> {
+		readonly ServerMiddleware: ServerEventCallbackMiddleware<_TArgs>[];
+	}
 
 	export interface ClientEventDeclaration<_TArgs extends ReadonlyArray<unknown>> extends EventDeclaration<
 		RemoteRunContext.Client,
 		_TArgs
-	> {}
+	> {
+		readonly ClientMiddleware: ClientEventCallbackMiddleware<_TArgs>[];
+	}
 
 	export interface FunctionDeclaration<
 		TRunContext extends RemoteRunContext,

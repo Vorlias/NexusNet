@@ -69,12 +69,12 @@ export namespace Net {
 		const builder = new NexusEventBuilder();
 		if (types.size() === 0) {
 			// likely type only
-			const data = builder.OnServer(LegacyDefaults) as Writable<NOM.ServerEventDeclaration<ServerArgs>>;
+			const data = builder.OnServer(LegacyDefaults) as Writable<NOM.ServerEventDeclaration<any>>;
 			data.Flags |= NetworkingFlags.RbxNet3BackwardsCompat | NetworkingFlags.ArgumentsByValue;
 			return data;
 		} else {
 			builder.arguments = types;
-			return builder.OnServer(LegacyDefaults) as NOM.ServerEventDeclaration<never>;
+			return builder.OnServer(LegacyDefaults) as NOM.ServerEventDeclaration<any>;
 		}
 	}
 
@@ -95,7 +95,7 @@ export namespace Net {
 		...types: NetworkType.ToTypeArray<ServerArgs>
 	): NOM.ClientEventDeclaration<ServerArgs> {
 		const builder = new NexusEventBuilder();
-		const data = builder.OnClient(LegacyDefaults) as Writable<NOM.ClientEventDeclaration<ServerArgs>>;
+		const data = builder.OnClient(LegacyDefaults) as Writable<NOM.ClientEventDeclaration<any>>;
 		data.Flags |= NetworkingFlags.RbxNet3BackwardsCompat | NetworkingFlags.ArgumentsByValue;
 		return data;
 	}

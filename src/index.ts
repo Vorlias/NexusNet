@@ -21,30 +21,26 @@ export namespace Nexus {
 		return model;
 	}
 
-	export function Event(): NexusEventBuilder<[]>;
-	export function Event<T extends ReadonlyArray<unknown>>(...args: NetworkType.ToTypeArray<T>): NexusEventBuilder<T>;
-	export function Event<T extends ReadonlyArray<unknown>>(...args: NetworkType.ToTypeArray<T>) {
+	export function Event<const T extends ReadonlyArray<unknown>>(
+		args: NetworkType.ToTypeArray<T>,
+	): NexusEventBuilder<T>;
+	export function Event<T extends ReadonlyArray<unknown>>(args: NetworkType.ToTypeArray<T>) {
 		const builder = new NexusEventBuilder();
 
-		if (args !== undefined) {
+		if (args.size() > 0) {
 			builder.arguments = args;
 		}
 
 		return builder;
 	}
 
-	export function Function<R extends unknown>(returns: NetworkType.OfType<R>): NexusFunctionBuilder<R, []>;
-	export function Function<R extends unknown, T extends ReadonlyArray<unknown>>(
-		returns: NetworkType.OfType<R>,
+	export function Function<const T extends ReadonlyArray<unknown>, R extends defined>(
 		args: NetworkType.ToTypeArray<T>,
-	): NexusFunctionBuilder<R, T>;
-	export function Function<R extends unknown, T extends ReadonlyArray<unknown>>(
 		returns: NetworkType.OfType<R>,
-		args?: NetworkType.ToTypeArray<T>,
 	) {
 		const result = new NexusFunctionBuilder<R, T>(returns);
 
-		if (args) {
+		if (args.size() > 0) {
 			result.arguments = args;
 		}
 
