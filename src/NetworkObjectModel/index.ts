@@ -1,8 +1,8 @@
 import { NexusClientEvent } from "../Client/ClientEvent";
-import { ClientListenerEvent, ClientSenderEvent } from "../Client/ClientNetworkTypes";
+import { ClientInvokeFunction, ClientListenerEvent, ClientSenderEvent } from "../Client/ClientNetworkTypes";
 import { NexusServerEvent } from "../Server/ServerEvent";
 import { ServerMessagingEvent } from "../Server/ServerMessagingEvent";
-import { ServerListenerEvent, ServerSenderEvent } from "../Server/ServerNetworkTypes";
+import { ServerListenerEvent, ServerListenerFunction, ServerSenderEvent } from "../Server/ServerNetworkTypes";
 import { NetworkType } from "../Types/NetworkType";
 import { Identity } from "../Types/Utility";
 
@@ -70,6 +70,8 @@ export namespace NOM {
 		readonly Compression?: CastsToEnum<Enum.CompressionAlgorithm>;
 	}
 
+	export interface FunctionConfig extends Config {}
+
 	export interface EventDeclaration<TRunContext extends RemoteRunContext, _TArgs extends ReadonlyArray<unknown>> {
 		readonly Type: "Event";
 		readonly RunContext: TRunContext;
@@ -99,9 +101,39 @@ export namespace NOM {
 		_TArgs
 	> {}
 
+	export interface FunctionDeclaration<
+		TRunContext extends RemoteRunContext,
+		_TArgs extends ReadonlyArray<unknown>,
+		_TRet,
+	> {
+		readonly RunContext: TRunContext;
+		readonly Type: "Function";
+		readonly Flags: NetworkingFlags;
+
+		readonly Arguments: NetworkType.Any[];
+		readonly Returns: NetworkType.Any;
+
+		readonly Config: FunctionConfig;
+	}
+
+	export interface ServerFunctionDeclaration<
+		_TArgs extends ReadonlyArray<unknown>,
+		_TRet,
+	> extends FunctionDeclaration<RemoteRunContext.Server, _TArgs, _TRet> {
+		// readonly ServerCallbackMiddleware: ServerFunctionCallbackMiddleware[];
+	}
+
+	// export interface ClientFunctionDeclaration<
+	// 	_TArgs extends ReadonlyArray<unknown>,
+	// 	_TRet,
+	// > extends FunctionDeclaration<RemoteRunContext.Client, _TArgs, _TRet> {
+
+	// }
+
 	export type Declaration =
 		| ServerEventDeclaration<any>
 		| ClientEventDeclaration<any>
+		| ServerFunctionDeclaration<any, any>
 		| CrossServerEventDeclaration<any>
 		| NamespaceDeclaration<any>;
 
@@ -124,6 +156,8 @@ export namespace NOM {
 				T,
 				| ServerEventDeclaration<any>
 				| ClientEventDeclaration<any>
+				| ServerFunctionDeclaration<any, any>
+				// | ClientFunctionDeclaration<any, any>
 				| CrossServerEventDeclaration<any>
 				| NamespaceDeclaration<any>
 			>
@@ -132,7 +166,14 @@ export namespace NOM {
 
 	export type FilterClientDeclarations<T extends DeclarationRecord> = {
 		[
-			K in ExtractKeys<T, ServerEventDeclaration<any> | ClientEventDeclaration<any> | NamespaceDeclaration<any>>
+			K in ExtractKeys<
+				T,
+				| ServerEventDeclaration<any>
+				| ClientEventDeclaration<any>
+				| ServerFunctionDeclaration<any, any>
+				// | ClientFunctionDeclaration<any, any>
+				| NamespaceDeclaration<any>
+			>
 		]: T[K];
 	};
 
@@ -141,16 +182,20 @@ export namespace NOM {
 			? ServerSenderEvent<A>
 			: T extends ClientEventDeclaration<infer A>
 				? ServerListenerEvent<A>
-				: T extends CrossServerEventDeclaration<infer A>
-					? ServerMessagingEvent<A>
-					: never;
+				: T extends ServerFunctionDeclaration<infer A, infer R>
+					? ServerListenerFunction<A, R>
+					: T extends CrossServerEventDeclaration<infer A>
+						? ServerMessagingEvent<A>
+						: never;
 
 	export type InferClientRemote<T> =
 		T extends ClientEventDeclaration<infer A>
 			? ClientSenderEvent<A>
-			: T extends ServerEventDeclaration<infer A>
-				? ClientListenerEvent<A>
-				: never;
+			: T extends ServerFunctionDeclaration<infer A, infer R>
+				? ClientInvokeFunction<A, R>
+				: T extends ServerEventDeclaration<infer A>
+					? ClientListenerEvent<A>
+					: never;
 
 	type RemoveNever<T> = { [P in keyof T as T[P] extends never ? never : P]: T[P] };
 	export type ServerContext<T> = RemoveNever<{

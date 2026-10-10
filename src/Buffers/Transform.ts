@@ -74,6 +74,16 @@ export function TransformToNetworkArguments(
 	}
 }
 
+export function TransformToNetworkReturnBuffer(returnType: NetworkType.Unknown, value: unknown): buffer {
+	const buf = TransformToBuffer([value], [returnType], undefined);
+	return buf;
+}
+
+export function TransformFromNetworkReturnBuffer(returnType: NetworkType.Unknown, buf: buffer): unknown {
+	const [value] = TransformFromBuffer(buf, [returnType], undefined);
+	return value;
+}
+
 export function TransformFromNetworkArguments(
 	buf: buffer,
 	xData: defined[] | undefined,
